@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified P&L AI Governance - Login</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--color-bg-primary), #000);
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: var(--space-4);
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: var(--space-2);
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        .form-group input {
+            width: 100%;
+            padding: var(--space-3);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+            background: var(--color-bg-primary);
+            color: white;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-accent-primary);
+            box-shadow: 0 0 0 2px rgba(26,110,253,0.3);
+        }
+        .btn-full {
+            width: 100%;
+            margin-top: var(--space-4);
+        }
+        #error-banner {
+            display: none;
+            background: var(--color-accent-red);
+            color: white;
+            padding: var(--space-2);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-4);
+            font-size: var(--font-size-sm);
+        }
+    </style>
+</head>
+<body>
+    <div class="card login-card">
+        <h2 style="color: var(--color-accent-teal); margin-bottom: var(--space-6);">P&L AI Governance</h2>
+        <div id="error-banner"></div>
+        <form id="login-form">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" id="login-btn" class="btn btn-full">Login</button>
+        </form>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>

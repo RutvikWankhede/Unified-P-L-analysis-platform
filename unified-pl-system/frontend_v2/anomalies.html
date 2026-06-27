@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomalies - P&L AI</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-high { background: rgba(255, 77, 106, 0.2); color: var(--color-accent-red); }
+        .badge-medium { background: rgba(255, 181, 71, 0.2); color: var(--color-accent-amber); }
+        .badge-low { background: rgba(0, 200, 150, 0.2); color: var(--color-accent-green); }
+        .panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            bottom: 0;
+            width: 400px;
+            background: var(--color-bg-secondary);
+            box-shadow: var(--shadow-modal);
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: var(--space-6);
+            overflow-y: auto;
+            border-left: 1px solid var(--color-border);
+        }
+        .panel.open {
+            right: 0;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-primary);
+            font-size: var(--font-size-xl);
+            cursor: pointer;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">P&L AI Governance</div>
+        <a href="dashboard.html" class="nav-item">Dashboard</a>
+        <a href="upload.html" class="nav-item">Upload Data</a>
+        <a href="anomalies.html" class="nav-item active">Anomalies</a>
+        <div style="flex-grow: 1;"></div>
+        <a href="#" class="nav-item" id="logout-btn">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <h1 style="color: var(--color-accent-teal);">Anomaly Browser</h1>
+        <div class="card">
+            <div class="table-wrapper">
+                <table id="anomalies-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Severity</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="detail-panel">
+        <button class="close-btn" id="close-panel">&times;</button>
+        <h2 style="color: var(--color-accent-teal); margin-top:0;">Anomaly Details</h2>
+        <div id="panel-content">
+            <p>Loading...</p>
+        </div>
+        <hr style="border-color: var(--color-border); margin: var(--space-4) 0;">
+        <h3 style="color: var(--color-accent-primary);">AI Explanation</h3>
+        <div id="ai-explanation" style="background: var(--color-bg-elevated); padding: var(--space-3); border-radius: var(--radius-sm);"></div>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        });
+
+        const panel = document.getElementById('detail-panel');
+        document.getElementById('close-panel').addEventListener('click', () => panel.classList.remove('open'));
+
+        async function loadAnomalies() {
+            const tbody = document.querySelector('#anomalies-table tbody');
+            try {
+                const anomalies = await window.api.getAnomalies();
+                tbody.innerHTML = '';
+                anomalies.forEach(a => {
+                    const badgeClass = a.severity === 'High' ? 'badge-high' : (a.severity === 'Medium' ? 'badge-medium' : 'badge-low');
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${a.id}</td>
+                        <td><span class="badge ${badgeClass}">${a.severity}</span></td>
+                        <td>${a.anomaly_score.toFixed(2)}</td>
+                        <td>${a.status}</td>
+                        <td><button class="btn" onclick="viewDetails(${a.id})">Investigate</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        window.viewDetails = async (id) => {
+            panel.classList.add('open');
+            document.getElementById('panel-content').innerHTML = '<p>Loading...</p>';
+            document.getElementById('ai-explanation').innerHTML = '';
+            
+            try {
+                const detail = await window.api.getAnomalyDetail(id);
+                document.getElementById('panel-content').innerHTML = `
+                    <p><strong>Score:</strong> ${detail.anomaly_score.toFixed(2)}</p>
+                    <p><strong>Status:</strong> ${detail.status}</p>
+                    <p><strong>Record ID:</strong> ${detail.pl_record_id}</p>
+                    <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Detected: ${new Date(detail.detected_at).toLocaleString()}</p>
+                `;
+                
+                // Fetch explanation
+                try {
+                    const exp = await window.api.request(`/explanations/generate/${id}`, { method: 'POST' });
+                    document.getElementById('ai-explanation').innerHTML = `
+                        <p>${exp.explanation_text}</p>
+                        <p><small style="color: var(--color-accent-amber);">Root Cause: ${exp.root_cause}</small></p>
+                    `;
+                } catch (e) {
+                    document.getElementById('ai-explanation').innerHTML = `<p style="color: var(--color-accent-red);">Failed to load explanation. ${e.message}</p>`;
+                }
+
+            } catch (err) {
+                document.getElementById('panel-content').innerHTML = `<p style="color: var(--color-accent-red);">Error loading details.</p>`;
+            }
+        };
+
+        loadAnomalies();
+    </script>
+</body>
+</html>

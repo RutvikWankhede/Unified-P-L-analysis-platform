@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - P&L AI</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .upload-zone {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-10);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .upload-zone:hover {
+            border-color: var(--color-accent-primary);
+            background: rgba(26,110,253,0.05);
+        }
+        #file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">P&L AI Governance</div>
+        <a href="dashboard.html" class="nav-item">Dashboard</a>
+        <a href="upload.html" class="nav-item active">Upload Data</a>
+        <a href="anomalies.html" class="nav-item">Anomalies</a>
+        <div style="flex-grow: 1;"></div>
+        <a href="#" class="nav-item" id="logout-btn">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <h1 style="color: var(--color-accent-teal);">Upload P&L Data</h1>
+        <div class="card">
+            <div class="upload-zone" id="upload-zone">
+                <input type="file" id="file-input" accept=".csv">
+                <h3>Drag & Drop CSV File</h3>
+                <p style="color: var(--color-text-secondary);">or click to browse</p>
+            </div>
+            <div id="upload-status" style="margin-top: var(--space-4); text-align: center; color: var(--color-accent-teal);"></div>
+        </div>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        });
+
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        const statusDiv = document.getElementById('upload-status');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                statusDiv.textContent = 'Uploading and processing...';
+                try {
+                    const res = await window.api.upload(file);
+                    statusDiv.textContent = `Upload successful! ${res.records_ingested} records ingested. Running anomaly detection...`;
+                    
+                    const detectRes = await window.api.detectAnomalies(res.upload_id);
+                    statusDiv.innerHTML = `Detection complete! Found <b style="color:var(--color-accent-red)">${detectRes.anomalies_detected}</b> anomalies. <a href="anomalies.html" style="color:var(--color-accent-primary)">View here</a>`;
+                } catch (err) {
+                    statusDiv.textContent = `Error: ${err.message}`;
+                    statusDiv.style.color = 'var(--color-accent-red)';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

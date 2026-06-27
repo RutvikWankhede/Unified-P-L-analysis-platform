@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - P&L AI</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <!-- React and Recharts from CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+    <!-- Babel for in-browser JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-container">P&L AI Governance</div>
+        <a href="dashboard.html" class="nav-item active">Dashboard</a>
+        <a href="upload.html" class="nav-item">Upload Data</a>
+        <a href="anomalies.html" class="nav-item">Anomalies</a>
+        <div style="flex-grow: 1;"></div>
+        <a href="#" class="nav-item" id="logout-btn">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <h1 style="color: var(--color-accent-teal);">Executive Dashboard</h1>
+        
+        <div class="kpi-row">
+            <div class="card kpi-card">
+                <span class="kpi-title">Total Revenue</span>
+                <span class="kpi-value" id="kpi-revenue">-</span>
+            </div>
+            <div class="card kpi-card">
+                <span class="kpi-title">Active Anomalies</span>
+                <span class="kpi-value" id="kpi-anomalies">-</span>
+            </div>
+            <div class="card kpi-card">
+                <span class="kpi-title">High Severity</span>
+                <span class="kpi-value" id="kpi-high-sev" style="color: var(--color-accent-red);">-</span>
+            </div>
+            <div class="card kpi-card">
+                <span class="kpi-title">Health Score</span>
+                <span class="kpi-value" id="kpi-health" style="color: var(--color-accent-green);">98/100</span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
+            <div class="card">
+                <h3 style="margin-top: 0;">Domain Revenue</h3>
+                <div id="chart-container" style="height: 300px;"></div>
+            </div>
+            <div class="card">
+                <h3 style="margin-top: 0;">Recent Anomalies</h3>
+                <div class="table-wrapper">
+                    <table id="recent-anomalies-table">
+                        <thead>
+                            <tr>
+                                <th>Severity</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script type="text/babel" src="js/dashboard.js"></script>
+</body>
+</html>

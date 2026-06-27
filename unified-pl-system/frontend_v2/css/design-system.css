@@ -1,0 +1,45 @@
+:root {
+  /* === Color Tokens === */
+  --color-bg-primary: #0A1628; /* Deep navy — page background */
+  --color-bg-secondary: #0F1E36; /* Card & panel backgrounds */
+  --color-bg-elevated: #1C2E4A; /* Hover & selected states */
+  --color-accent-primary: #1A6EFD; /* Primary CTA, links, active */
+  --color-accent-teal: #00C4CC; /* Section labels, highlights */
+  --color-accent-green: #00C896; /* Positive metrics, success */
+  --color-accent-amber: #FFB547; /* Warnings, medium severity */
+  --color-accent-red: #FF4D6A; /* Errors, high severity */
+  --color-text-primary: #E8EDF5; /* Main content text */
+  --color-text-secondary: #8A9BB5; /* Labels, metadata */
+  --color-border: #2E4A7A; /* Dividers, card borders */
+
+  /* === Typography === */
+  --font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+
+  /* === Spacing Scale (4px base) === */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;
+  --space-4: 16px;  --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px;  --space-10: 40px; --space-12: 48px;
+
+  /* === Elevation / Shadows === */
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-modal: 0 8px 32px rgba(0,0,0,0.6);
+
+  /* === Border Radius === */
+  --radius-sm: 6px;  --radius-md: 10px;  --radius-lg: 16px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
