@@ -1,7 +1,10 @@
-from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
+
 from schemas.pl_schemas import PLRecordResponse
+
 
 class AnomalyBase(BaseModel):
     anomaly_score: float
@@ -9,6 +12,7 @@ class AnomalyBase(BaseModel):
     is_anomaly: bool
     percentile_rank: float
     status: str
+
 
 class AnomalyResponse(AnomalyBase):
     id: int
@@ -20,8 +24,10 @@ class AnomalyResponse(AnomalyBase):
     class Config:
         from_attributes = True
 
+
 class AnomalyDetail(AnomalyResponse):
     pl_record: PLRecordResponse
+
 
 class DetectionResult(BaseModel):
     upload_id: str
@@ -30,6 +36,7 @@ class DetectionResult(BaseModel):
     medium_severity_count: int
     low_severity_count: int
 
+
 class AnomalyStats(BaseModel):
     total_anomalies: int
     open_anomalies: int
@@ -37,11 +44,14 @@ class AnomalyStats(BaseModel):
     medium_severity: int
     low_severity: int
 
+
 class AnomalyUpdateStatus(BaseModel):
     status: str
 
+
 class AnomalyAssign(BaseModel):
     user_id: int
+
 
 class ExplanationResponse(BaseModel):
     explanation_text: str
@@ -49,6 +59,7 @@ class ExplanationResponse(BaseModel):
     business_impact: Optional[str] = None
     model_version: str
     tokens_used: Optional[int] = None
+
 
 class RecommendationResponse(BaseModel):
     id: int
@@ -63,3 +74,11 @@ class RecommendationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CopilotRequest(BaseModel):
+    question: str
+
+
+class CopilotResponse(BaseModel):
+    answer: str

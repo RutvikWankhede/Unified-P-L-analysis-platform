@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,14 +10,27 @@
         .upload-zone {
             border: 2px dashed var(--color-border);
             border-radius: var(--radius-lg);
-            padding: var(--space-10);
+            padding: var(--space-12);
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--transition-normal);
+            background: var(--color-bg-secondary);
         }
         .upload-zone:hover {
             border-color: var(--color-accent-primary);
             background: rgba(26,110,253,0.05);
+            transform: scale(1.02);
+        }
+        .upload-zone .material-symbols-outlined {
+            font-size: 64px;
+            color: var(--color-accent-primary);
+            margin-bottom: var(--space-4);
+            opacity: 0.8;
+            transition: transform var(--transition-normal);
+        }
+        .upload-zone:hover .material-symbols-outlined {
+            transform: translateY(-10px);
+            opacity: 1;
         }
         #file-input {
             display: none;
@@ -25,54 +38,145 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo-container">P&L AI Governance</div>
-        <a href="dashboard.html" class="nav-item">Dashboard</a>
-        <a href="upload.html" class="nav-item active">Upload Data</a>
-        <a href="anomalies.html" class="nav-item">Anomalies</a>
+    <div class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <span class="material-symbols-outlined" style="font-size: 28px;">analytics</span>
+            <span class="logo-text">P&L AI</span>
+        </div>
+        <a href="dashboard.html" class="nav-item">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="nav-text">Dashboard</span>
+        </a>
+        <a href="upload.html" class="nav-item active">
+            <span class="material-symbols-outlined">upload_file</span>
+            <span class="nav-text">Upload Data</span>
+        </a>
+        <a href="anomalies.html" class="nav-item">
+            <span class="material-symbols-outlined">warning</span>
+            <span class="nav-text">Anomalies</span>
+        </a>
         <div style="flex-grow: 1;"></div>
-        <a href="#" class="nav-item" id="logout-btn">Logout</a>
+        <a href="#" class="nav-item" id="logout-btn">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="nav-text">Logout</span>
+        </a>
     </div>
 
-    <div class="main-content">
-        <h1 style="color: var(--color-accent-teal);">Upload P&L Data</h1>
-        <div class="card">
+    <div class="main-content" id="main-content">
+        <div class="topbar">
+            <div style="display: flex; align-items: center; gap: var(--space-4);">
+                <button class="icon-btn" id="sidebar-toggle">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+            
+            <div class="topbar-actions">
+                <button class="icon-btn" id="theme-toggle">
+                    <span class="material-symbols-outlined">light_mode</span>
+                </button>
+                <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
+                    AD
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: var(--space-8);">
+            <h1 style="margin-bottom: var(--space-2);">Data Ingestion</h1>
+            <p style="color: var(--color-text-secondary); margin: 0;">Upload your CSV files. Our schema mapping agent will automatically format it.</p>
+        </div>
+
+        <div class="card" style="max-width: 800px; margin: 0 auto; animation: fadeIn 0.5s ease-out;">
             <div class="upload-zone" id="upload-zone">
                 <input type="file" id="file-input" accept=".csv">
-                <h3>Drag & Drop CSV File</h3>
-                <p style="color: var(--color-text-secondary);">or click to browse</p>
+                <span class="material-symbols-outlined">cloud_upload</span>
+                <h3 style="margin-top: 0; margin-bottom: var(--space-2);">Drag & Drop your CSV File</h3>
+                <p style="color: var(--color-text-secondary); margin: 0;">or click to browse from your computer</p>
             </div>
-            <div id="upload-status" style="margin-top: var(--space-4); text-align: center; color: var(--color-accent-teal);"></div>
+            
+            <div id="upload-status" style="margin-top: var(--space-6); text-align: center; color: var(--color-accent-teal); font-weight: 500; font-size: var(--font-size-lg);"></div>
+            
+            <div id="loading-indicator" style="display: none; flex-direction: column; align-items: center; margin-top: var(--space-6);">
+                <div class="skeleton" style="height: 8px; width: 100%; border-radius: var(--radius-full);"></div>
+                <p style="color: var(--color-text-secondary); margin-top: var(--space-4); font-size: var(--font-size-sm);">Processing through Camunda workflow...</p>
+            </div>
         </div>
     </div>
     
     <script src="js/api.js"></script>
     <script>
+        // UI logic
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            const html = document.documentElement;
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">light_mode</span>';
+            }
+        });
+
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
         document.getElementById('logout-btn').addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('token');
             window.location.href = 'index.html';
         });
 
+        // Upload Logic
         const uploadZone = document.getElementById('upload-zone');
         const fileInput = document.getElementById('file-input');
         const statusDiv = document.getElementById('upload-status');
+        const loadingDiv = document.getElementById('loading-indicator');
 
         uploadZone.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', async (e) => {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
+                uploadZone.style.display = 'none';
+                loadingDiv.style.display = 'flex';
                 statusDiv.textContent = 'Uploading and processing...';
+                
                 try {
                     const res = await window.api.upload(file);
-                    statusDiv.textContent = `Upload successful! ${res.records_ingested} records ingested. Running anomaly detection...`;
+                    statusDiv.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle; color: var(--color-accent-green);">check_circle</span> Upload successful! ${res.records_ingested} records ingested. Running anomaly detection...`;
                     
                     const detectRes = await window.api.detectAnomalies(res.upload_id);
-                    statusDiv.innerHTML = `Detection complete! Found <b style="color:var(--color-accent-red)">${detectRes.anomalies_detected}</b> anomalies. <a href="anomalies.html" style="color:var(--color-accent-primary)">View here</a>`;
+                    loadingDiv.style.display = 'none';
+                    statusDiv.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: var(--space-4);">
+                            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--color-accent-amber);">warning</span>
+                            <span>Detection complete! Found <b style="color:var(--color-accent-red)">${detectRes.anomalies_detected}</b> anomalies.</span>
+                            <a href="anomalies.html" class="btn">Review Anomalies <span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span></a>
+                        </div>
+                    `;
                 } catch (err) {
-                    statusDiv.textContent = `Error: ${err.message}`;
+                    loadingDiv.style.display = 'none';
+                    statusDiv.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">error</span> Error: ${err.message}`;
                     statusDiv.style.color = 'var(--color-accent-red)';
+                    
+                    // Add retry button
+                    const retry = document.createElement('button');
+                    retry.className = 'btn btn-secondary';
+                    retry.style.marginTop = '16px';
+                    retry.innerText = 'Try Again';
+                    retry.onclick = () => {
+                        statusDiv.innerHTML = '';
+                        statusDiv.style.color = 'var(--color-accent-teal)';
+                        uploadZone.style.display = 'block';
+                        fileInput.value = '';
+                    };
+                    statusDiv.appendChild(retry);
                 }
             }
         });

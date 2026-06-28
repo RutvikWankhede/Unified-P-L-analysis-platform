@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: unified-pl-backend
+    env: docker
+    region: ohio
+    plan: starter
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: unified-pl-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: "https://unified-pl.vercel.app"
+
+databases:
+  - name: unified-pl-db
+    region: ohio
+    plan: starter
+    databaseName: unified_pl
+    user: admin

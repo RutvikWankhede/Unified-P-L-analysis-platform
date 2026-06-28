@@ -19,15 +19,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('kpi-high-sev').textContent = highSev;
         
         const tbody = document.querySelector('#recent-anomalies-table tbody');
-        anomalies.slice(0, 5).forEach(a => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><span style="color: ${a.severity === 'High' ? 'var(--color-accent-red)' : 'var(--color-accent-amber)'}">${a.severity}</span></td>
-                <td>${a.anomaly_score.toFixed(2)}</td>
-                <td>${a.status}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+        
+        if (anomalies.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">
+                <div class="empty-state" style="padding: 20px;">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <p>No anomalies detected</p>
+                </div>
+            </td></tr>`;
+        } else {
+            anomalies.slice(0, 5).forEach(a => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span style="color: ${a.severity === 'High' ? 'var(--color-accent-red)' : 'var(--color-accent-amber)'}">${a.severity}</span></td>
+                    <td>${a.anomaly_score.toFixed(2)}</td>
+                    <td>${a.status}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
         // We mock domain revenue for the chart since we don't have a specific GET /summary endpoint response yet
         const data = [
@@ -59,5 +69,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (err) {
         console.error(err);
+        if (window.UI) window.UI.showToast('Failed to load dashboard data', 'error');
     }
 });

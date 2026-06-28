@@ -1,6 +1,9 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.sql import func
+
+from sqlalchemy.orm import relationship
 from database import Base
+
 
 class Anomaly(Base):
     __tablename__ = "anomalies"
@@ -15,3 +18,5 @@ class Anomaly(Base):
     detected_at = Column(DateTime, default=func.now())
     resolved_at = Column(DateTime, nullable=True)
     assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    pl_record = relationship("PLRecord")

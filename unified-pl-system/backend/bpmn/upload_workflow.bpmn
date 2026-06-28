@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_UploadData" name="Upload Workflow" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Upload Received">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_SchemaValidation" name="Schema Validation" camunda:type="external" camunda:topic="schema-validation">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_DataCleaning" name="Data Cleaning" camunda:type="external" camunda:topic="data-cleaning">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AnomalyReview" name="Anomaly Review" camunda:type="external" camunda:topic="anomaly-review">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_ManagerApproval" name="Manager Approval">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_RecommendationGen" name="Recommendation Generation" camunda:type="external" camunda:topic="recommendation-generation">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ReportGen" name="Report Generation" camunda:type="external" camunda:topic="report-generation">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Notification" name="Notification" camunda:type="external" camunda:topic="notification">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AuditLogging" name="Audit Logging" camunda:type="external" camunda:topic="audit-logging">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_1" name="Workflow Complete">
+      <bpmn:incoming>Flow_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_SchemaValidation" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_SchemaValidation" targetRef="Task_DataCleaning" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_DataCleaning" targetRef="Task_AnomalyReview" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_AnomalyReview" targetRef="Task_ManagerApproval" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_ManagerApproval" targetRef="Task_RecommendationGen" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_RecommendationGen" targetRef="Task_ReportGen" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_ReportGen" targetRef="Task_Notification" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_Notification" targetRef="Task_AuditLogging" />
+    <bpmn:sequenceFlow id="Flow_End" sourceRef="Task_AuditLogging" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

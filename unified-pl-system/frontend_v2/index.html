@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,70 +12,181 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: linear-gradient(135deg, var(--color-bg-primary), #000);
+            background: radial-gradient(circle at top right, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%);
+            position: relative;
+            overflow: hidden;
         }
+        
+        /* Decorative background elements */
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            z-index: 0;
+            animation: pulse 10s infinite;
+        }
+        .shape-1 {
+            background: var(--color-accent-primary);
+            width: 400px; height: 400px;
+            top: -100px; right: -100px;
+        }
+        .shape-2 {
+            background: var(--color-accent-teal);
+            width: 300px; height: 300px;
+            bottom: -50px; left: -100px;
+            animation-delay: -5s;
+        }
+
         .login-card {
             width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: var(--space-4);
+            max-width: 420px;
             text-align: left;
+            position: relative;
+            z-index: 10;
+            padding: var(--space-8);
         }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .login-subtitle {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-8);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-5);
+        }
+        
         .form-group label {
             display: block;
             margin-bottom: var(--space-2);
-            color: var(--color-text-secondary);
+            color: var(--color-text-primary);
             font-size: var(--font-size-sm);
+            font-weight: 500;
         }
+        
         .form-group input {
             width: 100%;
-            padding: var(--space-3);
-            border-radius: var(--radius-sm);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
             border: 1px solid var(--color-border);
-            background: var(--color-bg-primary);
-            color: white;
-            box-sizing: border-box;
+            background: var(--color-bg-elevated);
+            color: var(--color-text-primary);
+            font-family: var(--font-family);
+            font-size: var(--font-size-sm);
+            transition: all var(--transition-fast);
         }
+        
         .form-group input:focus {
             outline: none;
             border-color: var(--color-accent-primary);
-            box-shadow: 0 0 0 2px rgba(26,110,253,0.3);
+            box-shadow: 0 0 0 3px rgba(26,110,253,0.15);
+            background: var(--color-bg-secondary);
         }
+        
         .btn-full {
             width: 100%;
             margin-top: var(--space-4);
+            font-size: var(--font-size-base);
+            padding: var(--space-3);
         }
+        
         #error-banner {
             display: none;
-            background: var(--color-accent-red);
-            color: white;
-            padding: var(--space-2);
-            border-radius: var(--radius-sm);
-            margin-bottom: var(--space-4);
+            background: rgba(255, 77, 106, 0.1);
+            color: var(--color-accent-red);
+            border: 1px solid rgba(255, 77, 106, 0.2);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-5);
             font-size: var(--font-size-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .theme-toggle {
+            position: absolute;
+            top: var(--space-6);
+            right: var(--space-6);
+            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <div class="card login-card">
-        <h2 style="color: var(--color-accent-teal); margin-bottom: var(--space-6);">P&L AI Governance</h2>
-        <div id="error-banner"></div>
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <button class="icon-btn theme-toggle" id="theme-toggle">
+        <span class="material-symbols-outlined">light_mode</span>
+    </button>
+
+    <div class="card login-card" style="animation: fadeIn 0.5s ease-out;">
+        <div class="logo-header">
+            <span class="material-symbols-outlined" style="color: var(--color-accent-teal); font-size: 32px;">analytics</span>
+            P&L AI Governance
+        </div>
+        <div class="login-subtitle">Sign in to the Enterprise Financial Intelligence Platform.</div>
+        
+        <div id="error-banner" style="display: none;">
+            <span class="material-symbols-outlined">error</span>
+            <span id="error-text"></span>
+        </div>
+        
         <form id="login-form">
             <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required autocomplete="username">
+                <label for="email-input">Email Address</label>
+                <input type="text" id="email-input" name="username" placeholder="name@company.com" required autocomplete="username">
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required autocomplete="current-password">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
+                    <label for="password-input" style="margin-bottom: 0;">Password</label>
+                    <a href="#" style="font-size: var(--font-size-xs);">Forgot password?</a>
+                </div>
+                <input type="password" id="password-input" name="password" placeholder="••••••••" required autocomplete="current-password">
             </div>
-            <button type="submit" id="login-btn" class="btn btn-full">Login</button>
+            <button type="submit" id="login-btn" class="btn btn-full">
+                Sign In
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
         </form>
     </div>
     
     <script src="js/api.js"></script>
     <script src="js/login.js"></script>
+    <script>
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            const html = document.documentElement;
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">light_mode</span>';
+            }
+        });
+        
+        // Wrap the old error handler logic to use the new layout
+        const oldErrorShow = window.showError;
+        window.showError = (msg) => {
+            const banner = document.getElementById('error-banner');
+            const text = document.getElementById('error-text');
+            if (banner && text) {
+                banner.style.display = 'flex';
+                text.textContent = msg;
+            }
+        }
+    </script>
 </body>
 </html>

@@ -18,10 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await window.api.login(username, password);
             localStorage.setItem('token', res.access_token);
-            window.location.href = 'dashboard.html';
+            if (window.UI) window.UI.showToast('Login successful', 'success');
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
         } catch (err) {
-            errorBanner.textContent = err.message || 'Login failed';
-            errorBanner.style.display = 'block';
+            if (window.UI) window.UI.showToast(err.message || 'Login failed', 'error');
+            if (errorBanner) {
+                errorBanner.textContent = err.message || 'Login failed';
+                errorBanner.style.display = 'block';
+            }
             submitBtn.disabled = false;
             submitBtn.textContent = 'Login';
         }

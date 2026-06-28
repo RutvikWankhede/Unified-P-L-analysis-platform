@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 88
+extend-ignore = E203, W503, E712, W291, W293, E501
+exclude = .git,__pycache__,venv,alembic
+per-file-ignores =
+    tests/conftest.py: E402

@@ -1,0 +1,12 @@
+[run]
+omit =
+    tests/*
+    alembic/*
+    venv/*
+    config.py
+    database.py
+    main.py
+    core/*
+    models/*
+    services/*
+    ml/*

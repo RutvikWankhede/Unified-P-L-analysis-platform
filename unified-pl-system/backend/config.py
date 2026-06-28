@@ -1,12 +1,20 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite:///./dev.db"  # SQLite for dev by default
+    # PostgreSQL Configuration
+    DATABASE_URL: str = "postgresql://user:password@localhost/unified_pl"
+
+    # Security
     SECRET_KEY: str = "supersecretkey123"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    ALLOWED_ORIGINS: str = "http://localhost:3000,https://unified-pl.vercel.app"
+
+    # AI APIs
     OPENAI_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
 
     # Domain Contamination Configurations
     CONTAM_RETAIL: float = 0.03
@@ -16,5 +24,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
 
 settings = Settings()

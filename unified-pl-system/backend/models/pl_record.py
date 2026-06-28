@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.sql import func
+
 from database import Base
+
 
 class PLRecord(Base):
     __tablename__ = "pl_records"
@@ -13,5 +15,6 @@ class PLRecord(Base):
     amount = Column(Float, nullable=False)
     currency = Column(String(3), default="USD")
     cost_center = Column(String(50), nullable=True)
+    dynamic_data = Column(JSON, default=dict)  # Dynamic schema support
     uploaded_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=func.now())

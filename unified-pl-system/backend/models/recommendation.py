@@ -1,13 +1,15 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, DateTime
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.sql import func
+
 from database import Base
+
 
 class Recommendation(Base):
     __tablename__ = "recommendations"
 
     id = Column(Integer, primary_key=True)
     anomaly_id = Column(Integer, ForeignKey("anomalies.id"))
-    priority = Column(Integer, nullable=False) # 1-5
+    priority = Column(Integer, nullable=False)  # 1-5
     action_type = Column(String(50), nullable=False)
     description = Column(Text, nullable=False)
     action_owner = Column(String(100), nullable=False)
@@ -15,6 +17,7 @@ class Recommendation(Base):
     estimated_impact = Column(String(100), nullable=True)
     status = Column(String(20), default="pending")
     created_at = Column(DateTime, default=func.now())
+
 
 class Explanation(Base):
     __tablename__ = "explanations"

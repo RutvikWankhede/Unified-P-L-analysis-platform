@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,61 +15,266 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo-container">P&L AI Governance</div>
-        <a href="dashboard.html" class="nav-item active">Dashboard</a>
-        <a href="upload.html" class="nav-item">Upload Data</a>
-        <a href="anomalies.html" class="nav-item">Anomalies</a>
+    <div class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <span class="material-symbols-outlined" style="font-size: 28px;">analytics</span>
+            <span class="logo-text">P&L AI</span>
+        </div>
+        <a href="dashboard.html" class="nav-item active">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="nav-text">Dashboard</span>
+        </a>
+        <a href="upload.html" class="nav-item">
+            <span class="material-symbols-outlined">upload_file</span>
+            <span class="nav-text">Upload Data</span>
+        </a>
+        <a href="anomalies.html" class="nav-item">
+            <span class="material-symbols-outlined">warning</span>
+            <span class="nav-text">Anomalies</span>
+        </a>
         <div style="flex-grow: 1;"></div>
-        <a href="#" class="nav-item" id="logout-btn">Logout</a>
+        <a href="#" class="nav-item" id="logout-btn">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="nav-text">Logout</span>
+        </a>
     </div>
 
-    <div class="main-content">
-        <h1 style="color: var(--color-accent-teal);">Executive Dashboard</h1>
+    <div class="main-content" id="main-content">
+        <div class="topbar">
+            <div style="display: flex; align-items: center; gap: var(--space-4);">
+                <button class="icon-btn" id="sidebar-toggle">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <div style="position: relative;">
+                    <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 10px; color: var(--color-text-secondary); pointer-events: none;">search</span>
+                    <input type="text" placeholder="Search (Cmd+K)" style="background: var(--color-bg-glass); border: 1px solid var(--color-border); border-radius: var(--radius-full); padding: 8px 16px 8px 40px; color: var(--color-text-primary); width: 250px;">
+                </div>
+            </div>
+            
+            <div class="topbar-actions">
+                <button class="icon-btn" id="theme-toggle">
+                    <span class="material-symbols-outlined">light_mode</span>
+                </button>
+                <button class="icon-btn" style="position: relative;">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span style="position: absolute; top: 0; right: 0; width: 10px; height: 10px; background: var(--color-accent-red); border-radius: 50%; border: 2px solid var(--color-bg-primary);"></span>
+                </button>
+                <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
+                    AD
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-6);">
+            <div>
+                <h1 style="margin-bottom: var(--space-2);">Executive Summary</h1>
+                <p style="color: var(--color-text-secondary); margin: 0;">AI-driven insights across all departments.</p>
+            </div>
+            <button class="btn btn-secondary">
+                <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+                Export Report
+            </button>
+        </div>
         
         <div class="kpi-row">
             <div class="card kpi-card">
-                <span class="kpi-title">Total Revenue</span>
-                <span class="kpi-value" id="kpi-revenue">-</span>
+                <div class="kpi-header">
+                    Total Revenue
+                    <span class="material-symbols-outlined" style="color: var(--color-accent-teal);">payments</span>
+                </div>
+                <div class="kpi-value" id="kpi-revenue">
+                    <div class="skeleton" style="height: 36px; width: 60%;"></div>
+                </div>
+                <div class="kpi-trend positive">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span>
+                    +12.5% vs last month
+                </div>
             </div>
             <div class="card kpi-card">
-                <span class="kpi-title">Active Anomalies</span>
-                <span class="kpi-value" id="kpi-anomalies">-</span>
+                <div class="kpi-header">
+                    Active Anomalies
+                    <span class="material-symbols-outlined" style="color: var(--color-accent-amber);">warning</span>
+                </div>
+                <div class="kpi-value" id="kpi-anomalies">
+                    <div class="skeleton" style="height: 36px; width: 40%;"></div>
+                </div>
+                <div class="kpi-trend negative">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span>
+                    Needs attention
+                </div>
             </div>
             <div class="card kpi-card">
-                <span class="kpi-title">High Severity</span>
-                <span class="kpi-value" id="kpi-high-sev" style="color: var(--color-accent-red);">-</span>
+                <div class="kpi-header">
+                    High Severity
+                    <span class="material-symbols-outlined" style="color: var(--color-accent-red);">error</span>
+                </div>
+                <div class="kpi-value" id="kpi-high-sev" style="color: var(--color-accent-red);">
+                    <div class="skeleton" style="height: 36px; width: 30%;"></div>
+                </div>
+                <div class="kpi-trend negative">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">arrow_drop_up</span>
+                    Immediate action required
+                </div>
             </div>
-            <div class="card kpi-card">
-                <span class="kpi-title">Health Score</span>
-                <span class="kpi-value" id="kpi-health" style="color: var(--color-accent-green);">98/100</span>
+            <div class="card kpi-card card-gradient">
+                <div class="kpi-header" style="color: var(--color-text-primary);">
+                    Health Score
+                    <span class="material-symbols-outlined" style="color: var(--color-accent-green);">health_and_safety</span>
+                </div>
+                <div class="kpi-value" id="kpi-health" style="color: var(--color-accent-green);">
+                    <div class="skeleton" style="height: 36px; width: 50%;"></div>
+                </div>
+                <div class="kpi-trend positive">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
+                    Excellent status
+                </div>
             </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
-            <div class="card">
-                <h3 style="margin-top: 0;">Domain Revenue</h3>
-                <div id="chart-container" style="height: 300px;"></div>
+            <div class="card" style="min-height: 400px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <h3 style="margin: 0;">Domain Revenue Trends</h3>
+                    <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 4px 8px; border-radius: var(--radius-sm);">
+                        <option>Last 30 Days</option>
+                        <option>This Quarter</option>
+                        <option>This Year</option>
+                    </select>
+                </div>
+                <div id="chart-container" style="height: 320px; width: 100%;">
+                    <div class="skeleton" style="height: 100%; width: 100%;"></div>
+                </div>
             </div>
-            <div class="card">
-                <h3 style="margin-top: 0;">Recent Anomalies</h3>
-                <div class="table-wrapper">
-                    <table id="recent-anomalies-table">
-                        <thead>
-                            <tr>
-                                <th>Severity</th>
-                                <th>Score</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            
+            <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+                <div class="card" style="flex: 1;">
+                    <h3 style="margin-top: 0; margin-bottom: var(--space-4);">Recent Anomalies</h3>
+                    <div class="table-wrapper">
+                        <table id="recent-anomalies-table">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="3"><div class="skeleton" style="height: 20px; width: 100%;"></div></td></tr>
+                                <tr><td colspan="3"><div class="skeleton" style="height: 20px; width: 100%;"></div></td></tr>
+                                <tr><td colspan="3"><div class="skeleton" style="height: 20px; width: 100%;"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="anomalies.html" style="display: block; text-align: center; margin-top: var(--space-4); font-size: var(--font-size-sm); font-weight: 500;">View All Anomalies &rarr;</a>
                 </div>
             </div>
         </div>
     </div>
     
+    <!-- AI Copilot -->
+    <div class="copilot-btn" id="copilot-toggle">
+        <span class="material-symbols-outlined" style="font-size: 28px;">smart_toy</span>
+    </div>
+    
+    <div class="copilot-panel" id="copilot-panel">
+        <div style="background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); padding: var(--space-4); display: flex; align-items: center; gap: var(--space-3);">
+            <span class="material-symbols-outlined" style="font-size: 24px; color: white;">smart_toy</span>
+            <div style="color: white;">
+                <div style="font-weight: 600;">AI Assistant</div>
+                <div style="font-size: var(--font-size-xs); opacity: 0.8;">Powered by Gemini</div>
+            </div>
+        </div>
+        <div id="chat-messages" style="height: 300px; overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);">
+            <div style="background: var(--color-bg-elevated); padding: var(--space-3); border-radius: var(--radius-md); border-bottom-left-radius: 0; align-self: flex-start; max-width: 85%;">
+                Hello! I can help you analyze your P&L data and explain any anomalies.
+            </div>
+        </div>
+        <div style="padding: var(--space-3); border-top: 1px solid var(--color-border); display: flex; gap: var(--space-2);">
+            <input type="text" id="chat-input" placeholder="Ask anything..." style="flex: 1; background: var(--color-bg-elevated); border: 1px solid var(--color-border); padding: 8px 12px; border-radius: var(--radius-full); color: var(--color-text-primary);">
+            <button class="icon-btn" style="background: var(--color-accent-primary); color: white; border: none; flex-shrink: 0;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">send</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Scripts -->
     <script src="js/api.js"></script>
+    <script>
+        // UI Interaction logic
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            const html = document.documentElement;
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">light_mode</span>';
+            }
+        });
+
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+
+        const copilotToggle = document.getElementById('copilot-toggle');
+        const copilotPanel = document.getElementById('copilot-panel');
+        copilotToggle.addEventListener('click', () => {
+            copilotPanel.classList.toggle('active');
+        });
+
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatSendBtn = document.querySelector('.copilot-panel .icon-btn');
+
+        async function sendChatMessage() {
+            const question = chatInput.value.trim();
+            if (!question) return;
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.style.cssText = 'background: var(--color-accent-primary); color: white; padding: var(--space-3); border-radius: var(--radius-md); border-bottom-right-radius: 0; align-self: flex-end; max-width: 85%;';
+            userMsg.textContent = question;
+            chatMessages.appendChild(userMsg);
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Add loading
+            const loadingMsg = document.createElement('div');
+            loadingMsg.style.cssText = 'background: var(--color-bg-elevated); padding: var(--space-3); border-radius: var(--radius-md); border-bottom-left-radius: 0; align-self: flex-start; max-width: 85%;';
+            loadingMsg.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div>';
+            chatMessages.appendChild(loadingMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await window.api.request('/explanations/copilot', {
+                    method: 'POST',
+                    body: JSON.stringify({ question })
+                });
+                loadingMsg.textContent = response.answer;
+            } catch (err) {
+                loadingMsg.textContent = 'Error: ' + err.message;
+                loadingMsg.style.color = 'var(--color-accent-red)';
+            }
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatSendBtn.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+        
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        });
+    </script>
     <script type="text/babel" src="js/dashboard.js"></script>
 </body>
 </html>
