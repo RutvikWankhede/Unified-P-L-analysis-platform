@@ -1,0 +1,37 @@
+        renderTopPerformers();
+    }
+
+    function renderTopPerformers() {
+        const topPerf = document.getElementById('top-performers-container');
+        if (!topPerf || !deptData.length) return;
+
+        const sorted = [...deptData].sort((a, b) => {
+            const valA = contribMetric === 'margin' ? (a.revenue > 0 ? (a.profit / a.revenue) : 0) : (a[contribMetric] || 0);
+            const valB = contribMetric === 'margin' ? (b.revenue > 0 ? (b.profit / b.revenue) : 0) : (b[contribMetric] || 0);
+            return valB - valA;
+        }).slice(0, 3);
+
+        const rankColors = ['text-blue-600', 'text-slate-400', 'text-amber-500'];
+        topPerf.innerHTML = sorted.map((d, i) => {
+            let valStr = '';
+            if (contribMetric === 'revenue') {
+                valStr = `Revenue: ${formatCurrency(d.revenue)}`;
+            } else if (contribMetric === 'expense') {
+                valStr = `Expense: ${formatCurrency(d.expense)}`;
+            } else if (contribMetric === 'margin') {
+                const margin = d.revenue > 0 ? ((d.profit / d.revenue) * 100).toFixed(1) : '0.0';
+                valStr = `Margin: ${margin}%`;
+            } else {
+                valStr = `Profit: ${formatCurrency(d.profit)}`;
+            }
+
+            return `
+                <div class="flex items-center gap-4">
+                    <span class="text-lg font-bold ${rankColors[i]} w-4">${i + 1}</span>
+                    <div>
+                        <p class="text-sm font-bold">${d.department}</p>
+                        <p class="text-[10px] text-slate-400">${valStr}</p>
+                    </div>
+                </div>`;
+        }).join('');
+    }

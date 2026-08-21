@@ -209,16 +209,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         }
 
-        // Top performers panel — use a specific container id
-        const topPerfEl = document.getElementById('top-performers-list');
-        if (topPerfEl) {
-            if (!data.length) {
-                topPerfEl.innerHTML = '<div class="text-xs text-slate-400 italic p-2 text-center">No data available.</div>';
-                return;
-            }
+        // Top performers panel
+        const topPerf = document.getElementById('top-performers-container') || document.querySelector('.space-y-6');
+        if (topPerf) {
             const sorted = [...data].sort((a, b) => (b.profit || 0) - (a.profit || 0)).slice(0, 3);
             const rankColors = ['text-blue-600', 'text-slate-400', 'text-amber-500'];
-            topPerfEl.innerHTML = sorted.map((d, i) => `
+            topPerf.innerHTML = sorted.map((d, i) => `
                 <div class="flex items-center gap-4">
                     <span class="text-lg font-bold ${rankColors[i]} w-4">${i + 1}</span>
                     <div>

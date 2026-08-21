@@ -225,15 +225,6 @@ function setupBudgetModal() {
             const depts = deptsRes?.departments || ['Finance', 'Sales', 'IT', 'Marketing', 'HR', 'Operations'];
             deptSelect.innerHTML = depts.map(d => `<option value="${d}">${d}</option>`).join('');
         }
-        const periodSelect = document.getElementById('budget-period');
-        if (periodSelect) {
-            const chartsRes = await api.get('/api/v1/pl/charts?agg=monthly').catch(() => null);
-            const supported = chartsRes?.supported_aggregations || ['monthly', 'quarterly', 'yearly'];
-            periodSelect.innerHTML = supported.map(s => {
-                const label = s.charAt(0).toUpperCase() + s.slice(1);
-                return `<option value="${s}">${label} Budget Allocation</option>`;
-            }).join('');
-        }
         budgetModal.classList.remove('hidden');
         budgetModal.classList.add('flex');
         setTimeout(() => {
@@ -264,15 +255,9 @@ function setupBudgetModal() {
 
             if (!dept || isNaN(amount) || amount < 0) return;
 
-            await api.post('/api/v1/pl/budget', { 
-                department: dept, 
-                period: period, 
-                budget_amount: amount, 
-                amount: amount 
-            }).catch(() => null);
+            await api.post('/api/v1/pl/budget', { department: dept, period: period, monthly_amount: amount }).catch(() => null);
             closeModal();
             loadBudgetvsActual();
-            loadKPIs();
         });
     }
 }
@@ -356,22 +341,8 @@ function updateRecentUploads(datasets) {
     }).join('');
 }
 
-function populateAggregationSelect(selectId, supported) {
-    const el = document.getElementById(selectId);
-    if (!el || !supported || !supported.length) return;
-    const currentVal = el.value;
-    el.innerHTML = supported.map(s => {
-        const label = s.charAt(0).toUpperCase() + s.slice(1);
-        return `<option value="${s}">${label}</option>`;
-    }).join('');
-    if (supported.includes(currentVal)) {
-        el.value = currentVal;
-    } else {
-        el.value = supported[0];
-    }
-}
-
-async function loadKPIs() {
+// ── DOM Load & Event Bindings ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
     try {
         const summary = await api.get('/api/v1/pl/summary?agg=yearly');
         if (summary?.kpis) {
@@ -382,41 +353,22 @@ async function loadKPIs() {
             setHealthScore(k.health_score);
 
             const caps = summary.capabilities || {};
-            const cfMode = caps.cashFlow?.mode || 'unavailable';
-            let cfVal = null;
-            if (cfMode === 'actual') {
-                cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : null;
-            } else if (cfMode === 'estimated') {
-                cfVal = (k.revenue !== null && k.expense !== null) ? (k.revenue - k.expense) : null;
-            }
+            const cfMode = caps.cashFlow?.mode || 'estimated';
+            const cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : k.profit;
             const cfLabelEl = document.getElementById('kpi-cash-flow-label');
             const cfSubEl = document.getElementById('kpi-cash-flow-sub');
-            if (cfLabelEl) {
-                cfLabelEl.textContent = cfMode === 'actual' ? 'Cash Flow' : 'Estimated Cash Flow';
-            }
-            if (cfSubEl) {
-                cfSubEl.textContent = cfMode === 'actual' ? 'Actual cash inflow − outflow' : 
-                                      (cfMode === 'estimated' ? 'Derived from Revenue − Expense' : 'No cash flow data available');
-            }
+            if (cfLabelEl) cfLabelEl.textContent = cfMode === 'actual' ? 'Cash Flow' : 'Estimated Cash Flow';
+            if (cfSubEl) cfSubEl.textContent = cfMode === 'actual' ? 'Actual cash inflow − outflow' : 'Derived from Revenue − Expense';
             setKpi('kpi-cash-flow', cfVal, null);
-            const dateRangeEl = document.getElementById('dashboard-date-range');
-            if (dateRangeEl && (caps.date_min || caps.date_max)) {
-                dateRangeEl.textContent = `${caps.date_min || ''} — ${caps.date_max || ''}`;
-            }
         }
     } catch (e) { console.warn('[pl_dashboard_wiring] KPI load failed:', e); }
 
     try {
-        const forecastRes = await api.get('/api/v1/pl/forecast?metric=revenue&periods=3');
+        const forecastRes = await api.get('/api/v1/pl/forecast?metric=profit&periods=3');
         if (forecastRes?.expected_case !== undefined) {
             setKpi('kpi-forecasted-profit', forecastRes.expected_case, null);
         }
     } catch (e) { console.warn('[pl_dashboard_wiring] Forecast KPI load failed:', e); }
-}
-
-// ── DOM Load & Event Bindings ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-    loadKPIs();
 
     try {
         const charts = await api.get('/api/v1/pl/charts?agg=monthly');

@@ -121,7 +121,7 @@ transform-origin: 50% 50%;
 <div class="flex items-center gap-4">
 <div class="bg-white border border-outline-variant/30 rounded-lg px-4 py-2 flex items-center gap-3 text-sm font-medium shadow-sm">
 <span class="material-symbols-outlined text-on-surface-variant">calendar_today</span>
-<span class="">May 13 â May 19, 2025</span>
+<span id="dashboard-date-range">May 13 — May 19, 2025</span>
 <span class="material-symbols-outlined text-on-surface-variant">keyboard_arrow_down</span>
 </div>
 </div>
@@ -156,64 +156,76 @@ Excellent
 </div>
 </div>
 </div>
-<!-- 4 Small KPI Cards -->
-<div class="col-span-8 grid grid-cols-4 gap-6">
+<!-- 5 Small KPI Cards -->
+<div class="col-span-8 grid grid-cols-5 gap-4">
 <!-- Total Revenue -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">payments</span>
+<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-5">
+<div class="flex items-center justify-between mb-3">
+<div class="w-9 h-9 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">payments</span>
 </div>
 </div>
 <p class="text-on-surface-variant text-xs font-medium mb-1">Total Revenue</p>
-<p class="text-xl font-bold mb-3" id="kpi-total-revenue">â¹5.32 Cr</p>
-<div class="flex items-center gap-1 text-success text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_upward</span>
-<span class="">12.8% <span class="text-on-surface-variant font-normal">vs last month</span></span>
+<p class="text-lg font-bold mb-2" id="kpi-total-revenue">₹0.00</p>
+<div class="flex items-center gap-1 text-success text-[11px] font-medium">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+<span>-- vs last period</span>
 </div>
 </div>
 <!-- Total Expense -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-danger/10 text-danger rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">shopping_cart</span>
+<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-5">
+<div class="flex items-center justify-between mb-3">
+<div class="w-9 h-9 bg-danger/10 text-danger rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">shopping_cart</span>
 </div>
 </div>
 <p class="text-on-surface-variant text-xs font-medium mb-1">Total Expense</p>
-<p class="text-xl font-bold mb-3" id="kpi-total-expense">â¹3.11 Cr</p>
-<div class="flex items-center gap-1 text-danger text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_downward</span>
-<span class="">8.3% <span class="text-on-surface-variant font-normal">vs last month</span></span>
+<p class="text-lg font-bold mb-2" id="kpi-total-expense">₹0.00</p>
+<div class="flex items-center gap-1 text-danger text-[11px] font-medium">
+<span class="material-symbols-outlined text-xs">arrow_downward</span>
+<span>-- vs last period</span>
 </div>
 </div>
 <!-- Net Profit -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-success/10 text-success rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">trending_up</span>
+<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-5">
+<div class="flex items-center justify-between mb-3">
+<div class="w-9 h-9 bg-success/10 text-success rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">trending_up</span>
 </div>
 </div>
 <p class="text-on-surface-variant text-xs font-medium mb-1">Net Profit</p>
-<p class="text-xl font-bold mb-3" id="kpi-net-profit">â¹2.21 Cr</p>
-<div class="flex items-center gap-1 text-success text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_upward</span>
-<span class="">18.7% <span class="text-on-surface-variant font-normal">vs last month</span></span>
+<p class="text-lg font-bold mb-2" id="kpi-net-profit">₹0.00</p>
+<div class="flex items-center gap-1 text-success text-[11px] font-medium">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+<span>-- vs last period</span>
 </div>
 </div>
-<!-- Forecasted Profit -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">auto_graph</span>
+<!-- Forecast Rev -->
+<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-5">
+<div class="flex items-center justify-between mb-3">
+<div class="w-9 h-9 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">auto_graph</span>
 </div>
-<span class="material-symbols-outlined text-on-surface-variant text-sm">info</span>
+<span class="material-symbols-outlined text-on-surface-variant text-xs">info</span>
 </div>
-<p class="text-on-surface-variant text-xs font-medium mb-1">Forecasted Profit</p>
-<p class="text-xl font-bold mb-3" id="kpi-forecasted-profit">â¹2.46 Cr</p>
-<div class="flex items-center gap-1 text-success text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_upward</span>
-<span class="">11.2% <span class="text-on-surface-variant font-normal">vs current month</span></span>
+<p class="text-on-surface-variant text-xs font-medium mb-1">Forecast Rev</p>
+<p class="text-lg font-bold mb-2" id="kpi-forecasted-profit">₹0.00</p>
+<div class="flex items-center gap-1 text-success text-[11px] font-medium">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+<span>Model expected case</span>
 </div>
+</div>
+<!-- Cash Flow -->
+<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-5">
+<div class="flex items-center justify-between mb-3">
+<div class="w-9 h-9 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">account_balance_wallet</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-xs">info</span>
+</div>
+<p class="text-on-surface-variant text-xs font-medium mb-1" id="kpi-cash-flow-label">Estimated Cash Flow</p>
+<p class="text-lg font-bold mb-1" id="kpi-cash-flow">₹0.00</p>
+<p class="text-[10px] text-on-surface-variant font-normal leading-tight" id="kpi-cash-flow-sub">Derived from Revenue − Expense</p>
 </div>
 </div>
 </section>

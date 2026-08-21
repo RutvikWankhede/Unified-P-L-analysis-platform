@@ -1,0 +1,35 @@
+        cash_flow_mode = "unavailable"
+        if has_cash_flow:
+            cash_flow_mode = "actual"
+        elif has_revenue and has_expense:
+            cash_flow_mode = "estimated"
+
+        domains_query = query.with_entities(PLRecord.domain).distinct().all()
+        domains = {d[0] for d in domains_query if d[0] and d[0] not in ["All Departments", "Unknown", "All"]}
+
+        return {
+            "revenue": {
+                "available": has_revenue,
+                "source": "Revenue" if has_revenue else None,
+                "derived": False
+            },
+            "expense": {
+                "available": has_expense,
+                "source": "Expense" if has_expense else None,
+                "derived": False
+            },
+            "profit": {
+                "available": has_revenue and has_expense,
+                "source": "Revenue - Expense" if (has_revenue and has_expense) else None,
+                "derived": True
+            },
+            "margin": {
+                "available": has_revenue and has_expense,
+                "source": "Profit / Revenue" if (has_revenue and has_expense) else None,
+                "derived": True
+            },
+            "cashFlow": {
+                "available": cash_flow_mode != "unavailable",
+                "source": "Cash Inflow/Outflow" if has_cash_flow else ("Revenue - Expense" if cash_flow_mode == "estimated" else None),
+                "mode": cash_flow_mode
+            },

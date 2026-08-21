@@ -1,0 +1,1 @@
+    return {"periods": periods, "series": series, "supported_aggregations": me.get_supported_aggregations()}

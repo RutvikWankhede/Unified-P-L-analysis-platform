@@ -1,0 +1,4 @@
+            const dateRangeEl = document.getElementById('dashboard-date-range');
+            if (dateRangeEl && (caps.date_min || caps.date_max)) {
+                dateRangeEl.textContent = `${caps.date_min || ''} — ${caps.date_max || ''}`;
+            }

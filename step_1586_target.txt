@@ -1,0 +1,2 @@
+export const api = {
+ get: (path) => request('GET', path),

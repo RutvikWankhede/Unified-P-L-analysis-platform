@@ -1,0 +1,8 @@
+        cache_key = "pl_departments"
+        cached = get_cached_item(cache_key)
+        if cached is not None:
+            return cached
+        depts = [row[0] for row in db.query(PLRecord.domain).distinct().all()]
+        res = {"departments": sorted(depts)}
+        set_cached_item(cache_key, res)
+        return res

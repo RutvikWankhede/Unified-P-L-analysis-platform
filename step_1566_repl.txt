@@ -1,0 +1,6 @@
+    try {
+        const forecastRes = await api.get('/api/v1/pl/forecast?metric=revenue&periods=3');
+        if (forecastRes?.expected_case !== undefined) {
+            setKpi('kpi-forecasted-profit', forecastRes.expected_case, null);
+        }
+    } catch (e) { console.warn('[pl_dashboard_wiring] Forecast KPI load failed:', e); }

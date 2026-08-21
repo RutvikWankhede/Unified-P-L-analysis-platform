@@ -1,0 +1,14 @@
+        const cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : (hasRev && hasExp ? k.profit : null);
+        const cfMode = caps.cashFlow?.mode || (hasRev && hasExp ? 'estimated' : 'unavailable');
+        const cfContainer = document.getElementById('kpi-cash-flow');
+        if (cfContainer) {
+            const cfHeaderEl = cfContainer.querySelector('.kpi-header');
+            if (cfHeaderEl) {
+                cfHeaderEl.innerHTML = (cfMode === 'estimated' ? 'Estimated Cash Flow' : 'Cash Flow') + ' <span class="material-symbols-outlined" style="color: var(--color-accent-teal);">account_balance_wallet</span>';
+            }
+        }
+        updateKpi('cash-flow', cfVal, 2.1, true, cfMode !== 'unavailable');
+        
+        const fcstVal = k.forecasted_profit !== null && k.forecasted_profit !== undefined ? k.forecasted_profit : null;
+        updateKpi('forecast', fcstVal, 4.5, true, fcstVal !== null);
+        updateKpi('health', k.health_score || 85, 0.5, false, true);

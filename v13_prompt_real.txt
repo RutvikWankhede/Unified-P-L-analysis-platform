@@ -1,0 +1,140 @@
+<USER_REQUEST>
+# Antigravity Prompt v13 — Bugs + Department Contribution/Trend Redesign + Smart Upload + Forecast Fix
+
+This is a large prompt covering confirmed bugs and two full widget redesigns. Work through it in the order given — bugs first (they're quick and some block verifying the redesigns), then the two redesigns, then upload intelligence, then Forecast.
+
+## BUG 1 — Revenue vs Expense vs Net Profit Trend: hardcoded "Sales (Placeholder)" text
+The hover tooltip on this chart shows "Top Dept: **Sales (Placeholder)**" — this is literal leftover placeholder text, not real data. Find this string in the tooltip-building code and replace it with the actual top-contributing department for that data point, computed from real department-level data for the hovered date/period. If department-level breakdown isn't available at this chart's aggregation level, either compute it or remove the "Top Dept" line entirely rather than showing fake/placeholder content.
+
+## BUG 2 — Aggregation buttons (Daily/Weekly/Monthly/Quarterly/Yearly) on this chart don't actually work
+Clicking these buttons doesn't change the chart's data granularity. Confirm the click handler is actually re-fetching or re-resampling data at the selected granularity and re-rendering — this was requested in an earlier prompt and doesn't appear to have been fixed for this specific chart (it may have been fixed elsewhere, e.g. Forecast, but not here). Fix it here specifically and verify by clicking through all five options and confirming the chart visibly changes each time.
+
+## BUG 3 — Budget vs Actual still not showing anything
+This was supposed to get a real fallback (a way to input department budgets) in the previous prompt. If that wasn't implemented, do it now: add a simple "Set Department Budgets" input (in Settings or inline on the widget) storing budget figures per department in a new small table, and render the bullet/bar comparison once at least one budget exists. Confirm this is actually visible and functional, not still blank.
+
+## BUG 4 — Forecast page: static values, missing chart, dead insights/growth drivers
+- The Net Profit Forecast chart is still not rendering (this was already flagged as a shared chart-rendering race condition in an earlier prompt — apply that same fix here specifically, since it clearly wasn't applied to this page yet).
+- Forecast Summary numbers, Forecast Insights, and Growth Drivers all look static/hardcoded regardless of the selected Metric/Period. Confirm the "Run Forecast" action (and changing Metric/Period) actually triggers a new backend forecast computation and that Forecast Insights and Growth Drivers are generated from that real result — not fixed list items in the HTML. If they're currently hardcoded strings in `forecast.html`, move that content into the API response and render it dynamically instead.
+
+## SECTION A — Anomaly Overview: match reference design + direct navigation
+Rebuild the Dashboard's "Anomaly Overview" widget to exactly match the reference layout: donut ring segmented by Critical/High/Medium/Low, bold total count centered inside the ring, a legend list to the right with colored dot + label + count per severity, and a "View All →" link in the top-right corner. This must be fully data-driven — whatever the real anomaly counts are for the current filter/dataset, not fixed numbers.
+- Clicking **"View All →"** on this widget should navigate directly to the full Anomaly Detection page (a real page navigation, not a modal) — different from the Dashboard's AI Insights "View All" which opens a modal. Use whichever pattern makes sense per widget; for Anomaly Overview specifically, go straight to `anomaly-detection.html`.
+
+## SECTION B — Scope zoom/pan controls correctly
+Zoom/pan/drag interactions should only exist on the large analytical charts (Revenue vs Expense vs Net Profit Trend, Forecast chart, Department Trend chart) — not on small summary/overview widgets like Anomaly Overview or Anomaly Trend, which should just display their data cleanly without zoom controls cluttering a small card. Remove any zoom UI that may have been added to these smaller widgets; keep charts there simple and static.
+
+## SECTION C — Department Contribution: replace with horizontal bar chart (redesign)
+Replace whatever currently renders for "Department Contribution" (treemap/pie, currently often blank) with a horizontal bar chart, because department names become unreadable in a pie/treemap and comparisons are harder. Build it as follows:
+- **Layout**: one horizontal bar per department, sorted highest-to-lowest by the selected metric, each bar labeled with department name, the ₹ amount, and the % contribution (e.g. "Sales ████████ ₹28.4 Cr 35%").
+- **Metric selector** (top-right of the card): Revenue / Profit / Expense / Contribution % — changing this re-sorts and re-renders the bars using that metric.
+- **Scope selector**: Top 5 / Top 10 / All Departments.
+- **Hover tooltip**: department name, Revenue, Expense, Profit, Contribution %, Growth % — all real values for that department.
+- **Click behavior**: clicking a bar navigates to that department's detail view (reuse whatever "Department Details" drill-down page/route already exists or is planned).
+- **AI Insight line below the chart**: 2-3 short auto-generated sentences from real data, e.g. "{Top department} contributes {X}% of total {metric}." / "{Department} contribution increased {Y}% this period." — generated from the Recommendation Engine or a lightweight rule-based summary over the real department numbers, not static text.
+- **Contribution % formula**: `(Department Value / Total Value) × 100` where Value is Revenue or Profit depending on the selected metric — compute this server-side or client-side from real totals, don't hardcode.
+- Optional: if the active dataset has 5 or fewer departments, offer a small toggle to switch to a pie chart view instead — bar chart remains the default either way.
+
+## SECTION D — Department Trend (Profit): full enterprise redesign
+Rebuild the "Department Trend" chart on the Department Analysis page to be fully data-driven — this widget must never contain hardcoded department names, dates, or values; everything below must be generated dynamically from whatever the active dataset actually contains.
+- **Header controls**: Metric dropdown (Profit / Revenue / Expense / Profit Margin / EBITDA — only include metrics the dataset can actually support), Time granularity dropdown (Daily/Weekly/Monthly/Quarterly/Yearly), Department multi-select with search, a "Compare" toggle, and an Export button.
+- **Smart department selection**: populate the department list directly from whatever departments exist in the active dataset (do not hardcode "Finance/HR/Sales/Marketing" — if the dataset has different departments like "Manufacturing/Support/Warehouse," show those instead). Default to showing only the **top 5 by the selected metric** with a "Show All Departments" option to expand.
+- **Consistent color assignment**: each department gets a stable color that doesn't change across sessions/filters (e.g. hash the department name to a color from a fixed palette, or assign colors in a deterministic order the first time departments are loaded and persist that mapping).
+- **Proper axis formatting**: Y-axis must show properly formatted units matching the selected metric — ₹ in L/Cr/K as appropriate to the value magnitude (not raw numbers like "70.0"), or % if Profit Margin is selected. This should auto-scale based on the actual data range, not a fixed format.
+- **Interactive legend**: clicking a department name in the legend toggles its line on/off; double-clicking isolates that department (hides all others). Small removable-chip style is fine for the multi-select control itself (from the earlier prompt fixing the pill-button clutter) — the chart's own legend should support click-to-toggle/double-click-to-focus in addition.
+- **Rich hover tooltip**: department name, period, Revenue, Expense, Profit, Margin, Growth % vs previous period, and Rank among departments for that metric/period — all computed from real data.
+- **AI Insights panel** (beside or below the chart): 3-4 short real-data-driven sentences, e.g. "{Department} profit increased {X}% compared to previous month." / "{Department} declined due to higher {cost driver}." — generated dynamically per dataset, not static examples.
+- **Smart Trend Detection badges** above the chart: Highest Growth (department + %), Highest Decline (department + %), Most Stable (department + volatility metric), Best Margin (department + %) — all computed automatically from the current data/filter selection.
+- **Zoom controls**: mouse wheel zoom, drag-to-pan, and a mini range-navigator/brush below the chart (like the zoom brush already working on some charts) — these ARE appropriate here since this is a large analytical chart (per Section B's scope rule).
+- **Historical/Forecast toggle**: when enabled, append a forecasted continuation of each visible department's line as a dotted segment, using whatever forecasting capability already exists in the Forecast Engine.
+- **Export options**: PNG, SVG, PDF, Excel, CSV — at minimum implement PNG/CSV if the others aren't feasible in this pass, but expose the UI for all and note which are implemented.
+- **Empty state**: if the active dataset has no usable department/revenue/expense columns, show a clear message ("No department data available. Upload a dataset containing Department, Revenue, and Expense columns.") instead of a blank chart.
+- **Responsiveness**: show top 5 departments by default on desktop, top 3 on tablet-width viewports, top 2 on mobile-width viewports (all still expandable via "Show All").
+- Everything above — department list, axis units/scale, colors, trend badges, AI insights — must automatically recompute whenever filters change or a new dataset is uploaded and activated. No part of this widget should need code changes to work with a different uploaded dataset.
+
+## SECTION E — Rename & upgrade "AI Decision Center" → "AI Recommendations System"
+- Rename the bottom Dashboard section from "AI Decision Center" to "AI Recommendations System."
+- Add a "View All →" link/button to this section's header, opening an expanded modal (reuse the shared `showModal` component) showing the complete list of recommendations, not just the few cards currently visible inline.
+- Upgrade the recommendation content quality here to genuinely professional/real-world level (this was flagged as still too basic): each recommendation should read like something a real financial analyst would write — specific numbers, specific departments/accounts, a clear concrete next step, and a quantified expected benefit — not generic phrasing. Pull richer fields from the Recommendation Engine backend (extend its response schema if needed) rather than padding the text client-side.
+
+## SECTION F — Make dataset upload/schema-mapping genuinely smart about naming variations
+Right now the schema mapper likely expects exact or near-exact column names. Real-world spreadsheets name the same concept differently across companies (e.g. "Profit" vs "Net Income" vs "Gain" vs "Earnings"; "Revenue" vs "Sales" vs "Income"; "Expense" vs "Cost" vs "Expenditure"; "Department" vs "Team" vs "Division" vs "Business Unit"; "Date" vs "Transaction Date" vs "Period"). Improve the mapping logic to:
+- Maintain a synonym list per required/optional system field (Date, Account, Revenue, Expense, Profit, Department, etc.) and match uploaded column headers against these synonyms (case-insensitive, ignoring underscores/spaces) in addition to exact matches.
+- When a synonym match is used instead of an exact match, show a confidence indicator (e.g. "Matched 'Net Income' → Profit (92% confidence)") so the user can see and override it if wrong, using the mapping UI that already exists.
+- This should reduce how often the user has to manually map columns for common naming variations, while still letting them correct any mismatch before confirming ingestion.
+
+## Verification checklist
+- [ ] "Sales (Placeholder)" text is gone, replaced with real top-department data (or removed if not computable).
+- [ ] Aggregation buttons on the main trend chart actually change the rendered data.
+- [ ] Budget vs Actual widget shows real content once a budget is set, no longer permanently blank.
+- [ ] Forecast page: chart renders, and Forecast Summary/Insights/Growth Drivers change when Metric/Period change or Run Forecast is clicked.
+- [ ] Anomaly Overview matches the reference design exactly and its View All navigates to the Anomaly Detection page.
+- [ ] Small summary widgets (Anomaly Overview, Anomaly Trend) have no zoom controls; large analytical charts do.
+- [ ] Department Contribution is a sorted horizontal bar chart with metric/scope filters, rich tooltip, AI insight line, and click-through.
+- [ ] Department Trend is fully data-driven per Section D, with no hardcoded departments/values, and includes trend badges, AI insights panel, zoom, and forecast toggle.
+- [ ] "AI Decision Center" is renamed to "AI Recommendations System," has a working View All modal, and its recommendation content is specific and professional, not generic.
+- [ ] Upload schema mapping recognizes common column-name synonyms with a visible confidence indicator, not just exact matches.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-25T13:43:09+05:30.
+
+The user's current state is as follows:
+Active Document: c:\Users\HP\.gemini\antigravity-ide\scratch\P&L system\check_db2.py (LANGUAGE_PYTHON)
+Cursor is on line: 10
+Other open documents:
+- c:\Users\HP\.gemini\antigravity-ide\scratch\P&L system\frontend_v2\dashboard.html (LANGUAGE_HTML)
+- c:\Users\HP\.gemini\antigravity-ide\scratch\P&L system\frontend_v2\js\chart-engine.js (LANGUAGE_JAVASCRIPT)
+- c:\Users\HP\.gemini\antigravity-ide\scratch\P&L system\check_db2.py (LANGUAGE_PYTHON)
+- c:\Users\HP\.gemini\antigravity-ide\scratch\P&L system\frontend_v2\js\dashboard_wiring.js (LANGUAGE_JAVASCRIPT)
+- c:\Users\HP\.gemini\antigravity-ide\scratch\P&L system\unified-pl-system\backend\routers\pl_router.py (LANGUAGE_PYTHON)
+</ADDITIONAL_METADATA>
+
+Created At: 2026-07-25T08:23:47Z
+Completed At: 2026-07-25T08:24:19Z
+
+				The command failed with exit code: 1
+				Output:
+				Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; [print(json.loads(l)['content']) for l in open(r'C:\Users\HP\.gemini\antigravity-ide\brain\de3a725b-37a4-4c45-95f1-129b6a511c3f\.system_generated\logs\transcript_full.jsonl', encoding='utf-8') if 'USER_INPUT' in l and 'Antigravity Prompt v13' in l]
+                  ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 3239: character maps to <undefined>
+
+
+
+Created At: 2026-07-25T08:24:27Z
+Completed At: 2026-07-25T08:24:35Z
+
+				The command failed with exit code: 1
+				Output:
+				Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json; [open('v13_prompt.txt', 'w', encoding='utf-8').write(json.loads(l)['content']) for l in open(r'C:\Users\HP\.gemini\antigravity-ide\brain\de3a725b-37a4-4c45-95f1-129b6a511c3f\.system_generated\logs\transcript_full.jsonl', encoding='utf-8') if 'USER_INPUT' in l and 'Antigravity Prompt v13' in l]
+                                                                      ~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'content'
+
+
+
+Created At: 2026-07-25T08:24:54Z
+Completed At: 2026-07-25T08:24:54Z
+File Path: `file:///c:/Users/HP/.gemini/antigravity-ide/scratch/P&L%20system/v13_prompt.txt`
+Total Lines: 12
+Total Bytes: 644
+Showing lines 1 to 12
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: Created At: 2026-07-25T08:24:27Z
+2: Completed At: 2026-07-25T08:24:35Z
+3: 
+4: 				The command failed with exit code: 1
+5: 				Output:
+6: 				Traceback (most recent call last):
+7:   File "<string>", line 1, in <module>
+8:     import json; [open('v13_prompt.txt', 'w', encoding='utf-8').write(json.loads(l)['content']) for l in open(r'C:\Users\HP\.gemini\antigravity-ide\brain\de3a725b-37a4-4c45-95f1-129b6a511c3f\.system_generated\logs\transcript_full.jsonl', encoding='utf-8') if 'USER_INPUT' in l and 'Antigravity Prompt v13' in l]
+9:                                                                       ~~~~~~~~~~~~~^^^^^^^^^^^
+10: KeyError: 'content'
+11: 
+12: 
+The above content shows the entire, complete file contents of the requested file.
+

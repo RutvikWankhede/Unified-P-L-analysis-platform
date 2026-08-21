@@ -1,303 +1,513 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anomalies - P&L AI</title>
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/components.css">
-    <style>
-        .panel {
-            position: fixed;
-            right: -450px;
-            top: 0;
-            bottom: 0;
-            width: 450px;
-            background: var(--color-bg-secondary);
-            box-shadow: var(--shadow-modal);
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 200;
-            padding: var(--space-8);
-            overflow-y: auto;
-            border-left: 1px solid var(--color-border);
-        }
-        .panel.open {
-            right: 0;
-        }
-        .close-btn {
-            background: var(--color-bg-elevated);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-primary);
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-full);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            float: right;
-            transition: all var(--transition-fast);
-        }
-        .close-btn:hover {
-            background: var(--color-bg-glass-hover);
-        }
-    </style>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anomaly Detection Dashboard - Unified P&amp;L</title>
+<!-- Inter font for professional UI -->
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swa
+p" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+fontFamily: {
+sans: ['Inter', 'sans-serif'],
+},
+colors: {
+primary: '#5B5CEB',
+brand: {
+purple: '#5B5CEB',
+red: '#FEE2E2',
+redText: '#EF4444',
+orange: '#FFEDD5',
+orangeText: '#F97316',
+yellow: '#FEF9C3',
+yellowText: '#CA8A04',
+blue: '#DBEAFE',
+blueText: '#3B82F6',
+green: '#DCFCE7',
+greenText: '#16A34A',
+}
+}
+}
+}
+}
+</script>
+<style data-purpose="custom-scrollbar">
+::-webkit-scrollbar {
+width: 6px;
+}
+::-webkit-scrollbar-track {
+background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+background: #ccc;
+border-radius: 10px;
+}
+</style>
 </head>
-<body>
-    <div class="sidebar" id="sidebar">
-        <div class="logo-container">
-            <span class="material-symbols-outlined" style="font-size: 28px;">analytics</span>
-            <span class="logo-text">P&L AI</span>
-        </div>
-        <a href="dashboard.html" class="nav-item">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span class="nav-text">Dashboard</span>
-        </a>
-        <a href="upload.html" class="nav-item">
-            <span class="material-symbols-outlined">upload_file</span>
-            <span class="nav-text">Upload Data</span>
-        </a>
-        <a href="anomalies.html" class="nav-item active">
-            <span class="material-symbols-outlined">warning</span>
-            <span class="nav-text">Anomalies</span>
-        </a>
-        <div style="flex-grow: 1;"></div>
-        <a href="#" class="nav-item" id="logout-btn">
-            <span class="material-symbols-outlined">logout</span>
-            <span class="nav-text">Logout</span>
-        </a>
-    </div>
-
-    <div class="main-content" id="main-content">
-        <div class="topbar">
-            <div style="display: flex; align-items: center; gap: var(--space-4);">
-                <button class="icon-btn" id="sidebar-toggle">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
-            </div>
-            
-            <div class="topbar-actions">
-                <button class="icon-btn" id="theme-toggle">
-                    <span class="material-symbols-outlined">light_mode</span>
-                </button>
-                <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
-                    AD
-                </div>
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-6);">
-            <div>
-                <h1 style="margin-bottom: var(--space-2);">Anomaly Review</h1>
-                <p style="color: var(--color-text-secondary); margin: 0;">Review and resolve identified data irregularities.</p>
-            </div>
-            <div style="display: flex; gap: var(--space-3);">
-                <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 8px 16px; border-radius: var(--radius-sm);">
-                    <option>All Severities</option>
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                </select>
-                <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 8px 16px; border-radius: var(--radius-sm);">
-                    <option>All Statuses</option>
-                    <option>Pending</option>
-                    <option>Resolved</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="card" style="animation: fadeIn 0.4s ease-out;">
-            <div class="table-wrapper">
-                <table id="anomalies-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Severity</th>
-                            <th>Anomaly Score</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Loading Skeletons -->
-                        <tr>
-                            <td><div class="skeleton" style="height: 20px; width: 40px;"></div></td>
-                            <td><div class="skeleton" style="height: 24px; width: 60px; border-radius: 12px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 50px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 80px;"></div></td>
-                            <td><div class="skeleton" style="height: 36px; width: 100px; border-radius: 6px;"></div></td>
-                        </tr>
-                        <tr>
-                            <td><div class="skeleton" style="height: 20px; width: 40px;"></div></td>
-                            <td><div class="skeleton" style="height: 24px; width: 60px; border-radius: 12px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 50px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 80px;"></div></td>
-                            <td><div class="skeleton" style="height: 36px; width: 100px; border-radius: 6px;"></div></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Details Panel -->
-    <div class="panel" id="detail-panel">
-        <button class="close-btn" id="close-panel">
-            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
-        </button>
-        <h2 style="color: var(--color-accent-teal); margin-top: 0; display: flex; align-items: center; gap: var(--space-2);">
-            <span class="material-symbols-outlined">plagiarism</span>
-            Investigation
-        </h2>
-        
-        <div id="panel-content" style="margin-top: var(--space-6);">
-            <div class="skeleton" style="height: 100px; width: 100%;"></div>
-        </div>
-        
-        <hr style="border: 0; height: 1px; background: var(--color-border); margin: var(--space-6) 0;">
-        
-        <h3 style="color: var(--color-accent-primary); display: flex; align-items: center; gap: var(--space-2);">
-            <span class="material-symbols-outlined">smart_toy</span>
-            AI Copilot Explanation
-        </h3>
-        
-        <div id="ai-explanation" style="background: var(--color-bg-elevated); padding: var(--space-5); border-radius: var(--radius-md); border-left: 3px solid var(--color-accent-primary); margin-top: var(--space-4);">
-            <div style="display: flex; gap: var(--space-3); align-items: center;">
-                <div class="skeleton" style="height: 40px; width: 40px; border-radius: 50%;"></div>
-                <div style="flex: 1;">
-                    <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 8px;"></div>
-                    <div class="skeleton" style="height: 12px; width: 80%;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script src="js/api.js"></script>
-    <script>
-        // UI logic
-        const themeBtn = document.getElementById('theme-toggle');
-        themeBtn.addEventListener('click', () => {
-            const html = document.documentElement;
-            if (html.getAttribute('data-theme') === 'dark') {
-                html.setAttribute('data-theme', 'light');
-                themeBtn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                themeBtn.innerHTML = '<span class="material-symbols-outlined">light_mode</span>';
-            }
-        });
-
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('main-content');
-        
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-        });
-        
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
-        });
-
-        // Panel and API logic
-        const panel = document.getElementById('detail-panel');
-        document.getElementById('close-panel').addEventListener('click', () => panel.classList.remove('open'));
-
-        async function loadAnomalies() {
-            const tbody = document.querySelector('#anomalies-table tbody');
-            try {
-                const anomalies = await window.api.getAnomalies();
-                tbody.innerHTML = '';
-                anomalies.forEach(a => {
-                    const badgeClass = a.severity === 'High' ? 'badge-high' : (a.severity === 'Medium' ? 'badge-medium' : 'badge-low');
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight: 500;">#${a.id}</td>
-                        <td><span class="badge ${badgeClass}">${a.severity}</span></td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: var(--space-2);">
-                                <div style="flex: 1; height: 6px; background: var(--color-bg-elevated); border-radius: var(--radius-full); overflow: hidden;">
-                                    <div style="height: 100%; width: ${Math.min(a.anomaly_score * 10, 100)}%; background: ${a.severity === 'High' ? 'var(--color-accent-red)' : 'var(--color-accent-amber)'};"></div>
-                                </div>
-                                <span style="font-size: var(--font-size-xs); font-weight: 600;">${a.anomaly_score.toFixed(1)}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <span style="display: inline-flex; align-items: center; gap: 4px; color: ${a.status === 'Resolved' ? 'var(--color-accent-green)' : 'var(--color-text-secondary)'}">
-                                <span class="material-symbols-outlined" style="font-size: 14px;">${a.status === 'Resolved' ? 'check_circle' : 'pending'}</span>
-                                ${a.status}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-secondary" onclick="viewDetails(${a.id})" style="padding: 6px 12px; font-size: var(--font-size-xs);">
-                                Investigate
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-accent-red);">Failed to load anomalies.</td></tr>`;
-            }
-        }
-
-        window.viewDetails = async (id) => {
-            panel.classList.add('open');
-            document.getElementById('panel-content').innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-                    <div class="skeleton" style="height: 20px; width: 60%;"></div>
-                    <div class="skeleton" style="height: 20px; width: 80%;"></div>
-                    <div class="skeleton" style="height: 20px; width: 50%;"></div>
-                </div>
-            `;
-            document.getElementById('ai-explanation').innerHTML = `
-                <div style="display: flex; gap: var(--space-3); align-items: center;">
-                    <div class="skeleton" style="height: 40px; width: 40px; border-radius: 50%; flex-shrink: 0;"></div>
-                    <div style="flex: 1;">
-                        <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 8px;"></div>
-                        <div class="skeleton" style="height: 12px; width: 80%;"></div>
-                    </div>
-                </div>
-            `;
-            
-            try {
-                const detail = await window.api.getAnomalyDetail(id);
-                document.getElementById('panel-content').innerHTML = `
-                    <div style="background: var(--color-bg-primary); padding: var(--space-4); border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-family: monospace;">
-                        <div style="margin-bottom: var(--space-2); color: var(--color-text-secondary);">RECORD DATA:</div>
-                        <div style="display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-4);">
-                            <span style="color: var(--color-accent-teal);">ID:</span> <span>${detail.pl_record_id}</span>
-                            <span style="color: var(--color-accent-teal);">Score:</span> <span>${detail.anomaly_score.toFixed(2)}</span>
-                            <span style="color: var(--color-accent-teal);">Detected:</span> <span>${new Date(detail.detected_at).toLocaleString()}</span>
-                            <span style="color: var(--color-accent-teal);">Status:</span> <span>${detail.status}</span>
-                        </div>
-                    </div>
-                `;
-                
-                // Fetch explanation
-                try {
-                    const exp = await window.api.request(`/explanations/generate/${id}`, { method: 'POST' });
-                    document.getElementById('ai-explanation').innerHTML = `
-                        <p style="margin-top: 0; line-height: 1.6;">${exp.explanation_text}</p>
-                        <div style="margin-top: var(--space-4); padding: var(--space-3); background: rgba(255, 181, 71, 0.1); border: 1px dashed var(--color-accent-amber); border-radius: var(--radius-sm);">
-                            <strong style="color: var(--color-accent-amber); font-size: var(--font-size-sm);">Root Cause Identified:</strong><br>
-                            <span style="font-size: var(--font-size-sm);">${exp.root_cause}</span>
-                        </div>
-                    `;
-                } catch (e) {
-                    document.getElementById('ai-explanation').innerHTML = `<p style="color: var(--color-accent-red);">Failed to load AI analysis. ${e.message}</p>`;
-                }
-
-            } catch (err) {
-                document.getElementById('panel-content').innerHTML = `<p style="color: var(--color-accent-red);">Error loading record details.</p>`;
-            }
-        };
-
-        loadAnomalies();
-    </script>
-</body>
-</html>
+<body class="bg-[#F8FAFC] text-slate-800 font-sans antialiased">
+<div class="flex h-screen overflow-hidden">
+<!-- BEGIN: Sidebar -->
+<aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col shrink-0">
+<div class="p-6">
+<h1 class="text-xl font-bold flex items-center gap-2">
+<span class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13
+7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</span>
+Unified P&amp;L
+</h1>
+<p class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold">AI
+Governance System</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2
+0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012
+2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2
+0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-
+2z"></path></svg>
+Dashboard
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
+4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0
+11-8 0 4 4 0 018 0z"></path></svg>
+Departments
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M7 16a4
+4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-
+3v12"></path></svg>
+Upload / Datasets
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2
+4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.040 12.02 12.02 0
+00-1.831 12.454c1.136 3.198 3.59 5.642 6.83 6.738a12.055 12.055 0 007.238 0c3.24-1.096
+5.694-3.54 6.83-6.738a12.02 12.02 0 00-1.831-12.454z"></path></svg>
+Security
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-primary bg-blue-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
+9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-
+3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+Anomalies
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9.663
+17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828
+9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0012 18.75c-1.03 0-1.959-.401-2.64-
+1.062l-.547-.547z"></path></svg>
+AI Co-pilot
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
+2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
+1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+Reports
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9
+5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0
+002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+Audit
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg
+hover:bg-slate-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325
+4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37
+2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066
+2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-
+3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-
+2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-
+2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016
+0z"></path></svg>
+Settings
+</a>
+</nav>
+<div class="mt-auto p-4 border-t border-slate-100">
+<!-- Company Selector -->
+<div class="mb-4 bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-
+between cursor-pointer">
+<div class="overflow-hidden">
+<p class="text-[10px] text-slate-400 font-semibold uppercase">Company</p>
+<p class="text-sm font-bold truncate">TechWave Solutions Pvt. Ltd.</p>
+</div>
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24
+24"><path d="M19 9l-7 7-7-7"></path></svg>
+</div>
+<!-- User Profile Card -->
+<div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl">
+<div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+<img alt="User Avatar" class="w-full h-full object-cover"
+src="https://lh3.googleusercontent.com/aida-
+public/AB6AXuAPiHsz524dfpHTTg7acZGEnvwzWujFz6A_gr8uLlODRIzLAI3UbdJEzFhMmtC_e
+P82pNAEaveOd6SEcoK6-
+7kMFtPF_VhGYhXfU14pY6KOJ5epK73WDMGBAPw9EdFLkt5d73JXEw3-
+Ee8n1AmwI2O7V2JkU2B1KfbimyhONqXXeCLu55DGnkg1CSouKuPIAarGfnD9qzb_h8ErGBdZ
+8MO2aTWy-Fk8e9A_8u2TbIrFAeh1cy5tfCuE8mEzKiaA_aVRIuZIBQE9WiHH"/>
+</div>
+<div class="overflow-hidden">
+<p class="text-sm font-bold truncate">Rutvik Wankhede</p>
+<p class="text-xs text-slate-500 truncate">Finance Manager</p>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="text-[10px] text-slate-400 font-medium">Online</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: Sidebar -->
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto">
+<!-- BEGIN: Header -->
+<header class="h-16 px-8 flex items-center justify-between sticky top-0 bg-[#F8FAFC]/80
+backdrop-blur-md z-10">
+<div data-purpose="breadcrumbs">
+<p class="text-lg font-bold">Anomaly Detection</p>
+<p class="text-xs text-slate-400">Identify unusual patterns in your financial data</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none"
+stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0
+0114 0z"></path></svg>
+<input class="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-full text-sm w-64
+focus:outline-none focus:ring-2 focus:ring-primary/20" ="Search report..."
+type="text"/>
+</div>
+<button class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center
+text-slate-500 hover:bg-white transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.228
+9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006
+2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118
+0z"></path></svg>
+</button>
+</div>
+</header>
+<!-- END: Header -->
+<div class="px-8 pb-8">
+<!-- BEGIN: KPI Cards -->
+<div class="grid grid-cols-5 gap-4 mb-8" data-purpose="kpi-section">
+<!-- Total -->
+<div class="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 flex items-center
+gap-4">
+<div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-primary">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17.657
+16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path
+d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+</div>
+<div>
+<p class="text-xs text-slate-400 font-medium">Total Anomalies</p>
+<p class="text-xl font-bold">8</p>
+</div>
+</div>
+<!-- Critical -->
+<div class="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 flex items-center
+gap-4">
+<div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-red-500">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17.657
+16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path
+d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+</div>
+<div>
+<p class="text-xs text-slate-400 font-medium">Critical</p>
+<p class="text-xl font-bold">2</p>
+</div>
+</div>
+<!-- High -->
+<div class="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 flex items-center
+gap-4">
+<div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-
+500">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17.657
+16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path
+d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+</div>
+<div>
+<p class="text-xs text-slate-400 font-medium">High</p>
+<p class="text-xl font-bold">3</p>
+</div>
+</div>
+<!-- Medium -->
+<div class="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 flex items-center
+gap-4">
+<div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-600">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17.657
+16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path
+d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+</div>
+<div>
+<p class="text-xs text-slate-400 font-medium">Medium</p>
+<p class="text-xl font-bold">2</p>
+</div>
+</div>
+<!-- Low -->
+<div class="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 flex items-center
+gap-4">
+<div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-500">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17.657
+16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path
+d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+</div>
+<div>
+<p class="text-xs text-slate-400 font-medium">Low</p>
+<p class="text-xl font-bold">1</p>
+</div>
+</div>
+</div>
+<!-- END: KPI Cards -->
+<!-- BEGIN: Filter Bar -->
+<div class="flex items-center justify-between mb-6" data-purpose="filter-bar">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-sm text-slate-500">
+<span>Filter</span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7
+7-7-7"></path></svg>
+</div>
+<div class="flex items-center gap-2">
+<select class="bg-white border-slate-200 rounded-lg text-sm px-4 py-2 focus:ring-primary
+focus:border-primary min-w-[160px]">
+<option>All Departments</option>
+</select>
+<select class="bg-white border-slate-200 rounded-lg text-sm px-4 py-2 focus:ring-primary
+focus:border-primary min-w-[160px]">
+<option>All Accounts</option>
+</select>
+<div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-4 py-2 text-
+sm">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24
+24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2
+2v12a2 2 0 002 2z"></path></svg>
+<span class="text-slate-600 font-medium">May 13 - May 18, 2025</span>
+<svg class="w-3 h-3 text-slate-400 ml-2" fill="none" stroke="currentColor" viewbox="0 0 24
+24"><path d="M19 9l-7 7-7-7"></path></svg>
+</div>
+</div>
+</div>
+<button class="bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-lg flex items-
+center gap-2 shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
+4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-
+15.357-2m15.357 2H15"></path></svg>
+Run Detection
+</button>
+</div>
+<!-- END: Filter Bar -->
+<!-- BEGIN: Data Table Container -->
+<div class="bg-white rounded-[20px] shadow-sm border border-slate-100 overflow-hidden">
+<table class="w-full text-left border-collapse" id="anomaly-table">
+<thead class="bg-slate-50/50 border-b border-slate-100">
+<tr>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-
+wider">Department</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-
+wider">Account</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-
+wider">Description</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-
+wider">Severity</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-
+wider">Amount</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-
+center">Status</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-
+center">Why?</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-slate-600">May 18, 2025</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">Marketing</td>
+<td class="px-6 py-4 text-xs text-slate-600">Travel Expense</td>
+<td class="px-6 py-4 text-xs text-slate-500">Expense spike detected (18%)</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-red text-brand-redText border border-red-100">Critical</span>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">₹2,45,000</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-green text-brand-greenText">New</span>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-primary hover:text-blue-700">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 16h-
+1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-slate-600">May 18, 2025</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">Sales</td>
+<td class="px-6 py-4 text-xs text-slate-600">Discount Given</td>
+<td class="px-6 py-4 text-xs text-slate-500">Unusual discount pattern</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-orange text-brand-orangeText border border-orange-100">High</span>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">₹1,12,000</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-green text-brand-greenText">New</span>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-primary hover:text-blue-700">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 16h-
+1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-slate-600">May 18, 2025</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">Finance</td>
+<td class="px-6 py-4 text-xs text-slate-600">Bank Charges</td>
+<td class="px-6 py-4 text-xs text-slate-500">Higher than usual</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-orange text-brand-orangeText border border-orange-100">High</span>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">₹75,000</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-orange text-brand-orangeText">Investigating</span>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-primary hover:text-blue-700">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 16h-
+1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-slate-600">May 17, 2025</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">IT</td>
+<td class="px-6 py-4 text-xs text-slate-600">Software Expense</td>
+<td class="px-6 py-4 text-xs text-slate-500">Outlier detected</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-yellow text-brand-yellowText border border-yellow-100">Medium</span>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">₹1,25,000</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-green text-brand-greenText">New</span>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-primary hover:text-blue-700">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 16h-
+1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-slate-600">May 16, 2025</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">HRMS</td>
+<td class="px-6 py-4 text-xs text-slate-600">Recruitment Cost</td>
+<td class="px-6 py-4 text-xs text-slate-500">Spike detected (New)</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-blue text-brand-blueText border border-blue-100">Low</span>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">₹55,000</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-slate-100 text-slate-500">Closed</span>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-primary hover:text-blue-700">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 16h-
+1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+</button>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 text-xs font-medium text-slate-600">May 16, 2025</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">Sales</td>
+<td class="px-6 py-4 text-xs text-slate-600">Advertisement Expense</td>
+<td class="px-6 py-4 text-xs text-slate-500">Unusual pattern</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-yellow text-brand-yellowText border border-yellow-100">Medium</span>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-slate-800">₹1,10,000</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase
+tracking-tight bg-brand-blue text-brand-blueText">In Review</span>
+</td>
+<td class="px-6 py-4 text-center">
+<button class="text-primary hover:text-blue-700">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 16h-
+1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="p-4 border-t border-slate-50 flex justify-center">
+<button class="text-primary text-sm font-semibold flex items-center gap-2 hover:underline">
+View All Anomalies
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
+d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+</button>
+</div>
+</div>
+<!-- END: Data Table Container -->
+</div>
+</main>
+</div>
+<!-- BEGIN: Bottom Status Bar -->
+<footer class="fixed bottom-0 left-[260px] right-0 h-10 bg-white border-t border-slate-200 px-6
+flex items-center justify-between text-[10px] text-slate-500 font-medium z-20">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-
+[0_0_8px_rgba(34,197,94,0.6)]"></span>
+<span>System Status: Healthy</span>
+</div>
+<div class="h-3 w-px bg-slate-200"></div>
+<span>Last sync: 2 mins ago</span>
+</div>
+<div class="flex items-center gap-4">
+<span>Version 2.4.1-Stable</span>
+<span class="flex items-center gap-1">
+<svg class="w-3 h-3" fill="currentColor" viewbox="0 0 20 20"><path clip-rule="evenodd"
+d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166
+1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-
+2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1
+1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg>
+AI Governance Verified
+</span>
+</div>
+</footer>
+<!-- END: Bottom Status Bar -->
+<!-- Float Action Button (Bottom Right) -->
+<button class="fixed bottom-12 right-6 w-12 h-12 bg-primary rounded-full shadow-2xl flex items-
+center justify-center text-white z-30 hover:scale-110 transition-transform active:scale-95">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8
+10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0
+01-2 2h-5l-5 5v-5z"></path></svg>
+</button>
+<script type="module" src="js/anomalies_wiring.js"></script>
+</body></html>

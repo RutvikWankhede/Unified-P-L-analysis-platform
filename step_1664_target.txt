@@ -1,0 +1,8 @@
+                summary_map[domain] = {
+                    "department": domain,
+                    "revenue": round(rev_val, 2) if rev_val is not None else None,
+                    "expense": round(exp_val, 2) if exp_val is not None else None,
+                    "profit": round(profit_val, 2) if profit_val is not None else None,
+                    "margin": round(margin_val, 2) if margin_val is not None else None,
+                    "trend_pct": trend_pct
+                }

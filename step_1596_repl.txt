@@ -1,0 +1,11 @@
+        # Calculate Trends (PoP Growth %)
+        # Get all monthly periods in sorted order
+        base_period_query = self._base_query()
+        if dept_filter:
+            base_period_query = base_period_query.filter(PLRecord.domain == dept_filter)
+        distinct_periods = sorted([
+            row[0] for row in base_period_query.with_entities(func.substr(PLRecord.period, 1, 7)).distinct().all() if row[0]
+        ])
+
+        if total_budget is not None and not profile["budget_column"]:
+            total_budget = total_budget * len(distinct_periods)

@@ -1,0 +1,17 @@
+       else if (v.includes('3')) periods = 3;
+        }
+
+        api.get(`${api.endpoints.forecast}?metric=${metric}&periods=${periods}&agg=${currentAgg}`)
+            .then(data => {
+                forecastChart.hideLoading();
+
+                // KPI Wiring
+                if(data.predicted_profit_next_12_months_in_crores !== undefined) {
+                    const kpi = document.getElementById('kpi-forecasted-profit') || document.getElementById('kpi-forecast-profit');
+                    if(kpi) kpi.innerText = `₹${data.predicted_profit_next_12_months_in_crores} Cr`;
+                }
+                if(data.growth_percentage_vs_current_month !== undefined) {
+                    const kpi = document.getElementById('kpi-forecast-growth');
+                    if(kpi) {
+                        kpi.innerHTML = `
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 0

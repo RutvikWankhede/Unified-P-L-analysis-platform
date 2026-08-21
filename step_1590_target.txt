@@ -1,0 +1,4 @@
+                all_periods_tmp = sorted(list(set(df["group_period"])))
+                if tot_b > 0 and len(all_periods_tmp) > 0:
+                    per_period_b = tot_b / len(all_periods_tmp)
+                    budget_group = pd.Series({p: per_period_b for p in all_periods_tmp})

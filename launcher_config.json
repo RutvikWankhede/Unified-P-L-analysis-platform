@@ -1,0 +1,7 @@
+{
+    "backend_dir": "C:\\Users\\HP\\.gemini\\antigravity-ide\\scratch\\P&L system\\unified-pl-system\\backend",
+    "frontend_dir": "C:\\Users\\HP\\.gemini\\antigravity-ide\\scratch\\P&L system\\frontend_v2",
+    "backend_port": 8000,
+    "frontend_port": 3000,
+    "health_endpoint": "/api/v1/system/health"
+}

@@ -1,0 +1,8 @@
+    setupBudgetModal();
+
+    window.addEventListener('globalFiltersChanged', () => {
+        loadKPIs();
+        loadRevenueExpenseChart();
+        loadCashFlowTrend();
+        loadBudgetvsActual();
+    });

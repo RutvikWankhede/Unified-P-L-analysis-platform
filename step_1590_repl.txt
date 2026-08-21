@@ -1,0 +1,15 @@
+                all_periods_tmp = sorted(list(set(df["group_period"])))
+                if tot_b > 0 and len(all_periods_tmp) > 0:
+                    multiplier = 1.0
+                    if aggregation == "daily":
+                        multiplier = 1.0 / 30.0
+                    elif aggregation == "weekly":
+                        multiplier = 7.0 / 30.0
+                    elif aggregation == "quarterly":
+                        multiplier = 3.0
+                    elif aggregation == "half-yearly":
+                        multiplier = 6.0
+                    elif aggregation == "yearly":
+                        multiplier = 12.0
+                    per_period_b = tot_b * multiplier
+                    budget_group = pd.Series({p: per_period_b for p in all_periods_tmp})

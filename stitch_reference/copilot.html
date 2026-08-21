@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Copilot - Unified P&amp;L</title>
+<!-- Inter font for premium SaaS aesthetic -->
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display
+=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#5b5ceb',
+sidebar: '#f8f9fc',
+chatBg: '#f3f4f9',
+border: '#e5e7eb',
+textMain: '#111827',
+textSub: '#6b7280',
+},
+fontFamily: {
+sans: ['Inter', 'sans-serif'],
+},
+borderRadius: {
+'2xl': '20px',
+}
+}
+}
+}
+</script>
+<style data-purpose="custom-scrollbars">
+/* Custom scrollbar for a cleaner UI */
+::-webkit-scrollbar {
+width: 6px;
+}
+::-webkit-scrollbar-track {
+background: transparent;
+}
+::-webkit-scrollbar-thumb {
+background: #e5e7eb;
+border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+background: #d1d5db;
+}
+</style>
+</head>
+<body class="bg-white font-sans text-textMain h-screen flex overflow-hidden">
+<!-- BEGIN: Sidebar -->
+<aside class="w-[260px] flex-shrink-0 bg-sidebar border-r border-border flex flex-col h-full" data-
+purpose="enterprise-sidebar">
+<!-- Sidebar Header -->
+<div class="p-6 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
+d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</div>
+<div>
+<h1 class="text-sm font-bold leading-tight">Unified P&amp;L</h1>
+<p class="text-[10px] text-textSub">AI Governance System</p>
+</div>
+</div>
+<!-- Navigation Menu -->
+<nav class="flex-1 px-4 py-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2
+0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012
+2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2
+0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-
+linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+Dashboard
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
+4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0
+11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+Departments
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
+16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round"
+stroke-linejoin="round" stroke-width="2"></path></svg>
+Upload / Datasets
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
+15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0
+00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+Security
+</a>
+<!-- Active Item: AI Copilot -->
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold bg-white text-primary
+rounded-lg shadow-sm border border-border/50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9.663
+17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828
+9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-
+1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+AI Copilot
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M7 12l3-
+3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" stroke-
+linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+Workflow
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
+2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
+1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+Reports
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2
+4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0
+003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-
+3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+Audit
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm text-textSub hover:bg-gray-100 rounded-
+lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325
+4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37
+2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066
+2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-
+3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-
+2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-
+2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-
+linejoin="round" stroke-width="2"></path></svg>
+Settings
+</a>
+</nav>
+<!-- Sidebar Footer -->
+<div class="mt-auto p-4 space-y-4">
+<!-- Company Selector -->
+<div class="bg-white border border-border p-3 rounded-xl flex items-center justify-between
+cursor-pointer">
+<div>
+<p class="text-[10px] text-textSub font-medium uppercase tracking-wider">Company</p>
+<p class="text-xs font-semibold">TechNova Solutions Pvt. Ltd.</p>
+</div>
+<svg class="w-4 h-4 text-textSub" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
+d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</div>
+<!-- User Profile -->
+<div class="bg-white border border-border p-3 rounded-xl flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover"
+src="https://lh3.googleusercontent.com/aida-
+public/AB6AXuCJzbm6TZRRjMzpUkJbqfRv1UbxWOILtOxbURpgChCxiPtHr5OSsv7bpDgx2EQ
+kQrN-
+JNItUJSB6Es5GNih8dvB4AZC3r78yhkEBYc8bgf0984RUaiwF3StPFtlnIyhcAYN9ZqY9Be8dTzlE
+wcSnapnNx9KhBle126GMdfLvjp8l06TizoXJFMSEqNngy61__L7m3m50EkKtlOQel0TBFvriqvFis
+icPw1m8URoUZ8H50ieWo8f32fUAydFD36HOWNDAMH_HDOzgK_F"/>
+</div>
+<div>
+<p class="text-xs font-bold">Rutvik Wankhade</p>
+<p class="text-[10px] text-textSub">Finance Manager</p>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="text-[9px] text-textSub font-medium">Online</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: Sidebar -->
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-w-0 bg-white">
+<!-- BEGIN: Top Navigation -->
+<header class="h-16 border-b border-border flex items-center justify-between px-8 bg-white"
+data-purpose="top-navigation">
+<div class="flex flex-col">
+<h2 class="text-lg font-bold">AI Copilot</h2>
+<p class="text-[11px] text-textSub">Ask anything about your financial data</p>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-textSub hover:text-primary transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.228
+9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006
+2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-
+linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<div class="relative">
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+<button class="text-textSub hover:text-primary transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15
+17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4
+0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-
+6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs
+font-bold">RW</div>
+</div>
+</header>
+<!-- END: Top Navigation -->
+<!-- BEGIN: Main Dashboard Layout -->
+<main class="flex-1 flex overflow-hidden">
+<!-- BEGIN: Chat Interface -->
+<section class="flex-1 flex flex-col min-w-0 h-full relative" data-purpose="chat-container">
+<!-- Message History -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8" id="chat-history">
+<!-- AI Welcome Message -->
+<div class="flex items-start gap-4 max-w-[80%]">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0 flex items-center justify-center">
+<svg class="w-4 h-4 text-primary" fill="currentColor" viewbox="0 0 20 20"><path d="M10 2a8 8
+0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-3a1 1 0 01-1-1V7a1 1 0 112 0v2a1
+1 0 01-1 1z"></path></svg>
+</div>
+<div class="space-y-1">
+<div class="bg-chatBg p-5 rounded-2xl rounded-tl-none shadow-sm">
+<p class="font-bold text-sm mb-1">Hello Rutvik! I'm your AI Copilot.</p>
+<p class="text-sm leading-relaxed text-gray-700">Ask me anything about your financial data,
+trends, anomalies, or recommendations.</p>
+</div>
+<span class="text-[10px] text-textSub ml-1">10:30 AM</span>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary text-white p-5 rounded-2xl rounded-tr-none shadow-md max-w-[70%]">
+<p class="text-sm leading-relaxed">Why did marketing expense increase this month?</p>
+</div>
+<span class="text-[10px] text-textSub mr-1">10:31 AM</span>
+</div>
+<!-- AI Detailed Response -->
+<div class="flex items-start gap-4 max-w-[85%]">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0 flex items-center justify-center">
+<svg class="w-4 h-4 text-primary" fill="currentColor" viewbox="0 0 20 20"><path d="M10 2a8 8
+0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-3a1 1 0 01-1-1V7a1 1 0 112 0v2a1
+1 0 01-1 1z"></path></svg>
+</div>
+<div class="space-y-1">
+<div class="bg-chatBg p-6 rounded-2xl rounded-tl-none shadow-sm border border-gray-100">
+<p class="text-sm font-medium mb-4">Marketing expense increased by 18% compared to last
+month due to:</p>
+<ul class="space-y-3 mb-6">
+<li class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="text-textSub">Advertisement Expense</span>
+</div>
+<span class="font-semibold text-gray-700">+$45,000 (<span class="text-red-500">↑
+31%</span>)</span>
+</li>
+<li class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="text-textSub">Event Sponsorship</span>
+</div>
+<span class="font-semibold text-gray-700">+$15,000 (<span class="text-red-500">↑
+11%</span>)</span>
+</li>
+<li class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="text-textSub">Promotion Expense</span>
+</div>
+<span class="font-semibold text-gray-700">+$12,000 (<span class="text-red-500">↑
+8%</span>)</span>
+</li>
+</ul>
+<p class="text-sm text-gray-700 italic border-t border-gray-200 pt-4">Would you like me to
+generate a detailed report?</p>
+</div>
+<span class="text-[10px] text-textSub ml-1">10:31 AM</span>
+</div>
+</div>
+</div>
+<!-- Chat Input Bar -->
+<div class="p-6 border-t border-border bg-white sticky bottom-0">
+<div class="relative flex items-center">
+<input class="w-full bg-chatBg border-none rounded-2xl py-4 pl-6 pr-14 text-sm focus:ring-2
+focus:ring-primary/20 :text-textSub/60" ="Ask a question..." type="text"/>
+<button class="absolute right-3 w-10 h-10 bg-primary text-white rounded-xl flex items-center
+justify-center hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">
+<svg class="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewbox="0 0 24
+24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-
+linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+</section>
+<!-- END: Chat Interface -->
+<!-- BEGIN: Suggested Prompts Sidebar -->
+<aside class="w-[340px] border-l border-border p-8 flex flex-col gap-6" data-
+purpose="suggested-prompts">
+<h3 class="text-sm font-bold text-textMain uppercase tracking-wide">Suggested Prompts</h3>
+<div class="space-y-3">
+<button class="w-full text-left p-4 rounded-xl border border-border hover:border-primary
+hover:bg-primary/5 transition-all group flex items-center gap-3">
+<span class="w-2 h-2 rounded-full border-2 border-primary group-hover:bg-primary"></span>
+<span class="text-sm font-medium text-textSub group-hover:text-primary">Summarize this
+week's financial performance</span>
+</button>
+<button class="w-full text-left p-4 rounded-xl border border-border hover:border-primary
+hover:bg-primary/5 transition-all group flex items-center gap-3">
+<span class="w-2 h-2 rounded-full border-2 border-primary group-hover:bg-primary"></span>
+<span class="text-sm font-medium text-textSub group-hover:text-primary">Show top 5 expense
+accounts</span>
+</button>
+<button class="w-full text-left p-4 rounded-xl border border-border hover:border-primary
+hover:bg-primary/5 transition-all group flex items-center gap-3">
+<span class="w-2 h-2 rounded-full border-2 border-primary group-hover:bg-primary"></span>
+<span class="text-sm font-medium text-textSub group-hover:text-primary">Explain anomalies
+detected this week</span>
+</button>
+<button class="w-full text-left p-4 rounded-xl border border-border hover:border-primary
+hover:bg-primary/5 transition-all group flex items-center gap-3">
+<span class="w-2 h-2 rounded-full border-2 border-primary group-hover:bg-primary"></span>
+<span class="text-sm font-medium text-textSub group-hover:text-primary">Forecast next
+quarter profit</span>
+</button>
+<button class="w-full text-left p-4 rounded-xl border border-border hover:border-primary
+hover:bg-primary/5 transition-all group flex items-center gap-3">
+<span class="w-2 h-2 rounded-full border-2 border-primary group-hover:bg-primary"></span>
+<span class="text-sm font-medium text-textSub group-hover:text-primary">Give cost
+optimization suggestions</span>
+</button>
+</div>
+</aside>
+<!-- END: Suggested Prompts Sidebar -->
+</main>
+<!-- END: Main Dashboard Layout -->
+<!-- Floating Action Button (Lower Right) -->
+<div class="fixed bottom-6 right-6 z-50">
+<button class="w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center
+justify-center hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13
+10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</button>
+</div>
+</div>
+<script data-purpose="interaction-logic">
+// Minimal interaction logic for UI responsiveness
+document.addEventListener('DOMContentLoaded', () => {
+const chatHistory = document.getElementById('chat-history');
+// Scroll to bottom on load
+chatHistory.scrollTop = chatHistory.scrollHeight;
+// Handle Enter key in input
+const chatInput = document.querySelector('input');
+chatInput.addEventListener('keypress', (e) => {
+if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+// Future: Logic to append user message
+chatInput.value = '';
+}
+});
+});
+</script>
+</body></html>

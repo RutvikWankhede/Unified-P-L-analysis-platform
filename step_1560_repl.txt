@@ -1,0 +1,18 @@
+            const caps = summary.capabilities || {};
+            const cfMode = caps.cashFlow?.mode || 'unavailable';
+            let cfVal = null;
+            if (cfMode === 'actual') {
+                cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : null;
+            } else if (cfMode === 'estimated') {
+                cfVal = (k.revenue !== null && k.expense !== null) ? (k.revenue - k.expense) : null;
+            }
+            const cfLabelEl = document.getElementById('kpi-cash-flow-label');
+            const cfSubEl = document.getElementById('kpi-cash-flow-sub');
+            if (cfLabelEl) {
+                cfLabelEl.textContent = cfMode === 'actual' ? 'Cash Flow' : 'Estimated Cash Flow';
+            }
+            if (cfSubEl) {
+                cfSubEl.textContent = cfMode === 'actual' ? 'Actual cash inflow − outflow' : 
+                                      (cfMode === 'estimated' ? 'Derived from Revenue − Expense' : 'No cash flow data available');
+            }
+            setKpi('kpi-cash-flow', cfVal, null);

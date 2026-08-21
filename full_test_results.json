@@ -1,0 +1,952 @@
+{
+  "dashboard.html": {
+    "page_name": "dashboard.html",
+    "url": "http://127.0.0.1:3000/dashboard.html",
+    "status": 200,
+    "load_time_ms": 1091,
+    "sidebar_renders": true,
+    "title": "Unified P&L - Dashboard Enterprise",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "Rendered (10 canvas, 7 chart containers) + Hover Verified",
+    "table_status": "N/A",
+    "screenshot": "evidence/dashboard.png"
+  },
+  "departments.html": {
+    "page_name": "departments.html",
+    "url": "http://127.0.0.1:3000/departments.html",
+    "status": 200,
+    "load_time_ms": 1180,
+    "sidebar_renders": true,
+    "title": "Department Analysis - Unified P&L",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/trend",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "Rendered (2 canvas, 2 chart containers) + Hover Verified",
+    "table_status": "Rendered (1 tables, 3 rows total) + Interaction Verified",
+    "screenshot": "evidence/departments.png"
+  },
+  "datasets.html": {
+    "page_name": "datasets.html",
+    "url": "http://127.0.0.1:3000/datasets.html",
+    "status": 200,
+    "load_time_ms": 1066,
+    "sidebar_renders": true,
+    "title": "Upload / Datasets - Unified P&L",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/list",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "N/A",
+    "table_status": "Rendered (1 tables, 24 rows total) + Interaction Verified",
+    "screenshot": "evidence/datasets.png"
+  },
+  "forecast.html": {
+    "page_name": "forecast.html",
+    "url": "http://127.0.0.1:3000/forecast.html",
+    "status": 200,
+    "load_time_ms": 1861,
+    "sidebar_renders": true,
+    "title": "Forecast - Unified P&L",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?metric=profit&periods=12",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "Rendered (1 canvas, 1 chart containers) + Hover Verified",
+    "table_status": "N/A",
+    "screenshot": "evidence/forecast.png"
+  },
+  "reports.html": {
+    "page_name": "reports.html",
+    "url": "http://127.0.0.1:3000/reports.html",
+    "status": 200,
+    "load_time_ms": 1690,
+    "sidebar_renders": true,
+    "title": "Unified P&L - Reports",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "N/A",
+    "table_status": "Rendered (1 tables, 5 rows total) + Interaction Verified",
+    "screenshot": "evidence/reports.png"
+  },
+  "workflow.html": {
+    "page_name": "workflow.html",
+    "url": "http://127.0.0.1:3000/workflow.html",
+    "status": 200,
+    "load_time_ms": 1547,
+    "sidebar_renders": true,
+    "title": "Unified P&L - AI Governance System | Workflow",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/workflows",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "Rendered (0 canvas, 2 chart containers)",
+    "table_status": "Rendered (1 tables, 6 rows total) + Interaction Verified",
+    "screenshot": "evidence/workflow.png"
+  },
+  "recommendations.html": {
+    "page_name": "recommendations.html",
+    "url": "http://127.0.0.1:3000/recommendations.html",
+    "status": 200,
+    "load_time_ms": 1119,
+    "sidebar_renders": true,
+    "title": "AI Recommendations | Unified P&L AI",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/notifications/",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "N/A",
+    "table_status": "N/A",
+    "screenshot": "evidence/recommendations.png"
+  },
+  "anomalies.html": {
+    "page_name": "anomalies.html",
+    "url": "http://127.0.0.1:3000/anomalies.html",
+    "status": 200,
+    "load_time_ms": 1058,
+    "sidebar_renders": true,
+    "title": "Anomaly Detection Dashboard - Unified P&L",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "N/A",
+    "table_status": "Rendered (1 tables, 6 rows total) (Interaction test error: Locator.hover: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"table th\").first\n    - locator resolved to <th class=\"px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider\">Date</th>\n  - attempting hover action\n    2 \u00d7 waiting for element to be visible and stable\n      - element is not visible\n    - retrying hover action\n    - waiting 20ms\n    2 \u00d7 waiting for element to be visible and stable\n      - element is not visible\n    - retrying hover action\n      - waiting 100ms\n    57 \u00d7 waiting for element to be visible and stable\n       - element is not visible\n     - retrying hover action\n       - waiting 500ms\n)",
+    "screenshot": "evidence/anomalies.png"
+  },
+  "audit.html": {
+    "page_name": "audit.html",
+    "url": "http://127.0.0.1:3000/audit.html",
+    "status": 200,
+    "load_time_ms": 1998,
+    "sidebar_renders": true,
+    "title": "Audit Trail - Unified P&L",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/auth/audit-logs",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "N/A",
+    "table_status": "Rendered (1 tables, 10 rows total) + Interaction Verified",
+    "screenshot": "evidence/audit.png"
+  },
+  "settings.html": {
+    "page_name": "settings.html",
+    "url": "http://127.0.0.1:3000/settings.html",
+    "status": 200,
+    "load_time_ms": 1282,
+    "sidebar_renders": true,
+    "title": "Settings - Unified P&L",
+    "page_ok": true,
+    "console_errors": [],
+    "filtered_console_errors": [],
+    "page_errors": [],
+    "failed_requests": [],
+    "api_errors": [],
+    "other_errors": [],
+    "api_calls": [
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/summary?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/anomalies/?agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=monthly&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?dept=&agg=auto&currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/charts?currency=INR&agg=yearly",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/forecast?dept=&agg=monthly&currency=INR&metric=profit",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/recommendations",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/pl/departments/summary?currency=INR",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/notifications/",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/datasets/active",
+        "status": 200,
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:8000/api/v1/auth/me",
+        "status": 200,
+        "method": "GET"
+      }
+    ],
+    "dom_issues": [],
+    "chart_status": "N/A",
+    "table_status": "N/A",
+    "screenshot": "evidence/settings.png"
+  }
+}
