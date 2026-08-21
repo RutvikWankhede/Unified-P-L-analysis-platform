@@ -1,9 +1,8 @@
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-
-
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+def engineer_features(df) -> "pd.DataFrame":
+    import numpy as np
+    import pandas as pd
+    from sklearn.preprocessing import StandardScaler
+    
     df = df.copy()
 
     # 1. log_amount: log1p(|amount|) * sign(amount)

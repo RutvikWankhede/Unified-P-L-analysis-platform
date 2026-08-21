@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+ <meta content="width=device-width, initial-scale=1.0" name="viewport">
+ <title>Pivot Table - Unified P&L</title>
+ <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+ <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+ <script>
+ tailwind.config = {
+ theme: {
+ extend: {
+ colors: {
+ primary: '#5b5ceb',
+ 'primary-container': '#e5e6ff',
+ 'on-primary-container': '#1a1a4b',
+ surface: '#f8f9fd',
+ 'surface-container-lowest': '#ffffff',
+ 'surface-container-low': '#f2f3f7',
+ 'on-surface': '#1a1c1e',
+ 'on-surface-variant': '#44474e',
+ 'outline-variant': '#c4c6d0',
+ success: '#10b981',
+ danger: '#ef4444',
+ warning: '#f59e0b',
+ },
+ fontFamily: {
+ sans: ['Inter', 'sans-serif'],
+ },
+ borderRadius: {
+ 'card': '20px',
+ }
+ }
+ }
+ }
+ </script>
+ <style data-purpose="custom-layout">
+ body {
+ background-color: #FAFBFF;
+ font-family: 'Inter', sans-serif;
+ }
+ .custom-scrollbar::-webkit-scrollbar {
+ width: 4px;
+ }
+ .custom-scrollbar::-webkit-scrollbar-thumb {
+ background: #e2e8f0;
+ border-radius: 10px;
+ }
+ .glass-effect {
+ background: rgba(255, 255, 255, 0.8);
+ backdrop-filter: blur(12px);
+ }
+ .sidebar-active {
+ background-color: #e5e6ff;
+ color: #5b5ceb;
+ font-weight: 600;
+ }
+ .progress-ring-circle {
+ transition: stroke-dashoffset 0.35s;
+ transform: rotate(-90deg);
+ transform-origin: 50% 50%;
+ }
+ </style>
+</head>
+<body class="text-on-surface transition-colors duration-300">
+ <!-- Synchronous auth guard: prevents flash of unauthenticated content -->
+ <script>
+ (function() {
+ var token = sessionStorage.getItem('pl_access_token') || localStorage.getItem('pl_access_token');
+ if (!token) { window.location.replace('login.html'); }
+ })();
+ </script>
+
+
+ <div id="sidebar-container"></div>
+
+
+ <!-- BEGIN: Main Content Area -->
+ <main class="ml-[280px] min-h-screen pb-16">
+ <!-- BEGIN: Top Bar -->
+ <header class="h-16 glass-effect border-b border-outline-variant/20 flex items-center justify-between px-8 sticky top-0 z-40">
+ <div class="flex items-center gap-2">
+ <span class="text-on-surface-variant text-sm">Home</span>
+ <span class="material-symbols-outlined text-sm text-on-surface-variant">chevron_right</span>
+ <span class="font-semibold text-sm">Dashboard</span>
+ </div>
+ <div class="flex-1 max-w-xl px-12">
+ <div class="relative group">
+ <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+ <input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all" ="Search anything..." type="text">
+ </div>
+ </div>
+ <div class="flex items-center gap-4">
+ <button id="notifications-trigger" class="relative p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
+ <span class="material-symbols-outlined">notifications</span>
+ <span id="notifications-badge" class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-white" style="display:none"></span>
+ </button>
+ <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
+ <span class="material-symbols-outlined">help</span>
+ </button>
+ </div>
+ </header>
+ <!-- END: Top Bar -->
+
+ <div class="px-8 space-y-8 mt-8">
+ <div class="flex justify-between items-end mb-8 border-b border-slate-200 pb-4">
+ <div>
+ <h2 class="text-2xl font-bold text-slate-900 mb-1">Interactive Pivot Table</h2>
+ <p class="text-sm text-slate-500 ">Slice and dice your financial data in real-time.</p>
+ </div>
+ <div class="flex gap-3">
+ <select class="bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm font-semibold focus:ring-primary shadow-sm outline-none">
+ <option>Dataset: Master P&L</option>
+ <option>Dataset: Q3 Actuals</option>
+ </select>
+ <button class="bg-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-indigo-600 transition shadow-sm">
+ <span class="material-symbols-outlined text-sm">save</span> Save View
+ </button>
+ </div>
+ </div>
+
+ <!-- Pivot UI up -->
+ <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex overflow-hidden min-h-[500px]">
+ 
+ <!-- Controls -->
+ <div class="w-[300px] border-r border-slate-200 bg-slate-50 p-4 flex flex-col gap-6 overflow-y-auto">
+ 
+ <div>
+ <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Rows</h4>
+ <div class="space-y-2">
+ <div class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium flex justify-between items-center shadow-sm">
+ Department <span class="material-symbols-outlined text-[16px] text-slate-400 cursor-move">drag_indicator</span>
+ </div>
+ <div class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium flex justify-between items-center shadow-sm">
+ Account Category <span class="material-symbols-outlined text-[16px] text-slate-400 cursor-move">drag_indicator</span>
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Columns</h4>
+ <div class="space-y-2">
+ <div class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium flex justify-between items-center shadow-sm">
+ Quarter <span class="material-symbols-outlined text-[16px] text-slate-400 cursor-move">drag_indicator</span>
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Values</h4>
+ <div class="space-y-2">
+ <div class="bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium flex justify-between items-center shadow-sm">
+ Sum of Amount <span class="material-symbols-outlined text-[16px] text-slate-400 cursor-move">drag_indicator</span>
+ </div>
+ </div>
+ </div>
+
+ </div>
+
+ <!-- Data Grid -->
+ <div class="flex-1 overflow-auto bg-white ">
+ <table class="w-full text-right text-sm">
+ <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm border-b border-slate-200 ">
+ <tr>
+ <th class="p-3 text-left border-r border-slate-200 bg-slate-100 ">Department / Category</th>
+ <th class="p-3 font-semibold text-slate-700 border-b border-slate-200 ">Q1 2025</th>
+ <th class="p-3 font-semibold text-slate-700 border-b border-slate-200 ">Q2 2025</th>
+ <th class="p-3 font-semibold text-slate-700 border-b border-slate-200 ">Q3 2025</th>
+ <th class="p-3 font-bold text-slate-900 bg-slate-50 ">Grand Total</th>
+ </tr>
+ </thead>
+ <tbody class="divide-y divide-slate-100 text-slate-600 ">
+ <!-- Sales -->
+ <tr class="font-bold bg-slate-50 text-slate-900 ">
+ <td class="p-3 text-left border-r border-slate-200 "><span class="material-symbols-outlined text-[16px] mr-1 align-text-bottom cursor-pointer hover:text-primary">expand_more</span> Sales & Marketing</td>
+ <td class="p-3">₹4.2M</td>
+ <td class="p-3">₹4.8M</td>
+ <td class="p-3">₹5.3M</td>
+ <td class="p-3 bg-slate-50 ">₹14.3M</td>
+ </tr>
+ <tr>
+ <td class="p-3 text-left pl-10 border-r border-slate-200 ">Software Subscriptions</td>
+ <td class="p-3">₹0.5M</td>
+ <td class="p-3">₹0.5M</td>
+ <td class="p-3">₹0.6M</td>
+ <td class="p-3 font-semibold">₹1.6M</td>
+ </tr>
+ <tr>
+ <td class="p-3 text-left pl-10 border-r border-slate-200 ">Advertising</td>
+ <td class="p-3">₹3.7M</td>
+ <td class="p-3">₹4.3M</td>
+ <td class="p-3">₹4.7M</td>
+ <td class="p-3 font-semibold">₹12.7M</td>
+ </tr>
+
+ <!-- Engineering -->
+ <tr class="font-bold bg-slate-50 text-slate-900 border-t border-slate-200 ">
+ <td class="p-3 text-left border-r border-slate-200 "><span class="material-symbols-outlined text-[16px] mr-1 align-text-bottom cursor-pointer hover:text-primary">expand_more</span> Engineering</td>
+ <td class="p-3">₹6.1M</td>
+ <td class="p-3">₹6.4M</td>
+ <td class="p-3">₹7.0M</td>
+ <td class="p-3 bg-slate-50 ">₹19.5M</td>
+ </tr>
+ <tr>
+ <td class="p-3 text-left pl-10 border-r border-slate-200 ">Salaries</td>
+ <td class="p-3">₹4.1M</td>
+ <td class="p-3">₹4.2M</td>
+ <td class="p-3">₹4.5M</td>
+ <td class="p-3 font-semibold">₹12.8M</td>
+ </tr>
+ <tr>
+ <td class="p-3 text-left pl-10 border-r border-slate-200 ">Cloud Infrastructure</td>
+ <td class="p-3">₹2.0M</td>
+ <td class="p-3">₹2.2M</td>
+ <td class="p-3">₹2.5M</td>
+ <td class="p-3 font-semibold">₹6.7M</td>
+ </tr>
+
+ </tbody>
+ <tfoot class="sticky bottom-0 bg-slate-100 font-bold text-slate-900 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+ <tr>
+ <td class="p-3 text-left border-r border-slate-200 ">Grand Total</td>
+ <td class="p-3">₹10.3M</td>
+ <td class="p-3">₹11.2M</td>
+ <td class="p-3">₹12.3M</td>
+ <td class="p-3 bg-slate-200 text-primary ">₹33.8M</td>
+ </tr>
+ </tfoot>
+ </table>
+ </div>
+ </div>
+ </div>
+ </main>
+ <!-- END: Main Content Area -->
+
+ <script type="module" src="js/pivot.js"></script>
+ <script type="module" src="js/shell.js"></script>
+</body>
+</html>

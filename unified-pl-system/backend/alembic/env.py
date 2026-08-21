@@ -10,19 +10,23 @@ from alembic import context
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import settings
-from database import Base
+from config import settings  # noqa: E402
+from database import Base  # noqa: E402
 
 # Import all models to ensure they are registered with Base.metadata
-from models.user import User
-from models.pl_record import PLRecord
+from models.ai_log import AILog
 from models.anomaly import Anomaly
-from models.recommendation import Recommendation, Explanation
-from models.notification import Notification
+from models.audit_log import AuditLog
 from models.chat_history import ChatHistory
+from models.forecast import Forecast
+from models.notification import Notification
+from models.pl_record import PLRecord, DepartmentBudget
+from models.recommendation import Recommendation, Explanation, Setting
+from models.schema_mapping import SchemaMappingHistory
 from models.uploaded_file import UploadedFile
+from models.user import User
 from models.workflow import WorkflowInstance
-
+from models.domain_settings import DomainSettings
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

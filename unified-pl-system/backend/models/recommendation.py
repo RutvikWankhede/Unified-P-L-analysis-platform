@@ -15,6 +15,14 @@ class Recommendation(Base):
     action_owner = Column(String(100), nullable=False)
     sod_flag = Column(Boolean, default=False)
     estimated_impact = Column(String(100), nullable=True)
+    
+    # New specific fields for AI Recommendations
+    reason = Column(Text, nullable=True)
+    financial_impact = Column(String(50), nullable=True) # E.g., '15%' or '12000'
+    confidence = Column(Integer, nullable=True) # 0-100
+    suggested_action = Column(Text, nullable=True)
+    expected_benefit = Column(Text, nullable=True)
+    
     status = Column(String(20), default="pending")
     created_at = Column(DateTime, default=func.now())
 
@@ -31,3 +39,11 @@ class Explanation(Base):
     model_version = Column(String(20), default="gpt-4")
     generated_at = Column(DateTime, default=func.now())
     tokens_used = Column(Integer, nullable=True)
+
+
+class Setting(Base):
+    __tablename__ = "settings"
+
+    key = Column(String(100), primary_key=True, index=True)
+    value = Column(String(255), nullable=False)
+

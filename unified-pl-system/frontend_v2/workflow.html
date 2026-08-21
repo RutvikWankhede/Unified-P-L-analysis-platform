@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Unified P&amp;L - AI Governance System | Workflow</title>
+<!-- Load Inter Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display
+=swap" rel="stylesheet"/>
+<!-- Load Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Load Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+'page-bg': '#F8F9FC',
+'sidebar-bg': '#FFFFFF',
+'primary-blue': '#4F46E5',
+'text-primary': '#111827',
+'text-secondary': '#6B7280',
+'border-light': '#E5E7EB',
+'success-green': '#10B981',
+'warning-orange': '#F59E0B',
+'error-red': '#EF4444',
+'info-blue': '#3B82F6'
+},
+fontFamily: {
+inter: ['Inter', 'sans-serif'],
+},
+borderRadius: {
+'card': '12px',
+'btn': '8px',
+'badge': '6px'
+}
+}
+}
+}
+</script>
+<style data-purpose="layout">
+body {
+background-color: #F8F9FC;
+font-family: 'Inter', sans-serif;
+color: #111827;
+overflow-x: hidden;
+}
+.sidebar { width: 200px; height: 100vh; position: fixed; left: 0; top: 0; }
+.main-content { margin-left: 200px; width: calc(100% - 200px); }
+.sticky-header { position: sticky; top: 0; z-index: 50; }
+/* Scrollbar Styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+</style>
+<style data-purpose="workflow-diagram">
+.bpmn-node {
+width: 80px;
+height: 56px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+border: 1px solid #E5E7EB;
+border-radius: 8px;
+background: white;
+font-size: 9px;
+text-align: center;
+position: relative;
+}
+.bpmn-connector {
+flex-grow: 1;
+height: 2px;
+background: #D1D5DB;
+position: relative;
+}
+.bpmn-connector.active { background: #4F46E5; }
+.bpmn-node.active { border-color: #4F46E5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
+.start-node, .end-node {
+width: 28px;
+height: 28px;
+border-radius: 50%;
+border: 2px solid #D1D5DB;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.start-node { border-color: #10B981; }
+.end-node { border-color: #EF4444; }
+.pulse-glow {
+animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse-ring {
+0%, 100% { opacity: 1; }
+50% { opacity: 0.5; }
+}
+.progress-bar-animate {
+width: 0%;
+animation: grow 1.5s ease-out forwards;
+}
+@keyframes grow {
+to { width: 65%; }
+}
+</style>
+</head>
+<body class="bg-page-bg">
+<!-- BEGIN: Sidebar -->
+<aside class="sidebar bg-white border-r border-border-light flex flex-col p-4">
+<div class="mb-8 px-2">
+<h1 class="text-sm font-bold flex items-center gap-2">
+<span class="w-6 h-6 bg-primary-blue rounded flex items-center justify-center text-white"><i
+class="w-4 h-4" data-lucide="layers"></i></span>
+Unified P&amp;L
+</h1>
+<p class="text-[10px] text-text-secondary mt-1">AI Governance System</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="layout-dashboard"></i> Dashboard
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="building-2"></i> Departments
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="upload-cloud"></i> Upload / Datasets
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="trending-up"></i> Forecast
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="alert-triangle"></i> Anomaly Detection
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="sparkles"></i> AI Copilot
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-indigo-50 text-primary-blue font-semibold
+rounded-lg text-xs" href="#">
+<i class="w-4 h-4" data-lucide="git-branch"></i> Workflow
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="file-text"></i> Reports
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="history"></i> Audit Trail
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
+text-xs" href="#">
+<i class="w-4 h-4" data-lucide="settings"></i> Settings
+</a>
+</nav>
+<div class="mt-auto space-y-4 pt-4 border-t border-border-light">
+<div class="px-2">
+<p class="text-[10px] text-text-secondary uppercase mb-2">Company</p>
+<div class="flex items-center justify-between p-2 border border-border-light rounded-lg text-
+[11px] font-medium">
+TechNova Solutions Pvt. Ltd.
+<i class="w-3 h-3" data-lucide="chevron-down"></i>
+</div>
+</div>
+<div class="flex items-center gap-3 px-2">
+<img alt="Avatar" class="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/aida-
+public/AB6AXuDeivCIZyisK9tf8yQWH2EYr1zg44V-20fq1qjCKf4yTTn0V73U1r-
+87a67bIngQ2YcRWMYBCdykFlDWduSeo3dA5_m9QMf_PDGAQGbfpcG1efjBB8MH7Idtumsda
+mNzX4oyITO28w4oF2hywct_c5qnZ13CHiyUc7JHFTfJYs2oTu62_I1paHRutMGP0LBpd1Sxlv_P
+GMo8mS2-
+5oHnUdThrdSJdSGqG3npEJbvnoyLOMTHnmlsqaanX2Nwjk3UMkDBaDP5Zfdomfs"/>
+<div>
+<p class="text-[11px] font-bold">Rutvik Wankhede</p>
+<p class="text-[10px] text-text-secondary">Finance Manager</p>
+<div class="flex items-center gap-1 text-[9px] text-success-green">
+<span class="w-1.5 h-1.5 bg-success-green rounded-full"></span> Online
+</div>
+</div>
+</div>
+<div class="px-2 flex items-center justify-between text-[11px] text-text-secondary">
+<div class="flex items-center gap-2"><i class="w-4 h-4" data-lucide="sun"></i> Light
+Theme</div>
+<div class="w-8 h-4 bg-primary-blue rounded-full relative">
+<div class="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: Sidebar -->
+<main class="main-content min-h-screen">
+<!-- BEGIN: Top Bar -->
+<header class="sticky-header bg-white/80 backdrop-blur-md border-b border-border-light px-8
+py-3 flex items-center justify-between">
+<div>
+<h2 class="text-xl font-bold">Workflow</h2>
+<div class="flex items-center gap-2 text-[11px] text-text-secondary mt-0.5">
+Home <i class="w-3 h-3" data-lucide="chevron-right"></i> Workflow
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<i class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" data-
+lucide="search"></i>
+<input class="pl-10 pr-10 py-2 bg-gray-50 border border-border-light rounded-lg text-xs w-64
+focus:outline-none focus:ring-1 focus:ring-primary-blue" ="Search anything..."
+type="text"/>
+<i class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary" data-
+lucide="command"></i>
+</div>
+<div class="flex items-center gap-4 text-text-secondary">
+<div class="relative">
+<i class="w-5 h-5" data-lucide="bell"></i>
+<span class="absolute -top-1 -right-1 bg-error-red text-white text-[8px] w-4 h-4 rounded-full flex
+items-center justify-center border-2 border-white">4</span>
+</div>
+<i class="w-5 h-5" data-lucide="help-circle"></i>
+<div class="w-8 h-8 bg-primary-blue rounded-full flex items-center justify-center text-white text-
+xs font-bold">RW</div>
+</div>
+</div>
+</header>
+<!-- END: Top Bar -->
+<div class="p-8 space-y-6">
+<!-- BEGIN: Tabs and Actions -->
+<div class="flex items-center justify-between">
+<div class="flex border-b border-border-light">
+<button class="px-4 py-2 text-xs font-semibold text-primary-blue border-b-2 border-primary-
+blue">Process Overview</button>
+<button class="px-4 py-2 text-xs font-medium text-text-secondary">My Tasks <span class="ml-
+1 bg-error-red/10 text-error-red px-1.5 rounded-full text-[10px]">3</span></button>
+<button class="px-4 py-2 text-xs font-medium text-text-secondary">Running Instances <span
+class="ml-1 bg-blue-100 text-info-blue px-1.5 rounded-full text-[10px]">2</span></button>
+<button class="px-4 py-2 text-xs font-medium text-text-secondary">Completed <span
+class="ml-1 bg-success-green/10 text-success-green px-1.5 rounded-full text-
+[10px]">24</span></button>
+<button class="px-4 py-2 text-xs font-medium text-text-secondary">Incidents <span class="ml-1
+bg-error-red/10 text-error-red px-1.5 rounded-full text-[10px]">1</span></button>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-3 py-1.5 border border-border-light rounded-btn text-
+xs font-medium bg-white hover:bg-gray-50">
+<i class="w-3.5 h-3.5" data-lucide="refresh-cw"></i> Refresh
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 border border-border-light rounded-btn text-
+xs font-medium text-primary-blue bg-white hover:bg-indigo-50">
+<i class="w-3.5 h-3.5" data-lucide="external-link"></i> Open in Camunda Cockpit
+</button>
+<div class="flex">
+<button class="bg-primary-blue text-white px-4 py-1.5 rounded-l-btn text-xs font-semibold
+hover:bg-indigo-700">Start New Workflow</button>
+<button class="bg-primary-blue text-white px-2 py-1.5 rounded-r-btn border-l border-white/20
+hover:bg-indigo-700">
+<i class="w-4 h-4" data-lucide="chevron-down"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- END: Tabs and Actions -->
+<!-- BEGIN: Diagram Section -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Main Diagram Card -->
+<div class="col-span-9 bg-white border border-border-light rounded-card p-6">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-semibold">Process Diagram</h3>
+<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="info"></i>
+</div>
+<div class="flex items-center gap-2 bg-gray-50 p-1 rounded-lg">
+<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
+4" data-lucide="zoom-in"></i></button>
+<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
+4" data-lucide="zoom-out"></i></button>
+<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
+4" data-lucide="maximize"></i></button>
+<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
+4" data-lucide="move"></i></button>
+</div>
+</div>
+<!-- Workflow Canvas -->
+<div class="relative h-[360px] flex items-center justify-between px-4 overflow-x-auto">
+<div class="flex items-center shrink-0">
+<div class="start-node"><div class="w-1.5 h-1.5 bg-success-green rounded-full"></div></div>
+<div class="w-8 h-px bg-border-light"></div>
+<div class="text-[10px] absolute -bottom-4 translate-x-2">Start</div>
+</div>
+<!-- Nodes Chain -->
+<div class="flex items-center gap-3 shrink-0">
+<div class="bpmn-node border-indigo-200">
+<i class="w-4 h-4 text-primary-blue mb-1" data-lucide="upload"></i>
+<span>Upload Dataset</span>
+</div>
+<div class="w-4 h-px bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-success-green mb-1" data-lucide="check-square"></i>
+<span>Validate Data</span>
+</div>
+<div class="w-4 h-px bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-info-blue mb-1" data-lucide="grid"></i>
+<span>Schema Mapping</span>
+</div>
+<div class="w-4 h-px bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-success-green mb-1" data-lucide="filter"></i>
+<span>Data Cleaning</span>
+</div>
+<div class="w-4 h-px bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-primary-blue mb-1" data-lucide="database"></i>
+<span>Store in DB</span>
+</div>
+<div class="w-4 h-px bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-purple-500 mb-1" data-lucide="bar-chart-2"></i>
+<span>Generate KPIs</span>
+</div>
+</div>
+<!-- Fork/Branching -->
+<div class="flex items-center shrink-0 px-4">
+<div class="relative flex flex-col gap-12">
+<!-- Top Path -->
+<div class="flex items-center">
+<div class="w-12 h-[2px] bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-error-red mb-1" data-lucide="alert-circle"></i>
+<span>Anomaly Det.</span>
+</div>
+</div>
+<!-- Middle Path (Active) -->
+<div class="flex items-center">
+<div class="w-12 h-[2px] bg-primary-blue"></div>
+<div class="bpmn-node active">
+<i class="w-4 h-4 text-primary-blue mb-1" data-lucide="wand-2"></i>
+<span class="font-bold">AI Recs.</span>
+<span class="absolute -bottom-1 -right-1 w-3 h-3 bg-primary-blue border-2 border-white
+rounded-full pulse-glow"></span>
+</div>
+</div>
+<!-- Bottom Path -->
+<div class="flex items-center">
+<div class="w-12 h-[2px] bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-info-blue mb-1" data-lucide="trending-up"></i>
+<span>Forecast Gen.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- End Chain -->
+<div class="flex items-center gap-3 shrink-0">
+<div class="w-8 h-[2px] bg-primary-blue"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-green-500 mb-1" data-lucide="monitor"></i>
+<span>Dashboard Refresh</span>
+</div>
+<div class="w-4 h-px bg-border-light"></div>
+<div class="bpmn-node">
+<i class="w-4 h-4 text-orange-400 mb-1" data-lucide="file-text"></i>
+<span>Generate Reports</span>
+</div>
+<div class="w-4 h-px bg-border-light"></div>
+<div class="end-node"></div>
+</div>
+</div>
+<!-- Legend -->
+<div class="mt-12 flex items-center justify-center gap-6 text-[10px] text-text-secondary border-t
+border-border-light pt-6">
+<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-success-
+green"></span> Completed</div>
+<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-primary-
+blue"></span> In Progress</div>
+<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-warning-
+orange"></span> Waiting</div>
+<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-error-
+red"></span> Failed</div>
+<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full border-2 border-
+text-secondary"></span> Skipped</div>
+</div>
+</div>
+<!-- Sidebar Details -->
+<div class="col-span-3 bg-white border border-border-light rounded-card p-6 flex flex-col h-full">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-sm font-semibold">Process Details</h3>
+<span class="bg-success-green/10 text-success-green text-[9px] font-bold px-2 py-0.5 rounded-
+badge uppercase">In Progress</span>
+</div>
+<div class="space-y-4 flex-1">
+<div data-purpose="detail-item">
+<p class="text-[10px] text-text-secondary uppercase">Process Name</p>
+<p class="text-xs font-bold mt-0.5">Financial Data Pipeline</p>
+</div>
+<div data-purpose="detail-item">
+<p class="text-[10px] text-text-secondary uppercase">Process Key</p>
+<p class="text-xs font-medium mt-0.5 text-gray-600">financial-data-pipeline</p>
+</div>
+<div data-purpose="detail-item">
+<p class="text-[10px] text-text-secondary uppercase">Version</p>
+<p class="text-xs font-medium mt-0.5">v1.4</p>
+</div>
+<div data-purpose="detail-item">
+<p class="text-[10px] text-text-secondary uppercase">Business Key</p>
+<p class="text-xs font-bold mt-0.5">FD-2025-0519-1021</p>
+</div>
+<div data-purpose="detail-item">
+<p class="text-[10px] text-text-secondary uppercase">Started By</p>
+<p class="text-xs font-bold mt-0.5">Rutvik Wankhede</p>
+</div>
+<div data-purpose="detail-item">
+<p class="text-[10px] text-text-secondary uppercase">Start Time</p>
+<p class="text-xs font-medium mt-0.5">May 19, 2025 10:30:15 AM</p>
+</div>
+<div data-purpose="detail-item">
+<p class="text-[10px] text-text-secondary uppercase">Duration</p>
+<p class="text-xs font-bold mt-0.5">00:18:42</p>
+</div>
+</div>
+<div class="mt-6 pt-6 border-t border-border-light">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[10px] text-text-secondary uppercase">Progress</span>
+<span class="text-xs font-bold text-primary-blue">65%</span>
+</div>
+<div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary-blue progress-bar-animate"></div>
+</div>
+<div class="mt-4">
+<p class="text-[10px] text-text-secondary uppercase">Current Task</p>
+<div class="flex items-center justify-between mt-1">
+<p class="text-xs font-bold">AI Recommendations</p>
+<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="more-horizontal"></i>
+</div>
+<p class="text-[10px] text-primary-blue mt-1 italic">Processing financial insights...</p>
+</div>
+</div>
+</div>
+</div>
+<!-- END: Diagram Section -->
+<!-- BEGIN: Tables Row -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Live Instances Table -->
+<div class="col-span-9 bg-white border border-border-light rounded-card overflow-hidden">
+<div class="px-6 py-4 flex items-center justify-between border-b border-border-light">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-semibold">Live Workflow Instances</h3>
+<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="info"></i>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<i class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-text-secondary" data-
+lucide="search"></i>
+<input class="pl-8 py-1 bg-gray-50 border border-border-light rounded text-[11px] w-40"
+="Filter..." type="text"/>
+</div>
+</div>
+</div>
+<table class="w-full text-left">
+<thead class="bg-gray-50 border-b border-border-light text-[10px] text-text-secondary
+uppercase font-semibold">
+<tr>
+<th class="px-6 py-3">Workflow ID</th>
+<th class="px-6 py-3">Process</th>
+<th class="px-6 py-3">Business Key</th>
+<th class="px-6 py-3">Current Step</th>
+<th class="px-6 py-3 text-center">Status</th>
+<th class="px-6 py-3">Progress</th>
+<th class="px-6 py-3">Started</th>
+<th class="px-6 py-3">Completed</th>
+<th class="px-6 py-3">Actions</th>
+</tr>
+</thead>
+<tbody class="text-xs text-text-primary divide-y divide-border-light">
+<tr class="hover:bg-gray-50/50">
+<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
+lucide="file-text"></i> WF-1021</td>
+<td class="px-6 py-4">Financial Data Pipeline</td>
+<td class="px-6 py-4 font-mono text-[10px]">FD-2025-0519-1021</td>
+<td class="px-6 py-4">AI Recommendations</td>
+<td class="px-6 py-4 text-center">
+<span class="bg-blue-50 text-info-blue px-2 py-0.5 rounded-badge text-[9px] font-bold
+uppercase">In Progress</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-primary-
+blue w-[65%]"></div></div>
+<span class="text-[10px]">65%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">10:30
+AM</span></td>
+<td class="px-6 py-4 text-text-secondary">—</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
+hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
+lucide="more-vertical"></i></div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50">
+<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
+lucide="file-text"></i> WF-1020</td>
+<td class="px-6 py-4">Forecast Generation</td>
+<td class="px-6 py-4 font-mono text-[10px]">FG-2025-0519-1020</td>
+<td class="px-6 py-4">Completed</td>
+<td class="px-6 py-4 text-center">
+<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
+font-bold uppercase">Completed</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
+success-green w-full"></div></div>
+<span class="text-[10px]">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">10:15
+AM</span></td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">10:17
+AM</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
+hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
+lucide="more-vertical"></i></div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50">
+<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
+lucide="file-text"></i> WF-1019</td>
+<td class="px-6 py-4">Report Generation</td>
+<td class="px-6 py-4 font-mono text-[10px]">RG-2025-0519-1019</td>
+<td class="px-6 py-4">Completed</td>
+<td class="px-6 py-4 text-center">
+<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
+font-bold uppercase">Completed</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
+success-green w-full"></div></div>
+<span class="text-[10px]">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:50
+AM</span></td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:52
+AM</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
+hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
+lucide="more-vertical"></i></div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50">
+<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
+lucide="file-text"></i> WF-1018</td>
+<td class="px-6 py-4">Anomaly Detection</td>
+<td class="px-6 py-4 font-mono text-[10px]">AD-2025-0519-1018</td>
+<td class="px-6 py-4">Completed</td>
+<td class="px-6 py-4 text-center">
+<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
+font-bold uppercase">Completed</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
+success-green w-full"></div></div>
+<span class="text-[10px]">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:40
+AM</span></td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:43
+AM</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
+hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
+lucide="more-vertical"></i></div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50">
+<td class="px-6 py-4 flex items-center gap-2 text-error-red"><i class="w-3.5 h-3.5" data-
+lucide="alert-circle"></i> WF-1017</td>
+<td class="px-6 py-4">Data Import</td>
+<td class="px-6 py-4 font-mono text-[10px]">DI-2025-0519-1017</td>
+<td class="px-6 py-4">Validate Data</td>
+<td class="px-6 py-4 text-center">
+<span class="bg-error-red/10 text-error-red px-2 py-0.5 rounded-badge text-[9px] font-bold
+uppercase">Failed</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-error-
+red w-[35%]"></div></div>
+<span class="text-[10px]">35%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:32
+AM</span></td>
+<td class="px-6 py-4 text-text-secondary">—</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
+hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
+lucide="more-vertical"></i></div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50">
+<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
+lucide="file-text"></i> WF-1016</td>
+<td class="px-6 py-4">AI Insight Generation</td>
+<td class="px-6 py-4 font-mono text-[10px]">AI-2025-0519-1016</td>
+<td class="px-6 py-4">Completed</td>
+<td class="px-6 py-4 text-center">
+<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
+font-bold uppercase">Completed</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
+success-green w-full"></div></div>
+<span class="text-[10px]">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:20
+AM</span></td>
+<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:22
+AM</span></td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
+hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
+lucide="more-vertical"></i></div>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="px-6 py-3 border-t border-border-light flex items-center justify-between">
+<span class="text-[11px] text-text-secondary">Showing 1 to 6 of 24 instances</span>
+<div class="flex items-center gap-1">
+<button class="p-1 border border-border-light rounded hover:bg-gray-50 disabled:opacity-50"
+disabled=""><i class="w-3.5 h-3.5" data-lucide="chevron-left"></i></button>
+<button class="w-6 h-6 flex items-center justify-center bg-primary-blue text-white text-[11px]
+font-bold rounded">1</button>
+<button class="w-6 h-6 flex items-center justify-center text-[11px] font-medium text-text-
+secondary hover:bg-gray-100 rounded">2</button>
+<button class="w-6 h-6 flex items-center justify-center text-[11px] font-medium text-text-
+secondary hover:bg-gray-100 rounded">3</button>
+<span class="px-1 text-text-secondary">...</span>
+<button class="w-6 h-6 flex items-center justify-center text-[11px] font-medium text-text-
+secondary hover:bg-gray-100 rounded">4</button>
+<button class="p-1 border border-border-light rounded hover:bg-gray-50"><i class="w-3.5 h-3.5"
+data-lucide="chevron-right"></i></button>
+</div>
+</div>
+</div>
+<!-- Execution Log -->
+<div class="col-span-3 bg-white border border-border-light rounded-card p-6 overflow-hidden
+flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-semibold">Execution Log</h3>
+<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="info"></i>
+</div>
+</div>
+<div class="flex-1 space-y-5 overflow-y-auto pr-2">
+<!-- Log Entry -->
+<div class="flex gap-4 relative">
+<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
+<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
+items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
+lucide="check"></i></div></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-text-secondary">10:30:15 AM</span>
+</div>
+<p class="text-[11px] font-bold">Workflow Started</p>
+<p class="text-[10px] text-text-secondary">Financial Data Pipeline initiated</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="flex gap-4 relative">
+<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
+<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
+items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
+lucide="check"></i></div></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-text-secondary">10:30:18 AM</span>
+</div>
+<p class="text-[11px] font-bold">Upload Completed</p>
+<p class="text-[10px] text-text-secondary">Dataset P&amp;L_May_2025.csv uploaded</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="flex gap-4 relative">
+<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
+<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
+items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
+lucide="check"></i></div></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-text-secondary">10:31:02 AM</span>
+</div>
+<p class="text-[11px] font-bold">Validation Completed</p>
+<p class="text-[10px] text-text-secondary">All data validations passed</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="flex gap-4 relative">
+<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
+<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
+items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
+lucide="check"></i></div></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-text-secondary">10:31:45 AM</span>
+</div>
+<p class="text-[11px] font-bold">Schema Mapping Completed</p>
+<p class="text-[10px] text-text-secondary">Columns mapped successfully</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="flex gap-4 relative">
+<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
+<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
+items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
+lucide="check"></i></div></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-text-secondary">10:32:30 AM</span>
+</div>
+<p class="text-[11px] font-bold">Data Cleaning Completed</p>
+<p class="text-[10px] text-text-secondary">Missing values handled</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="flex gap-4 relative">
+<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
+<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
+items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
+lucide="check"></i></div></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-text-secondary">10:33:16 AM</span>
+</div>
+<p class="text-[11px] font-bold">Database Updated</p>
+<p class="text-[10px] text-text-secondary">Clean data stored in PostgreSQL</p>
+</div>
+</div>
+<!-- Active Log Entry -->
+<div class="flex gap-4 relative">
+<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-primary-blue flex
+items-center justify-center pulse-glow"><span class="w-1.5 h-1.5 bg-primary-blue rounded-
+full"></span></div></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-primary-blue font-bold">10:38:10 AM</span>
+</div>
+<p class="text-[11px] font-bold text-primary-blue">AI Recommendations</p>
+<p class="text-[10px] text-text-secondary">Generating recommendations...</p>
+</div>
+</div>
+</div>
+<button class="mt-4 w-full py-2 text-[11px] font-semibold text-primary-blue border border-indigo-
+100 rounded-lg hover:bg-indigo-50 flex items-center justify-center gap-2">
+View Full Log <i class="w-3 h-3" data-lucide="external-link"></i>
+</button>
+</div>
+</div>
+<!-- END: Tables Row -->
+<!-- BEGIN: Bottom KPI Strip -->
+<div class="grid grid-cols-6 gap-6 pb-8">
+<!-- KPI Card -->
+<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
+between">
+<div>
+<p class="text-[10px] text-text-secondary uppercase">Total Workflows</p>
+<h4 class="text-lg font-bold">14</h4>
+<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
+data-lucide="arrow-up"></i> 2 <span class="text-text-secondary">this week</span></p>
+</div>
+<div class="w-10 h-10 bg-indigo-50 text-primary-blue rounded-full flex items-center justify-
+center"><i class="w-5 h-5" data-lucide="users"></i></div>
+</div>
+<!-- KPI Card -->
+<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
+between">
+<div>
+<p class="text-[10px] text-text-secondary uppercase">Running</p>
+<h4 class="text-lg font-bold">2</h4>
+<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
+data-lucide="arrow-up"></i> 1 <span class="text-text-secondary">since yesterday</span></p>
+</div>
+<div class="w-10 h-10 bg-blue-50 text-info-blue rounded-full flex items-center justify-center"><i
+class="w-5 h-5" data-lucide="activity"></i></div>
+</div>
+<!-- KPI Card -->
+<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
+between">
+<div>
+<p class="text-[10px] text-text-secondary uppercase">Completed</p>
+<h4 class="text-lg font-bold">24</h4>
+<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
+data-lucide="arrow-up"></i> 5 <span class="text-text-secondary">this week</span></p>
+</div>
+<div class="w-10 h-10 bg-green-50 text-success-green rounded-full flex items-center justify-
+center"><i class="w-5 h-5" data-lucide="check-circle"></i></div>
+</div>
+<!-- KPI Card -->
+<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
+between">
+<div>
+<p class="text-[10px] text-text-secondary uppercase">Failed</p>
+<h4 class="text-lg font-bold">1</h4>
+<p class="text-[9px] text-error-red mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5" data-
+lucide="arrow-down"></i> 1 <span class="text-text-secondary">this week</span></p>
+</div>
+<div class="w-10 h-10 bg-red-50 text-error-red rounded-full flex items-center justify-center"><i
+class="w-5 h-5" data-lucide="alert-triangle"></i></div>
+</div>
+<!-- KPI Card -->
+<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
+between">
+<div>
+<p class="text-[10px] text-text-secondary uppercase">Avg. Duration</p>
+<h4 class="text-lg font-bold">18m 42s</h4>
+<p class="text-[9px] text-error-red mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5" data-
+lucide="arrow-down"></i> 5m <span class="text-text-secondary">vs last week</span></p>
+</div>
+<div class="w-10 h-10 bg-orange-50 text-warning-orange rounded-full flex items-center justify-
+center"><i class="w-5 h-5" data-lucide="clock"></i></div>
+</div>
+<!-- KPI Card -->
+<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
+between">
+<div>
+<p class="text-[10px] text-text-secondary uppercase">Success Rate</p>
+<h4 class="text-lg font-bold">96.2%</h4>
+<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
+data-lucide="arrow-up"></i> 3.4% <span class="text-text-secondary">vs last week</span></p>
+</div>
+<div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-
+center"><i class="w-5 h-5" data-lucide="bar-chart-3"></i></div>
+</div>
+</div>
+<!-- END: Bottom KPI Strip -->
+</div>
+</main>
+<script data-purpose="initializer">
+document.addEventListener('DOMContentLoaded', () => {
+lucide.createIcons();
+});
+</script>
+</body></html>

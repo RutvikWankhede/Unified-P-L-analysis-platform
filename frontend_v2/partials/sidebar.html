@@ -1,0 +1,104 @@
+<!-- Sidebar -->
+<aside id="main-sidebar" class="w-[240px] h-screen fixed left-0 top-0 bg-[#FFFFFF] border-r border-[#E7EAF3] flex flex-col z-50 transition-all duration-300">
+    
+    <!-- Logo Section -->
+    <div class="p-5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-[#6366F1] rounded-lg flex items-center justify-center text-white flex-shrink-0">
+            <span class="material-symbols-outlined text-lg">analytics</span>
+        </div>
+        <div class="flex-1 overflow-hidden">
+            <h1 class="text-sm font-bold leading-tight text-[#1F2937] truncate">Unified P&L</h1>
+            <p class="text-[10px] text-[#6B7280] truncate">AI Governance System</p>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 px-3 py-2 overflow-y-auto custom-scrollbar space-y-1">
+        <!-- Dashboard -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="dashboard.html" data-path="dashboard.html">
+            <span class="material-symbols-outlined text-[20px]">grid_view</span> <span class="font-medium">Dashboard</span>
+        </a>
+        <!-- Departments -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="departments.html" data-path="departments.html">
+            <span class="material-symbols-outlined text-[20px]">domain</span> <span class="font-medium">Departments</span>
+        </a>
+        <!-- Upload / Datasets -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="datasets.html" data-path="datasets.html">
+            <span class="material-symbols-outlined text-[20px]">upload_file</span> <span class="font-medium">Upload / Datasets</span>
+        </a>
+        <!-- Forecast -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="forecast.html" data-path="forecast.html">
+            <span class="material-symbols-outlined text-[20px]">trending_up</span> <span class="font-medium">Forecast</span>
+        </a>
+        <!-- Anomaly Detection -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="anomalies.html" data-path="anomalies.html">
+            <span class="material-symbols-outlined text-[20px]">warning</span> <span class="font-medium">Anomaly Detection</span>
+        </a>
+        <!-- AI Copilot -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="copilot.html" data-path="copilot.html">
+            <span class="material-symbols-outlined text-[20px]">smart_toy</span> <span class="font-medium">AI Copilot</span>
+        </a>
+        <!-- Workflow -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="workflow.html" data-path="workflow.html">
+            <span class="material-symbols-outlined text-[20px]">account_tree</span> <span class="font-medium">Workflow</span>
+        </a>
+        <!-- Reports -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="reports.html" data-path="reports.html">
+            <span class="material-symbols-outlined text-[20px]">description</span> <span class="font-medium">Reports</span>
+        </a>
+        <!-- Audit Trail -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="audit.html" data-path="audit.html">
+            <span class="material-symbols-outlined text-[20px]">history</span> <span class="font-medium">Audit Trail</span>
+        </a>
+        <!-- Settings -->
+        <a class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl text-[#6B7280] hover:bg-[#F4F5FF] transition-colors duration-200" href="settings.html" data-path="settings.html">
+            <span class="material-symbols-outlined text-[20px]">settings</span> <span class="font-medium">Settings</span>
+        </a>
+    </nav>
+
+    <!-- Bottom Section -->
+    <div class="px-4 pb-4 pt-2">
+        
+        <!-- Company Selector -->
+        <button class="w-full flex flex-col text-left px-3 py-2 rounded-xl bg-[#F8F9FC] border border-[#E7EAF3] shadow-sm mb-3 hover:bg-[#F4F5FF] transition-colors duration-250 group relative">
+            <div class="flex items-center justify-between w-full">
+                <span class="text-[10px] text-[#6B7280] uppercase font-semibold">Company</span>
+                <span class="material-symbols-outlined text-[14px] text-[#6B7280] group-hover:text-[#1F2937] transition-colors">keyboard_arrow_down</span>
+            </div>
+            <span class="text-xs font-semibold text-[#1F2937] mt-0.5 truncate">TechNova Solutions Pvt. Ltd.</span>
+        </button>
+
+        <!-- User Card -->
+        <div class="flex items-center gap-3 px-3 py-2 mb-3">
+            <!-- Circular Avatar -->
+            <div class="relative flex-shrink-0">
+                <img src="https://i.pravatar.cc/150?img=11" alt="Admin" class="w-9 h-9 rounded-full object-cover border border-[#E7EAF3]">
+            </div>
+            <div class="flex-1 overflow-hidden">
+                <p class="text-sm font-semibold text-[#1F2937] truncate">Admin</p>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></div>
+                    <span class="text-[10px] font-bold text-[#6B7280]">ONLINE</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</aside>
+
+<script>
+    (function() {
+        // Highlight active nav item
+        const currentPath = window.location.pathname.split('/').pop() || 'dashboard.html';
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            if (item.getAttribute('data-path') === currentPath) {
+                item.classList.remove('text-[#6B7280]');
+                item.classList.add('bg-[#F4F5FF]', 'text-[#6366F1]');
+                // Make icon match
+                const icon = item.querySelector('.material-symbols-outlined');
+                if(icon) icon.classList.add('text-[#6366F1]');
+            }
+        });
+    })();
+</script>

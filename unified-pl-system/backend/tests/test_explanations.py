@@ -1,5 +1,3 @@
-
-
 def test_explanations_endpoints(client):
     res = client.post(
         "/api/v1/auth/login",

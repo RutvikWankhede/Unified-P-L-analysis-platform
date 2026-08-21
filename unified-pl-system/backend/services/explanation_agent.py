@@ -1,15 +1,12 @@
 import hashlib
 import json
 
-from openai import OpenAI
 from sqlalchemy.orm import Session
 
 from config import settings
 from models.anomaly import Anomaly
 from models.pl_record import PLRecord
 from models.recommendation import Explanation
-
-client = OpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
 
 
 def _compute_hash(anomaly: Anomaly, pl_record: PLRecord) -> str:
@@ -18,6 +15,9 @@ def _compute_hash(anomaly: Anomaly, pl_record: PLRecord) -> str:
 
 
 def generate_explanation(db: Session, anomaly_id: int) -> Explanation:
+    from openai import OpenAI
+    client = OpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
+    
     anomaly = db.query(Anomaly).filter(Anomaly.id == anomaly_id).first()
     if not anomaly:
         return None

@@ -1,0 +1,72 @@
+﻿[
+  {
+    "href": "dashboard.html",
+    "url": "http://127.0.0.1:3000/dashboard.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "departments.html",
+    "url": "http://127.0.0.1:3000/departments.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "datasets.html",
+    "url": "http://127.0.0.1:3000/datasets.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "forecast.html",
+    "url": "http://127.0.0.1:3000/forecast.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "anomalies.html",
+    "url": "http://127.0.0.1:3000/anomalies.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "copilot.html",
+    "url": "http://127.0.0.1:3000/copilot.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "workflow.html",
+    "url": "http://127.0.0.1:3000/workflow.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "reports.html",
+    "url": "http://127.0.0.1:3000/reports.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "audit.html",
+    "url": "http://127.0.0.1:3000/audit.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  },
+  {
+    "href": "settings.html",
+    "url": "http://127.0.0.1:3000/settings.html",
+    "status": 200,
+    "ok": true,
+    "error": null
+  }
+]

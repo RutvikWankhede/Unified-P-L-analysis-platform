@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script>window.location.replace('pl_forecast.html');</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Forecast - Unified P&amp;L</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Font Configuration -->
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display
+=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+'brand': '#5b5ceb',
+'surface': '#f8f9fd',
+'surface-bright': '#ffffff',
+'border-light': '#e5e7eb',
+'text-primary': '#1f2937',
+'text-secondary': '#6b7280'
+},
+fontFamily: {
+sans: ['Inter', 'sans-serif'],
+},
+borderRadius: {
+'custom': '20px',
+}
+}
+}
+}
+</script>
+<style data-purpose="custom-layout">
+body {
+background-color: #f8f9fd;
+color: #1f2937;
+font-family: 'Inter', sans-serif;
+}
+.sidebar-width {
+width: 260px;
+}
+.main-content {
+width: calc(100% - 260px);
+}
+.active-nav-item {
+background-color: rgba(91, 92, 235, 0.1);
+color: #5b5ceb;
+border-right: 3px solid #5b5ceb;
+}
+</style>
+</head>
+<body class="flex min-h-screen">
+<!-- BEGIN: Sidebar -->
+<aside class="sidebar-width bg-white border-r border-border-light flex flex-col h-screen sticky
+top-0" data-purpose="sidebar">
+<div class="p-6 flex items-center gap-3">
+<div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center text-white font-
+bold">U</div>
+<div>
+<h1 class="font-bold text-sm leading-tight">Unified P&amp;L</h1>
+<p class="text-[10px] text-text-secondary">AI Governance System</p>
+</div>
+</div>
+<nav class="flex-1 mt-4 px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2
+0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012
+2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2
+0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-
+linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+Dashboard
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19
+21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-
+4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-
+linejoin="round" stroke-width="2"></path></svg>
+Departments
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
+16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round"
+stroke-linejoin="round" stroke-width="2"></path></svg>
+Upload / Datasets
+</a>
+<a class="active-nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg"
+href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13
+7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+Forecast
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
+9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-
+3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"
+stroke-width="2"></path></svg>
+Anomalies
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9.663
+17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828
+9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-
+1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+AI Copilot
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
+2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
+1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+Reports
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2
+4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0
+003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-
+3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+Audit
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-gray-50
+rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325
+4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37
+2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066
+2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-
+3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-
+2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-
+2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-
+linejoin="round" stroke-width="2"></path></svg>
+Settings
+</a>
+</nav>
+<div class="p-4 border-t border-border-light space-y-4">
+<div class="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+<div>
+<p class="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Company</p>
+<p class="text-xs font-semibold">TechFlow Solutions Pvt. Ltd.</p>
+</div>
+<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewbox="0 0 24
+24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</div>
+<div class="flex items-center gap-3">
+<img alt="User" class="w-10 h-10 rounded-full border border-border-light"
+src="https://lh3.googleusercontent.com/aida-
+public/AB6AXuC3q17rW6sHx5k43yOD946ucQOXiMtzAsqRF06nBAeh6OJA65yv_OU3TtagFf8e
+RM1czpOZPTpphLJIi4fnKPaK3Sfl_jnWcZ3TJSH1gGIhy0Rj3WcPrOgAHdvoJN_MDdG20_8vax
+11y5_yJmbChv48sjvjSHiRSR7JpJ-RokWUyQcDZPQ2PXzwYInhWJjr3doGLS-XKpEWT-
+WG8LeoMNOZ39rr5ifFpXD3cRSVKRUJnAfODL5cyBbjAAzN_fluBAqZKE0Yxu8x1Utn"/>
+<div>
+<p class="text-sm font-semibold">Rutvik Wankhade</p>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+<p class="text-[10px] text-text-secondary">Finance Manager</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: Sidebar -->
+<!-- BEGIN: Main Content -->
+<main class="main-content flex-1 overflow-y-auto">
+<!-- Header Section -->
+<header class="bg-white border-b border-border-light px-8 py-6 flex justify-between items-start"
+data-purpose="page-header">
+<div>
+<h2 class="text-2xl font-bold text-gray-900">Forecast</h2>
+<p class="text-sm text-text-secondary">Predict future financial performance</p>
+</div>
+<button class="bg-brand text-white px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2
+hover:bg-opacity-90 transition-all shadow-sm shadow-brand/20">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-
+6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+Run Forecast
+</button>
+</header>
+<!-- Filters Bar -->
+<div class="px-8 py-6 grid grid-cols-2 gap-6" data-purpose="filters">
+<div class="space-y-1">
+<label class="text-[11px] font-bold text-text-secondary uppercase">Metric</label>
+<div class="relative">
+<select class="w-full bg-white border border-border-light rounded-xl px-4 py-2.5 appearance-
+none text-sm focus:ring-brand focus:border-brand">
+<option>Net Profit</option>
+<option>Revenue</option>
+<option>OpEx</option>
+</select>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewbox="0 0 24
+24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</div>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[11px] font-bold text-text-secondary uppercase">Period</label>
+<div class="relative">
+<select class="w-full bg-white border border-border-light rounded-xl px-4 py-2.5 appearance-
+none text-sm focus:ring-brand focus:border-brand">
+<option>Next 12 Months</option>
+<option>Next 6 Months</option>
+<option>Current FY</option>
+</select>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewbox="0 0 24
+24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</div>
+</div>
+</div>
+</div>
+<!-- Charts and Summary Grid -->
+<div class="px-8 grid grid-cols-12 gap-6">
+<!-- BEGIN: Forecast Summary Card -->
+<section class="col-span-4 bg-white p-6 rounded-custom border border-border-light shadow-
+sm" data-purpose="forecast-summary">
+<h3 class="text-sm font-bold text-gray-900 mb-6">Forecast Summary</h3>
+<div class="mb-8">
+<p class="text-[11px] text-text-secondary font-medium mb-1">Predicted Net Profit (Next 12
+Months)</p>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-bold">₹2.46 Cr</span>
+<div class="flex items-center text-green-500 text-xs font-bold bg-green-50 px-1.5 py-0.5
+rounded">
+<svg class="w-3 h-3" fill="currentColor" viewbox="0 0 20 20"><path clip-rule="evenodd"
+d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11
+7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" fill-
+rule="evenodd"></path></svg>
+11.2%
+</div>
+<span class="text-[10px] text-text-secondary">vs current month</span>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<p class="text-[11px] text-text-secondary font-bold uppercase mb-1">Model</p>
+<p class="text-sm font-semibold">Prophet Forecasting</p>
+</div>
+<div>
+<p class="text-[11px] text-text-secondary font-bold uppercase mb-1">Confidence Score</p>
+<p class="text-sm font-bold">92%</p>
+</div>
+<div>
+<p class="text-[11px] text-text-secondary font-bold uppercase mb-1">Generated On</p>
+<p class="text-sm font-semibold">May 18, 2025</p>
+</div>
+</div>
+</section>
+<!-- END: Forecast Summary Card -->
+<!-- BEGIN: Net Profit Forecast Chart -->
+<section class="col-span-8 bg-white p-6 rounded-custom border border-border-light shadow-sm
+relative" data-purpose="forecast-chart">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-sm font-bold text-gray-900">Net Profit Forecast</h3>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-6 text-[10px] font-medium text-text-secondary">
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-brand rounded-full"></span>
+Actual</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-brand/40 rounded-
+full"></span> Forecast</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-blue-100 rounded-
+full"></span> Confidence Range</div>
+</div>
+<div class="flex bg-gray-100 p-0.5 rounded-lg">
+<button class="px-4 py-1 text-[10px] font-bold bg-brand text-white rounded-md">Chart</button>
+<button class="px-4 py-1 text-[10px] font-bold text-text-secondary">Table</button>
+</div>
+</div>
+</div>
+<div class="h-[240px] w-full relative" id="chart-container">
+<!-- Canvas for Spline Chart -->
+<canvas class="w-full h-full" id="forecastSplineChart"></canvas>
+</div>
+<!-- Chart X-Axis Labels -->
+<div class="flex justify-between mt-4 px-2 text-[10px] text-text-secondary font-medium">
+<span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span
+><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</sp
+an><span>Mar</span><span>Apr</span>
+</div>
+</section>
+<!-- END: Net Profit Forecast Chart -->
+</div>
+<!-- Bottom Panels Grid -->
+<div class="px-8 py-6 grid grid-cols-12 gap-6">
+<!-- BEGIN: Forecast Insights -->
+<section class="col-span-7 bg-white p-6 rounded-custom border border-border-light shadow-
+sm" data-purpose="insights-panel">
+<h3 class="text-sm font-bold text-gray-900 mb-6">Forecast Insights</h3>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<div class="mt-1 w-2 h-2 bg-brand rounded-full shrink-0"></div>
+<p class="text-sm text-text-secondary">Net Profit is expected to grow steadily over the next 12
+months.</p>
+</li>
+<li class="flex items-start gap-3">
+<div class="mt-1 w-2 h-2 bg-brand rounded-full shrink-0"></div>
+<p class="text-sm text-text-secondary">Peak profit expected in Dec 2025.</p>
+</li>
+<li class="flex items-start gap-3">
+<div class="mt-1 w-2 h-2 bg-brand rounded-full shrink-0"></div>
+<p class="text-sm text-text-secondary">Maintain cost control to achieve higher margins.</p>
+</li>
+</ul>
+</section>
+<!-- END: Forecast Insights -->
+<!-- BEGIN: Growth Drivers -->
+<section class="col-span-5 bg-white p-6 rounded-custom border border-border-light shadow-
+sm" data-purpose="growth-drivers-panel">
+<h3 class="text-sm font-bold text-gray-900 mb-6">Growth Drivers</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-
+colors">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4
+4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-sm font-medium">Revenue Growth</span>
+</div>
+<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border
+border-green-200">High</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-
+colors">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4
+4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-sm font-medium">Cost Optimization</span>
+</div>
+<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border
+border-green-200">High</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-
+colors">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4
+4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-sm font-medium">Operational Efficiency</span>
+</div>
+<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border
+border-green-200">High</span>
+</div>
+</div>
+</section>
+<!-- END: Growth Drivers -->
+</div>
+<!-- Floating Action Button -->
+<div class="fixed bottom-6 right-6">
+<button class="w-12 h-12 bg-brand text-white rounded-full flex items-center justify-center
+shadow-lg hover:scale-105 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
+6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round" stroke-linejoin="round" stroke-
+width="2"></path></svg>
+</button>
+</div>
+</main>
+<!-- END: Main Content -->
+<!-- BEGIN: Chart JavaScript -->
+<script data-purpose="canvas-setup">
+window.addEventListener('load', () => {
+const canvas = document.getElementById('forecastSplineChart');
+const ctx = canvas.getContext('2d');
+const dpr = window.devicePixelRatio || 1;
+function resize() {
+const rect = canvas.getBoundingClientRect();
+canvas.width = rect.width * dpr;
+canvas.height = rect.height * dpr;
+ctx.scale(dpr, dpr);
+drawChart(rect.width, rect.height);
+}
+function drawChart(w, h) {
+ctx.clearRect(0, 0, w, h);
+// Data points (normalized 0-1)
+const data = [0.3, 0.45, 0.35, 0.55, 0.48, 0.52, 0.42, 0.65, 0.58, 0.75, 0.82, 0.72];
+const padding = 20;
+const drawW = w - (padding * 2);
+const drawH = h - (padding * 2);
+const step = drawW / (data.length - 1);
+// Draw Grid Lines (Horizontal)
+ctx.strokeStyle = '#f3f4f6';
+ctx.lineWidth = 1;
+for (let i = 0; i <= 3; i++) {
+const y = padding + (drawH * (i / 3));
+ctx.beginPath();
+ctx.moveTo(padding, y);
+ctx.lineTo(w - padding, y);
+ctx.stroke();
+}
+// Draw Confidence Range Area
+ctx.fillStyle = 'rgba(91, 92, 235, 0.05)';
+ctx.beginPath();
+ctx.moveTo(padding, padding + drawH - (data[0] * drawH) - 20);
+for(let i = 1; i < data.length; i++) {
+ctx.lineTo(padding + (i * step), padding + drawH - (data[i] * drawH) - 20);
+}
+for(let i = data.length - 1; i >= 0; i--) {
+ctx.lineTo(padding + (i * step), padding + drawH - (data[i] * drawH) + 20);
+}
+ctx.closePath();
+ctx.fill();
+// Draw Spline
+ctx.strokeStyle = '#5b5ceb';
+ctx.lineWidth = 2;
+ctx.beginPath();
+ctx.moveTo(padding, padding + drawH - (data[0] * drawH));
+for (let i = 0; i < data.length - 1; i++) {
+const x1 = padding + (i * step);
+const y1 = padding + drawH - (data[i] * drawH);
+const x2 = padding + ((i + 1) * step);
+const y2 = padding + drawH - (data[i + 1] * drawH);
+const cx = (x1 + x2) / 2;
+ctx.bezierCurveTo(cx, y1, cx, y2, x2, y2);
+}
+ctx.stroke();
+// Draw Points
+data.forEach((val, i) => {
+const x = padding + (i * step);
+const y = padding + drawH - (val * drawH);
+ctx.fillStyle = '#5b5ceb';
+ctx.beginPath();
+ctx.arc(x, y, 3, 0, Math.PI * 2);
+ctx.fill();
+ctx.strokeStyle = '#fff';
+ctx.lineWidth = 1.5;
+ctx.stroke();
+});
+}
+window.addEventListener('resize', resize);
+resize();
+});
+</script>
+<!-- END: Chart JavaScript -->
+</body></html>

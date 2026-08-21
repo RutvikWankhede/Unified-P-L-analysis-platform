@@ -1,5 +1,3 @@
-
-
 def test_anomalies_endpoints(client):
     res = client.post(
         "/api/v1/auth/login",
@@ -16,7 +14,9 @@ def test_anomalies_endpoints(client):
     upload_id = response.json()["upload_id"]
 
     # Run anomaly detection
-    res = client.post(f"/api/v1/anomalies/detect?upload_id={upload_id}", headers=headers)
+    res = client.post(
+        f"/api/v1/anomalies/detect?upload_id={upload_id}", headers=headers
+    )
     assert res.status_code == 201
     assert "anomalies_detected" in res.json()
 

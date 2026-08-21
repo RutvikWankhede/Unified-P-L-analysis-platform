@@ -1,7 +1,19 @@
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
+import enum
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text, Enum
 from sqlalchemy.sql import func
 
 from database import Base
+
+
+class AuditActionType(str, enum.Enum):
+    CREATE = "CREATE"
+    UPDATE = "UPDATE"
+    DELETE = "DELETE"
+    LOGIN = "LOGIN"
+    LOGOUT = "LOGOUT"
+    VIEW = "VIEW"
+    APPROVE = "APPROVE"
+    REJECT = "REJECT"
 
 
 class AuditLog(Base):
@@ -9,7 +21,7 @@ class AuditLog(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    action_type = Column(String(50), nullable=False)
+    action_type = Column(Enum(AuditActionType), nullable=False)
     resource_type = Column(String(50), nullable=False)
     resource_id = Column(Integer, nullable=True)
     description = Column(Text, nullable=True)

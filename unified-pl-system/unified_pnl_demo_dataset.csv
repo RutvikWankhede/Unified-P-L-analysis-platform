@@ -1,0 +1,1257 @@
+transaction_id,date,department,category,description,transaction_type,amount,currency,status
+TXN-895363,2023-01-03,Logistics,Logistics,Logistics related to Logistics,Expense,30189.19,EUR,Completed
+TXN-711941,2023-01-20,Marketing,Marketing,Marketing related to Marketing,Expense,5110.11,USD,Completed
+TXN-757841,2025-01-04,Legal,Logistics,Logistics related to Legal,Expense,8052.39,USD,Completed
+TXN-391818,19/03/2025,Logistics,Software,Software related to Logistics,Expense,"$37,895.26",USD,Completed
+TXN-214301,2025-05-23,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,82842.51,USD,Completed
+TXN-323014,2023-06-27,Customer Support,Salaries,Salaries related to Customer Support,Expense,"$6,362.91",USD,Completed
+TXN-724513,2023-09-13,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,"$2,600.78",USD,Completed
+TXN-259626,2025-02-10,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,40749.27,EUR,Completed
+TXN-649255,2025-09-06,Administration,Utilities,Utilities related to Administration,Expense,6318.05,USD,Completed
+TXN-111987,2023-05-30,Procurement,Maintenance,Maintenance related to Procurement,Expense,41243.31,USD,Completed
+TXN-997504,15/05/2024,Sales,Salaries,Salaries related to Sales,Expense,25461.25,USD,Completed
+TXN-495146,2025-10-09,Administration,Training,Training related to Administration,Expense,21563.17,USD,Completed
+TXN-460816,2024-11-16,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,82816.76,GBP,Completed
+TXN-142060,26/03/2024,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,34670.86,USD,Completed
+TXN-551544,13/06/2023,Customer Support,Marketing,Marketing related to Customer Support,Expense,49873.51,GBP,Completed
+TXN-739705,2024-05-12,R&D,Marketing,Marketing related to R&D,Expense,2823.40,USD,Completed
+TXN-471541,30/11/2025,IT,Product Sales,Product Sales related to IT,Revenue,16240.22,EUR,Completed
+TXN-288362,2024-06-19,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,58216.24,USD,Completed
+TXN-994715,2025-04-27,Administration,Consulting Revenue,Consulting Revenue related to Administration,Revenue,41877.23,USD,Completed
+TXN-187473,09/06/2024,R&D,Professional Services,Professional Services related to R&D,Expense,"$2,446.06",USD,Completed
+TXN-444837,2024-07-09,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,140538.04,USD,Completed
+TXN-869006,2024-02-26,Customer Support,Travel,Travel related to Customer Support,Expense,35680.21,GBP,Completed
+TXN-267398,2023-08-19,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,53679.24,GBP,Completed
+TXN-575720,08/08/2025,Administration,Software,Software related to Administration,Expense,219326.32,USD,Completed
+TXN-798218,2023-12-01,Administration,Training,Training related to Administration,Expense,28077.54,EUR,Completed
+TXN-666684,2025-06-02,IT,Software,Software related to IT,Expense,"$36,744.20",USD,Completed
+TXN-816770,2023-09-20,Sales,Other Revenue,Other Revenue related to Sales,Revenue,102493.69,USD,Completed
+TXN-128604,2024-08-23,Logistics,Travel,Travel related to Logistics,Expense,12598.77,USD,Completed
+TXN-157191,2024-12-04,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,12003.31,USD,Completed
+TXN-195426,2025-08-02,Legal,Utilities,Utilities related to Legal,Expense,"$28,062.93",USD,Completed
+TXN-961219,2024-09-02,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,38359.07,USD,Completed
+TXN-737236,2024-12-13,Administration,Service Revenue,Service Revenue related to Administration,Revenue,91015.01,EUR,Completed
+TXN-187458,2025-11-18,Legal,Professional Services,Professional Services related to Legal,Expense,34941.44,USD,Completed
+TXN-253468,2024-07-15,Legal,Product Sales,Product Sales related to Legal,Revenue,134983.91,USD,Completed
+TXN-176619,2025-12-29,Customer Support,Professional Services,Professional Services related to Customer Support,Expense,35984.37,USD,Completed
+TXN-707868,2025-11-01,HR,Marketing,Marketing related to HR,Expense,33799.75,USD,Completed
+TXN-536760,2025-12-30,Finance,Service Revenue,Service Revenue related to Finance,Revenue,144355.02,USD,Completed
+TXN-154186,2023-02-11,Customer Support,Travel,Travel related to Customer Support,Expense,"$8,341.13",USD,Completed
+TXN-822597,08/10/2024,Logistics,Product Sales,Product Sales related to Logistics,Revenue,33237.38,USD,Completed
+TXN-840603,2024-12-28,HR,Service Revenue,Service Revenue related to HR,Revenue,"$107,448.01",USD,Completed
+TXN-356379,2025-02-24,IT,Office,Office related to IT,Expense,"$18,255.53",USD,Completed
+TXN-466577,2025-12-29,Legal,Marketing,Marketing related to Legal,Expense,29678.48,EUR,Completed
+TXN-683061,2023-04-04,R&D,Maintenance,Maintenance related to R&D,Expense,31060.48,GBP,Completed
+TXN-962671,2024-02-09,R&D,Software,Software related to R&D,Expense,46573.07,GBP,Completed
+TXN-655812,2024-04-20,Customer Support,Other Revenue,Other Revenue related to Customer Support,Revenue,35064.06,USD,Completed
+TXN-624383,2023-11-21,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,42033.32,USD,Completed
+TXN-980703,2025-05-22,Customer Support,Marketing,Marketing related to Customer Support,Expense,26999.71,USD,Completed
+TXN-564278,2023-08-16,Logistics,Maintenance,Maintenance related to Logistics,Expense,25044.18,USD,Completed
+TXN-488566,2024-06-20,Logistics,Utilities,Utilities related to Logistics,Expense,21604.11,USD,Completed
+TXN-506374,2024-03-20,Procurement,Office,Office related to Procurement,Expense,29600.57,USD,Completed
+TXN-968456,2024-08-29,Administration,Maintenance,Maintenance related to Administration,Expense,30860.40,EUR,Completed
+TXN-384790,2024-08-11,Sales,Office,Office related to Sales,Expense,9436.00,USD,Completed
+TXN-724776,2025-02-09,IT,Office,Office related to IT,Expense,43664.48,USD,Completed
+TXN-876306,14/08/2025,Procurement,Salaries,Salaries related to Procurement,Expense,3510.76,USD,Completed
+TXN-930206,2024-12-11,Operations,Service Revenue,Service Revenue related to Operations,Revenue,149904.48,USD,Completed
+TXN-316127,2024-06-16,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,24741.67,USD,Completed
+TXN-252073,2023-01-12,IT,Salaries,Salaries related to IT,Expense,"$31,938.68",USD,Completed
+TXN-369492,2023-03-05,Procurement,Product Sales,Product Sales related to Procurement,Revenue,5665.31,USD,Completed
+TXN-416343,12/03/2023,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,42671.55,USD,Completed
+TXN-655994,21/04/2023,Marketing,Cloud Infrastructure,Cloud Infrastructure related to Marketing,Expense,29469.96,USD,Completed
+TXN-100500,2023-03-18,Operations,Training,Training related to Operations,Expense,11587.26,USD,Completed
+TXN-171610,22/01/2023,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,56915.91,USD,Completed
+TXN-988643,2025-01-08,Marketing,Training,Training related to Marketing,Expense,44361.66,EUR,Completed
+TXN-981385,2023-12-06,Marketing,Procurement,Procurement related to Marketing,Expense,15292.70,USD,Completed
+TXN-207817,2025-01-01,Administration,Cloud Infrastructure,Cloud Infrastructure related to Administration,Expense,17925.10,USD,Completed
+TXN-323880,15/07/2023,Administration,Service Revenue,Service Revenue related to Administration,Revenue,148733.97,GBP,Completed
+TXN-546827,26/12/2023,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,125376.12,USD,Completed
+TXN-865241,2025-06-26,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,"$15,575.27",USD,Completed
+TXN-562943,2023-10-12,Sales,Salaries,Salaries related to Sales,Expense,"$35,928.88",USD,Completed
+TXN-568050,2023-03-24,Administration,Logistics,Logistics related to Administration,Expense,48685.82,USD,Completed
+TXN-401531,2024-06-10,Legal,Product Sales,Product Sales related to Legal,Revenue,132617.64,USD,Completed
+TXN-649970,05/01/2024,Procurement,Salaries,Salaries related to Procurement,Expense,39456.57,USD,Completed
+TXN-383918,2025-04-15,IT,Subscription Revenue,Subscription Revenue related to IT,Revenue,100933.13,USD,Completed
+TXN-682677,2023-06-18,IT,Professional Services,Professional Services related to IT,Expense,6092.56,USD,Completed
+TXN-829099,2024-10-14,Administration,Other Revenue,Other Revenue related to Administration,Revenue,31625.72,GBP,Completed
+TXN-474448,2023-03-02,Logistics,Service Revenue,Service Revenue related to Logistics,Revenue,87340.62,GBP,Completed
+TXN-368221,2023-01-26,Procurement,Office,Office related to Procurement,Expense,33965.48,USD,Completed
+TXN-886656,2023-12-15,Procurement,Logistics,Logistics related to Procurement,Expense,38652.79,USD,Completed
+TXN-787900,2023-03-19,Operations,Other Revenue,Other Revenue related to Operations,Revenue,146068.65,USD,Completed
+TXN-895459,18/01/2025,R&D,Utilities,Utilities related to R&D,Expense,"$14,084.55",USD,Completed
+TXN-897515,2023-12-21,Legal,Office,Office related to Legal,Expense,20738.23,USD,Completed
+TXN-479018,2025-06-08,Procurement,Software,Software related to Procurement,Expense,49241.46,USD,Completed
+TXN-170111,2025-02-21,Operations,Product Sales,Product Sales related to Operations,Revenue,23895.57,USD,Completed
+TXN-317487,2023-07-15,IT,Travel,Travel related to IT,Expense,20888.24,USD,Completed
+TXN-800126,07/01/2024,IT,Logistics,Logistics related to IT,Expense,39331.23,USD,Completed
+TXN-236295,2025-11-24,Logistics,Marketing,Marketing related to Logistics,Expense,18924.53,USD,Completed
+TXN-875808,2025-04-20,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,144172.31,USD,Completed
+TXN-922659,2024-12-30,Finance,Subscription Revenue,Subscription Revenue related to Finance,Revenue,"$102,840.42",USD,Completed
+TXN-747557,2023-08-25,HR,Training,Training related to HR,Expense,32199.21,GBP,Completed
+TXN-500892,2025-02-04,IT,Product Sales,Product Sales related to IT,Revenue,17342.25,USD,Completed
+TXN-904002,2024-09-06,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,"$25,865.90",USD,Completed
+TXN-353814,2023-07-30,Finance,Travel,Travel related to Finance,Expense,47026.71,USD,Completed
+TXN-780812,24/11/2024,Finance,Service Revenue,Service Revenue related to Finance,Revenue,131138.85,USD,Completed
+TXN-186095,2023-11-10,Legal,Other Revenue,Other Revenue related to Legal,Revenue,15448.39,USD,Completed
+TXN-794827,2023-01-23,Finance,Service Revenue,Service Revenue related to Finance,Revenue,147427.56,GBP,Completed
+TXN-287957,02/02/2024,Operations,Product Sales,Product Sales related to Operations,Revenue,70791.09,USD,Completed
+TXN-659707,2023-07-25,HR,Utilities,Utilities related to HR,Expense,13705.98,USD,Completed
+TXN-580847,2023-05-29,Sales,Procurement,Procurement related to Sales,Expense,47265.53,USD,Completed
+TXN-460689,2024-07-16,Legal,Maintenance,Maintenance related to Legal,Expense,20262.60,USD,Completed
+TXN-617326,2025-12-04,Administration,Software,Software related to Administration,Expense,30852.56,USD,Completed
+TXN-652205,2024-07-10,Finance,Software,Software related to Finance,Expense,"$37,674.40",USD,Completed
+TXN-408121,2025-08-28,Operations,Other Revenue,Other Revenue related to Operations,Revenue,95193.06,USD,Completed
+TXN-102624,2023-04-10,Customer Support,Salaries,Salaries related to Customer Support,Expense,24133.30,USD,Completed
+TXN-598835,2025-08-25,Operations,Cloud Infrastructure,Cloud Infrastructure related to Operations,Expense,22872.89,EUR,Completed
+TXN-337351,2025-04-15,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,"$51,079.43",USD,Completed
+TXN-226282,2023-03-06,Operations,Marketing,Marketing related to Operations,Expense,"$1,838.57",USD,Completed
+TXN-951445,2025-04-30,Marketing,Logistics,Logistics related to Marketing,Expense,7268.39,USD,Completed
+TXN-621977,2025-02-22,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,36395.28,USD,Completed
+TXN-540131,2025-07-29,HR,Salaries,Salaries related to HR,Expense,32922.17,EUR,Completed
+TXN-473944,2025-01-12,Operations,Office,Office related to Operations,Expense,151147.52,USD,Completed
+TXN-648128,28/08/2023,Legal,Logistics,Logistics related to Legal,Expense,46699.89,USD,Completed
+TXN-248882,2023-05-17,Sales,Software,Software related to Sales,Expense,"$28,445.58",USD,Completed
+TXN-707307,05/12/2024,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,17295.92,USD,Completed
+TXN-496731,2023-02-07,Sales,Procurement,Procurement related to Sales,Expense,5278.92,USD,Completed
+TXN-655026,2025-04-03,HR,Salaries,Salaries related to HR,Expense,10853.91,USD,Completed
+TXN-393813,2025-12-20,Procurement,Office,Office related to Procurement,Expense,34232.38,USD,Completed
+TXN-568907,2024-06-17,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,36645.63,USD,Completed
+TXN-100373,2024-11-07,Sales,Utilities,Utilities related to Sales,Expense,4533.36,USD,Completed
+TXN-520824,2023-01-29,Sales,Logistics,Logistics related to Sales,Expense,19123.14,USD,Completed
+TXN-870068,2023-12-09,Operations,Office,Office related to Operations,Expense,7828.30,USD,Completed
+TXN-388810,2023-04-10,IT,Maintenance,Maintenance related to IT,Expense,"$46,749.34",USD,Completed
+TXN-134365,2023-09-29,Legal,Salaries,Salaries related to Legal,Expense,35005.44,USD,Completed
+TXN-958918,2025-09-29,IT,Professional Services,Professional Services related to IT,Expense,4602.37,USD,Completed
+TXN-251714,2024-06-29,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,88313.58,USD,Completed
+TXN-152506,2025-10-29,Operations,Service Revenue,Service Revenue related to Operations,Revenue,109388.88,EUR,Completed
+TXN-498259,10/04/2024,Finance,Other Revenue,Other Revenue related to Finance,Revenue,48026.40,USD,Completed
+TXN-867468,2023-02-16,Customer Support,Utilities,Utilities related to Customer Support,Expense,14921.28,USD,Completed
+TXN-820420,11/11/2025,Marketing,Training,Training related to Marketing,Expense,40599.47,EUR,Completed
+TXN-961971,2023-05-31,Administration,Procurement,Procurement related to Administration,Expense,"$30,221.44",USD,Completed
+TXN-770896,2024-11-28,Logistics,Procurement,Procurement related to Logistics,Expense,48528.08,USD,Completed
+TXN-897763,2025-05-25,Administration,Product Sales,Product Sales related to Administration,Revenue,"$29,280.50",USD,Completed
+TXN-244297,25/07/2025,Sales,Marketing,Marketing related to Sales,Expense,2560.93,USD,Completed
+TXN-506407,2024-08-02,Customer Support,Logistics,Logistics related to Customer Support,Expense,26887.51,USD,Completed
+TXN-170469,2025-10-02,Finance,Service Revenue,Service Revenue related to Finance,Revenue,38938.72,USD,Completed
+TXN-379477,2024-04-16,HR,Travel,Travel related to HR,Expense,"$14,370.36",USD,Completed
+TXN-239876,2024-01-01,IT,Salaries,Salaries related to IT,Expense,"$26,252.36",USD,Completed
+TXN-617217,2024-03-14,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,27777.03,USD,Completed
+TXN-485860,2023-01-21,Finance,Product Sales,Product Sales related to Finance,Revenue,148083.57,USD,Completed
+TXN-652482,2024-04-17,Customer Support,Consulting Revenue,Consulting Revenue related to Customer Support,Revenue,113442.04,USD,Completed
+TXN-440277,2024-12-30,Finance,Service Revenue,Service Revenue related to Finance,Revenue,97890.05,EUR,Completed
+TXN-232940,2024-12-08,Finance,Professional Services,Professional Services related to Finance,Expense,29618.45,GBP,Completed
+TXN-146443,2024-11-15,R&D,Professional Services,Professional Services related to R&D,Expense,"$23,942.56",USD,Completed
+TXN-648525,2024-04-21,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,59556.03,USD,Completed
+TXN-175397,2024-07-06,Legal,Training,Training related to Legal,Expense,17836.08,USD,Completed
+TXN-637547,2023-06-27,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,"$8,353.49",USD,Completed
+TXN-999303,2025-06-25,Legal,Marketing,Marketing related to Legal,Expense,35136.17,USD,Completed
+TXN-608569,2025-07-02,IT,Software,Software related to IT,Expense,38664.66,USD,Completed
+TXN-268319,2023-03-15,Administration,Marketing,Marketing related to Administration,Expense,33906.56,USD,Completed
+TXN-882222,12/12/2023,Administration,Training,Training related to Administration,Expense,38787.82,USD,Completed
+TXN-222874,2023-08-21,IT,Maintenance,Maintenance related to IT,Expense,44353.63,USD,Completed
+TXN-939589,2023-09-03,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,137532.69,USD,Completed
+TXN-885406,12/10/2024,Customer Support,Utilities,Utilities related to Customer Support,Expense,27145.35,USD,Completed
+TXN-383837,2023-04-28,IT,Travel,Travel related to IT,Expense,47950.64,USD,Completed
+TXN-196016,2023-01-12,Customer Support,Maintenance,Maintenance related to Customer Support,Expense,43095.66,USD,Completed
+TXN-934163,2023-02-09,IT,Marketing,Marketing related to IT,Expense,42883.48,EUR,Completed
+TXN-379343,2023-07-10,Legal,Other Revenue,Other Revenue related to Legal,Revenue,8364.67,USD,Completed
+TXN-716526,2025-06-21,Finance,Subscription Revenue,Subscription Revenue related to Finance,Revenue,99795.13,USD,Completed
+TXN-229645,2024-10-30,Legal,Professional Services,Professional Services related to Legal,Expense,47904.02,USD,Completed
+TXN-789571,2025-12-14,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,61533.07,USD,Completed
+TXN-498297,2024-06-09,Operations,Software,Software related to Operations,Expense,5777.93,USD,Completed
+TXN-210026,24/10/2024,Marketing,Salaries,Salaries related to Marketing,Expense,13572.19,USD,Completed
+TXN-619201,2025-03-18,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,149856.77,USD,Completed
+TXN-366431,2024-07-05,Logistics,Logistics,Logistics related to Logistics,Expense,"$47,960.84",USD,Completed
+TXN-149071,2024-05-16,Procurement,Subscription Revenue,Subscription Revenue related to Procurement,Revenue,"$113,154.21",USD,Completed
+TXN-623108,2023-06-19,Legal,Cloud Infrastructure,Cloud Infrastructure related to Legal,Expense,"$1,736.67",USD,Completed
+TXN-515729,23/09/2023,Logistics,Salaries,Salaries related to Logistics,Expense,4013.05,GBP,Completed
+TXN-921091,2025-01-19,Legal,Salaries,Salaries related to Legal,Expense,3196.80,USD,Completed
+TXN-495190,2023-08-13,Customer Support,Logistics,Logistics related to Customer Support,Expense,48537.39,EUR,Completed
+TXN-937977,2023-07-24,Sales,Product Sales,Product Sales related to Sales,Revenue,149392.32,USD,Completed
+TXN-776680,2023-12-11,Administration,Service Revenue,Service Revenue related to Administration,Revenue,20651.92,USD,Completed
+TXN-745242,2023-04-05,Operations,Office,Office related to Operations,Expense,47685.70,USD,Completed
+TXN-465934,2023-02-19,R&D,Product Sales,Product Sales related to R&D,Revenue,57595.16,GBP,Completed
+TXN-361233,2023-08-04,Marketing,Training,Training related to Marketing,Expense,23448.01,USD,Completed
+TXN-774068,04/09/2023,Administration,Product Sales,Product Sales related to Administration,Revenue,77971.06,USD,Completed
+TXN-931629,2025-01-17,Customer Support,Software,Software related to Customer Support,Expense,"$20,176.85",USD,Completed
+TXN-624063,2023-02-04,IT,Subscription Revenue,Subscription Revenue related to IT,Revenue,86239.42,USD,Completed
+TXN-857182,2024-04-01,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,63324.93,USD,Completed
+TXN-789801,2024-07-07,Sales,Travel,Travel related to Sales,Expense,"$24,162.88",USD,Completed
+TXN-127118,15/07/2025,Customer Support,Marketing,Marketing related to Customer Support,Expense,7081.35,EUR,Completed
+TXN-523140,06/06/2025,IT,Service Revenue,Service Revenue related to IT,Revenue,39339.63,USD,Completed
+TXN-559531,06/05/2023,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,81673.99,USD,Completed
+TXN-135368,15/11/2024,Procurement,Office,Office related to Procurement,Expense,4568.02,GBP,Completed
+TXN-956276,2023-03-07,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,"$84,779.87",USD,Completed
+TXN-144169,2024-04-25,Administration,Software,Software related to Administration,Expense,43258.04,USD,Completed
+TXN-555753,2023-08-20,IT,Subscription Revenue,Subscription Revenue related to IT,Revenue,60658.46,EUR,Completed
+TXN-337056,2024-10-28,R&D,Office,Office related to R&D,Expense,15676.45,USD,Completed
+TXN-912639,08/12/2025,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,79373.14,GBP,Completed
+TXN-451190,2024-04-08,Logistics,Software,Software related to Logistics,Expense,33956.91,USD,Completed
+TXN-676912,2023-12-21,Finance,Logistics,Logistics related to Finance,Expense,16717.76,USD,Completed
+TXN-953544,15/10/2024,Administration,Other Revenue,Other Revenue related to Administration,Revenue,"$148,315.81",USD,Completed
+TXN-841516,31/08/2025,HR,Office,Office related to HR,Expense,40322.02,USD,Completed
+TXN-577757,2025-08-13,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,133879.54,GBP,Completed
+TXN-518528,2024-08-02,Legal,Maintenance,Maintenance related to Legal,Expense,17249.50,USD,Completed
+TXN-108403,2025-10-15,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,114518.66,EUR,Completed
+TXN-443011,2024-07-26,Finance,Service Revenue,Service Revenue related to Finance,Revenue,29398.70,USD,Completed
+TXN-775739,2023-03-08,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,18676.26,EUR,Completed
+TXN-452105,2025-12-01,Customer Support,Maintenance,Maintenance related to Customer Support,Expense,20140.53,EUR,Completed
+TXN-875658,2023-04-29,Administration,Office,Office related to Administration,Expense,19659.91,USD,Completed
+TXN-803297,2024-09-18,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,120479.30,USD,Completed
+TXN-213755,2025-06-15,Administration,Office,Office related to Administration,Expense,41153.01,USD,Completed
+TXN-298685,2025-06-09,Finance,Travel,Travel related to Finance,Expense,13858.65,USD,Completed
+TXN-546077,2023-05-01,R&D,Maintenance,Maintenance related to R&D,Expense,17442.34,USD,Completed
+TXN-197234,2024-11-07,HR,Utilities,Utilities related to HR,Expense,23796.82,USD,Completed
+TXN-429014,2024-12-11,Legal,Procurement,Procurement related to Legal,Expense,4503.44,USD,Completed
+TXN-873443,2024-08-28,Finance,Other Revenue,Other Revenue related to Finance,Revenue,72437.96,USD,Completed
+TXN-673058,2023-08-13,Operations,Other Revenue,Other Revenue related to Operations,Revenue,62448.69,GBP,Completed
+TXN-671927,2025-04-09,Legal,Product Sales,Product Sales related to Legal,Revenue,23075.27,USD,Completed
+TXN-788289,2023-05-25,HR,Professional Services,Professional Services related to HR,Expense,12810.78,USD,Completed
+TXN-276885,2023-01-08,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,16945.62,USD,Completed
+TXN-601415,2023-10-18,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,50767.42,USD,Completed
+TXN-738765,2023-01-31,Sales,Other Revenue,Other Revenue related to Sales,Revenue,36239.20,USD,Completed
+TXN-162316,2023-01-09,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,120928.22,USD,Completed
+TXN-414858,2023-04-19,Procurement,Cloud Infrastructure,Cloud Infrastructure related to Procurement,Expense,"$17,292.64",USD,Completed
+TXN-997096,12/06/2024,Customer Support,Consulting Revenue,Consulting Revenue related to Customer Support,Revenue,66080.75,USD,Completed
+TXN-309198,2023-10-22,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,139463.19,USD,Completed
+TXN-145188,2023-07-18,Logistics,Cloud Infrastructure,Cloud Infrastructure related to Logistics,Expense,15466.23,USD,Completed
+TXN-360826,2023-12-04,Procurement,Office,Office related to Procurement,Expense,7104.24,EUR,Completed
+TXN-164799,2023-08-07,Procurement,Maintenance,Maintenance related to Procurement,Expense,29844.89,USD,Completed
+TXN-527357,2024-12-29,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,"$271,127.59",USD,Completed
+TXN-346822,17/02/2023,Marketing,Product Sales,Product Sales related to Marketing,Revenue,74748.00,USD,Completed
+TXN-260204,2025-03-03,Marketing,Product Sales,Product Sales related to Marketing,Revenue,145462.35,USD,Completed
+TXN-217030,2025-11-17,Logistics,Marketing,Marketing related to Logistics,Expense,"$12,526.90",USD,Completed
+TXN-377893,2025-05-12,Legal,Travel,Travel related to Legal,Expense,34250.12,GBP,Completed
+TXN-501344,2024-06-23,Finance,Procurement,Procurement related to Finance,Expense,16456.56,USD,Completed
+TXN-315267,2024-07-26,Logistics,Marketing,Marketing related to Logistics,Expense,23426.20,USD,Completed
+TXN-787263,2023-12-14,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,146847.89,USD,Completed
+TXN-311647,2024-10-13,Operations,Marketing,Marketing related to Operations,Expense,24313.76,USD,Completed
+TXN-893266,2024-04-19,Customer Support,Utilities,Utilities related to Customer Support,Expense,21991.86,USD,Completed
+TXN-201256,2023-01-15,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,96592.11,USD,Completed
+TXN-855447,2024-12-22,IT,Travel,Travel related to IT,Expense,22420.12,USD,Completed
+TXN-357361,2025-12-20,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,121890.45,USD,Completed
+TXN-875637,2023-04-04,Customer Support,Salaries,Salaries related to Customer Support,Expense,7637.79,USD,Completed
+TXN-998861,2025-12-24,Procurement,Travel,Travel related to Procurement,Expense,8227.18,GBP,Completed
+TXN-784837,2024-09-10,IT,Other Revenue,Other Revenue related to IT,Revenue,33356.40,GBP,Completed
+TXN-511189,2023-09-30,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,12966.98,EUR,Completed
+TXN-111454,27/08/2025,Customer Support,Travel,Travel related to Customer Support,Expense,13565.80,USD,Completed
+TXN-368097,2024-05-28,IT,Other Revenue,Other Revenue related to IT,Revenue,54837.18,USD,Completed
+TXN-848339,2024-08-13,Administration,Other Revenue,Other Revenue related to Administration,Revenue,145336.21,USD,Completed
+TXN-961888,01/05/2023,HR,Professional Services,Professional Services related to HR,Expense,4735.61,EUR,Completed
+TXN-408469,2023-10-04,Procurement,Training,Training related to Procurement,Expense,32619.84,USD,Completed
+TXN-718326,2023-06-29,Procurement,Procurement,Procurement related to Procurement,Expense,28420.92,USD,Completed
+TXN-897598,2025-02-28,Logistics,Product Sales,Product Sales related to Logistics,Revenue,"$65,694.47",USD,Completed
+TXN-457686,2023-05-23,Finance,Cloud Infrastructure,Cloud Infrastructure related to Finance,Expense,5226.55,USD,Completed
+TXN-422295,2023-03-22,Customer Support,Utilities,Utilities related to Customer Support,Expense,4445.52,USD,Completed
+TXN-258508,29/05/2025,Sales,Office,Office related to Sales,Expense,2447.84,USD,Completed
+TXN-707579,2023-11-08,Legal,Product Sales,Product Sales related to Legal,Revenue,"$99,253.12",USD,Completed
+TXN-110289,07/08/2023,Sales,Cloud Infrastructure,Cloud Infrastructure related to Sales,Expense,35556.23,USD,Completed
+TXN-353623,12/10/2024,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,"$228,879.36",USD,Completed
+TXN-880994,2025-10-14,Legal,Service Revenue,Service Revenue related to Legal,Revenue,15301.52,EUR,Completed
+TXN-880994,2025-10-14,Legal,Service Revenue,Service Revenue related to Legal,Revenue,15301.52,EUR,Completed
+TXN-337327,13/09/2025,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,46128.14,USD,Completed
+TXN-404494,2023-07-21,Finance,Office,Office related to Finance,Expense,25688.71,USD,Completed
+TXN-423926,2023-10-23,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,65066.24,USD,Completed
+TXN-514749,2024-02-06,Finance,Service Revenue,Service Revenue related to Finance,Revenue,76494.79,USD,Completed
+TXN-984629,2024-04-29,HR,Professional Services,Professional Services related to HR,Expense,12005.92,GBP,Completed
+TXN-848584,2023-05-30,Customer Support,Subscription Revenue,Subscription Revenue related to Customer Support,Revenue,23678.69,USD,Completed
+TXN-705665,2024-08-21,Sales,Office,Office related to Sales,Expense,34539.53,USD,Completed
+TXN-155814,2023-06-03,Administration,Cloud Infrastructure,Cloud Infrastructure related to Administration,Expense,48624.32,USD,Completed
+TXN-791384,2024-02-18,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,9687.11,USD,Completed
+TXN-200777,2024-08-19,Administration,Product Sales,Product Sales related to Administration,Revenue,116388.70,USD,Completed
+TXN-141892,16/04/2023,Sales,Marketing,Marketing related to Sales,Expense,"$45,860.55",USD,Completed
+TXN-390163,2023-09-18,HR,Product Sales,Product Sales related to HR,Revenue,"$13,179.65",USD,Completed
+TXN-650512,08/06/2023,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,112003.39,USD,Completed
+TXN-958693,2024-04-23,Legal,Maintenance,Maintenance related to Legal,Expense,31883.16,USD,Completed
+TXN-615391,2025-02-13,R&D,Professional Services,Professional Services related to R&D,Expense,47103.37,USD,Completed
+TXN-378060,2024-04-15,Finance,Other Revenue,Other Revenue related to Finance,Revenue,15201.14,USD,Completed
+TXN-982389,2023-06-24,Administration,Product Sales,Product Sales related to Administration,Revenue,44648.04,USD,Completed
+TXN-500147,23/06/2023,Procurement,Software,Software related to Procurement,Expense,20666.51,USD,Completed
+TXN-102957,2025-02-09,Marketing,Product Sales,Product Sales related to Marketing,Revenue,91454.19,EUR,Completed
+TXN-974531,14/01/2024,Logistics,Marketing,Marketing related to Logistics,Expense,6824.60,USD,Completed
+TXN-971266,2023-08-19,Finance,Logistics,Logistics related to Finance,Expense,46482.62,USD,Completed
+TXN-180959,2023-05-12,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,48508.65,EUR,Completed
+TXN-108270,2025-09-29,Logistics,Travel,Travel related to Logistics,Expense,42609.85,USD,Completed
+TXN-732237,2024-05-16,Finance,Subscription Revenue,Subscription Revenue related to Finance,Revenue,32632.37,USD,Completed
+TXN-555661,2024-01-07,IT,Software,Software related to IT,Expense,3253.92,USD,Completed
+TXN-930401,2025-02-04,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,92396.56,USD,Completed
+TXN-651559,2024-09-12,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,123361.63,GBP,Completed
+TXN-287775,2024-04-16,Administration,Product Sales,Product Sales related to Administration,Revenue,112515.84,USD,Completed
+TXN-639672,2025-11-15,Legal,Other Revenue,Other Revenue related to Legal,Revenue,21612.44,USD,Completed
+TXN-232790,2025-05-03,IT,Office,Office related to IT,Expense,30711.48,USD,Completed
+TXN-769826,2025-07-15,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,89938.71,USD,Completed
+TXN-381098,14/06/2023,Logistics,Marketing,Marketing related to Logistics,Expense,28880.04,USD,Completed
+TXN-720672,2024-10-10,Procurement,Logistics,Logistics related to Procurement,Expense,"$13,439.02",USD,Completed
+TXN-744878,2025-12-28,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,"$211,578.72",USD,Completed
+TXN-673760,17/02/2025,Operations,Product Sales,Product Sales related to Operations,Revenue,111175.39,EUR,Completed
+TXN-567741,12/06/2024,Operations,Marketing,Marketing related to Operations,Expense,33520.46,GBP,Completed
+TXN-747607,2025-04-23,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,"$26,491.43",USD,Completed
+TXN-958415,31/05/2023,Sales,Software,Software related to Sales,Expense,46449.00,USD,Completed
+TXN-607136,2024-05-28,Customer Support,Salaries,Salaries related to Customer Support,Expense,46079.14,USD,Completed
+TXN-367081,27/12/2025,R&D,Travel,Travel related to R&D,Expense,"$30,586.81",USD,Completed
+TXN-485154,2025-08-17,Finance,Other Revenue,Other Revenue related to Finance,Revenue,131785.73,USD,Completed
+TXN-480244,2025-11-16,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,92842.88,USD,Completed
+TXN-878846,23/07/2025,Procurement,Logistics,Logistics related to Procurement,Expense,8302.41,EUR,Completed
+TXN-629727,03/12/2023,Legal,Travel,Travel related to Legal,Expense,31606.54,USD,Completed
+TXN-877776,2024-11-02,IT,Training,Training related to IT,Expense,48727.89,USD,Completed
+TXN-854581,2024-09-01,Sales,Logistics,Logistics related to Sales,Expense,9923.69,USD,Completed
+TXN-385925,26/05/2023,Legal,Travel,Travel related to Legal,Expense,24743.94,USD,Completed
+TXN-868264,2023-01-25,Operations,Utilities,Utilities related to Operations,Expense,7602.81,USD,Completed
+TXN-562068,28/03/2024,Logistics,Travel,Travel related to Logistics,Expense,"$34,603.81",USD,Completed
+TXN-771731,09/09/2025,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,147772.17,USD,Completed
+TXN-259708,2025-08-07,Procurement,Software,Software related to Procurement,Expense,35452.12,USD,Completed
+TXN-804074,2025-03-05,Finance,Training,Training related to Finance,Expense,29434.99,USD,Completed
+TXN-476389,2023-06-16,Marketing,Maintenance,Maintenance related to Marketing,Expense,2271.26,USD,Completed
+TXN-639151,30/11/2025,Finance,Product Sales,Product Sales related to Finance,Revenue,85581.51,USD,Completed
+TXN-388730,2024-04-27,Legal,Marketing,Marketing related to Legal,Expense,44609.55,USD,Completed
+TXN-748102,2023-11-17,HR,Utilities,Utilities related to HR,Expense,32028.86,USD,Completed
+TXN-127534,2023-04-25,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,41004.57,USD,Completed
+TXN-116869,2025-09-21,HR,Marketing,Marketing related to HR,Expense,32941.92,USD,Completed
+TXN-122403,2025-07-02,Administration,Salaries,Salaries related to Administration,Expense,34728.46,USD,Completed
+TXN-362412,2024-02-29,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,"$29,182.07",USD,Completed
+TXN-704827,2024-08-05,HR,Product Sales,Product Sales related to HR,Revenue,32501.09,USD,Completed
+TXN-873144,20/08/2025,Finance,Procurement,Procurement related to Finance,Expense,29837.06,USD,Completed
+TXN-539538,2023-06-10,Administration,Product Sales,Product Sales related to Administration,Revenue,127452.85,GBP,Completed
+TXN-376599,15/01/2025,Marketing,Cloud Infrastructure,Cloud Infrastructure related to Marketing,Expense,"$19,183.80",USD,Completed
+TXN-742279,2025-09-09,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,"$31,904.07",USD,Completed
+TXN-185103,2023-04-12,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,52423.57,USD,Completed
+TXN-475368,2023-08-28,HR,Software,Software related to HR,Expense,"$8,698.16",USD,Completed
+TXN-493696,2024-04-30,Operations,Procurement,Procurement related to Operations,Expense,1909.83,USD,Completed
+TXN-278730,2024-08-04,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,"$4,020.21",USD,Completed
+TXN-555886,28/05/2023,Administration,Other Revenue,Other Revenue related to Administration,Revenue,"$55,336.47",USD,Completed
+TXN-209549,2025-01-13,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,28092.23,USD,Completed
+TXN-457444,2025-12-16,Administration,Consulting Revenue,Consulting Revenue related to Administration,Revenue,56830.74,USD,Completed
+TXN-556607,2025-10-21,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,39059.03,USD,Completed
+TXN-343532,02/06/2024,Procurement,Cloud Infrastructure,Cloud Infrastructure related to Procurement,Expense,"$31,889.41",USD,Completed
+TXN-298398,2024-02-29,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,101192.77,USD,Completed
+TXN-586571,2025-07-27,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,56805.57,USD,Completed
+TXN-596505,12/08/2025,Logistics,Software,Software related to Logistics,Expense,43566.24,EUR,Completed
+TXN-986806,2023-02-09,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,242040.73,USD,Completed
+TXN-136073,2025-12-26,Marketing,Product Sales,Product Sales related to Marketing,Revenue,"$146,239.04",USD,Completed
+TXN-318456,2025-05-11,Administration,Other Revenue,Other Revenue related to Administration,Revenue,126372.04,USD,Completed
+TXN-844081,08/05/2025,Finance,Cloud Infrastructure,Cloud Infrastructure related to Finance,Expense,36051.77,USD,Completed
+TXN-157427,02/03/2023,Sales,Marketing,Marketing related to Sales,Expense,22097.34,EUR,Completed
+TXN-467039,08/08/2025,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,"$12,907.31",USD,Completed
+TXN-479642,2024-12-10,Finance,Cloud Infrastructure,Cloud Infrastructure related to Finance,Expense,46773.06,GBP,Completed
+TXN-972692,2025-12-10,Marketing,Professional Services,Professional Services related to Marketing,Expense,137744.86,USD,Completed
+TXN-734919,2024-09-23,HR,Software,Software related to HR,Expense,4734.96,USD,Completed
+TXN-147491,2024-09-11,Sales,Product Sales,Product Sales related to Sales,Revenue,130410.77,GBP,Completed
+TXN-823675,2025-04-22,Finance,Service Revenue,Service Revenue related to Finance,Revenue,31131.94,GBP,Completed
+TXN-363446,2025-09-17,HR,Travel,Travel related to HR,Expense,3195.49,USD,Completed
+TXN-178714,2025-11-28,Finance,Marketing,Marketing related to Finance,Expense,24174.61,GBP,Completed
+TXN-234900,2025-05-02,Operations,Software,Software related to Operations,Expense,145699.09,USD,Completed
+TXN-544456,2024-05-02,Marketing,Logistics,Logistics related to Marketing,Expense,19741.16,EUR,Completed
+TXN-968303,2025-12-21,Legal,Travel,Travel related to Legal,Expense,33980.14,USD,Completed
+TXN-816071,2024-08-03,HR,Service Revenue,Service Revenue related to HR,Revenue,74354.16,EUR,Completed
+TXN-923150,2025-08-28,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,112996.09,USD,Completed
+TXN-483151,2024-10-28,HR,Logistics,Logistics related to HR,Expense,47235.23,USD,Completed
+TXN-585082,2024-09-21,Legal,Other Revenue,Other Revenue related to Legal,Revenue,30251.23,GBP,Completed
+TXN-146392,2023-03-17,Administration,Procurement,Procurement related to Administration,Expense,37637.95,USD,Completed
+TXN-868372,09/08/2024,HR,Travel,Travel related to HR,Expense,42756.13,USD,Completed
+TXN-650195,2024-06-24,Logistics,Maintenance,Maintenance related to Logistics,Expense,34747.45,USD,Completed
+TXN-175423,2025-07-08,Administration,Consulting Revenue,Consulting Revenue related to Administration,Revenue,38530.97,USD,Completed
+TXN-113388,2024-10-19,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,"$64,114.81",USD,Completed
+TXN-895053,2023-05-04,Finance,Service Revenue,Service Revenue related to Finance,Revenue,91874.36,USD,Completed
+TXN-524830,2023-08-21,IT,Other Revenue,Other Revenue related to IT,Revenue,136439.54,USD,Completed
+TXN-842795,2023-04-26,Marketing,Utilities,Utilities related to Marketing,Expense,32260.38,USD,Completed
+TXN-791124,2025-04-20,Sales,Other Revenue,Other Revenue related to Sales,Revenue,128218.94,EUR,Completed
+TXN-992370,2023-09-25,Customer Support,Consulting Revenue,Consulting Revenue related to Customer Support,Revenue,"$25,376.27",USD,Completed
+TXN-620905,03/01/2023,Legal,Other Revenue,Other Revenue related to Legal,Revenue,101231.48,USD,Completed
+TXN-188632,2024-12-25,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,105825.35,USD,Completed
+TXN-320555,2024-02-08,HR,Travel,Travel related to HR,Expense,33540.61,USD,Completed
+TXN-185937,2025-04-23,Logistics,Service Revenue,Service Revenue related to Logistics,Revenue,144880.95,USD,Completed
+TXN-826603,04/01/2025,Customer Support,Salaries,Salaries related to Customer Support,Expense,10802.68,USD,Completed
+TXN-281776,2024-05-27,IT,Product Sales,Product Sales related to IT,Revenue,114168.57,USD,Completed
+TXN-782893,08/02/2025,Administration,Maintenance,Maintenance related to Administration,Expense,40786.65,USD,Completed
+TXN-992572,2024-09-24,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,113861.02,USD,Completed
+TXN-522741,2024-04-26,Logistics,Cloud Infrastructure,Cloud Infrastructure related to Logistics,Expense,42483.91,USD,Completed
+TXN-344167,2025-04-24,Administration,Service Revenue,Service Revenue related to Administration,Revenue,26144.11,USD,Completed
+TXN-376793,2024-10-25,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,9356.67,USD,Completed
+TXN-224123,06/05/2025,Finance,Maintenance,Maintenance related to Finance,Expense,4092.00,USD,Completed
+TXN-897096,2024-04-06,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,89231.01,GBP,Completed
+TXN-889463,2023-01-06,Customer Support,Training,Training related to Customer Support,Expense,26954.82,USD,Completed
+TXN-393011,2023-08-28,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,100914.06,USD,Completed
+TXN-201606,06/09/2025,HR,Service Revenue,Service Revenue related to HR,Revenue,30362.68,USD,Completed
+TXN-184569,15/08/2025,Operations,Service Revenue,Service Revenue related to Operations,Revenue,107364.74,USD,Completed
+TXN-530657,2024-01-10,Logistics,Travel,Travel related to Logistics,Expense,27014.33,USD,Completed
+TXN-629178,2024-11-13,Marketing,Training,Training related to Marketing,Expense,6716.46,USD,Completed
+TXN-299883,2025-03-12,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,25324.79,USD,Completed
+TXN-847331,2023-03-09,Finance,Office,Office related to Finance,Expense,14768.31,USD,Completed
+TXN-355572,11/07/2023,Procurement,Product Sales,Product Sales related to Procurement,Revenue,"$46,498.63",USD,Completed
+TXN-384479,2024-07-14,Logistics,Logistics,Logistics related to Logistics,Expense,42060.05,USD,Completed
+TXN-431811,06/11/2025,IT,Utilities,Utilities related to IT,Expense,44309.05,USD,Completed
+TXN-689460,2023-04-30,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,727032.07,USD,Completed
+TXN-573485,03/07/2025,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,116938.68,EUR,Completed
+TXN-142571,2024-09-07,IT,Logistics,Logistics related to IT,Expense,"$42,439.47",USD,Completed
+TXN-254424,2023-08-31,Legal,Travel,Travel related to Legal,Expense,45365.83,EUR,Completed
+TXN-624818,2024-06-13,IT,Product Sales,Product Sales related to IT,Revenue,"$128,994.92",USD,Completed
+TXN-278096,2025-03-20,IT,Subscription Revenue,Subscription Revenue related to IT,Revenue,"$30,514.45",USD,Completed
+TXN-511734,2025-09-09,Logistics,Salaries,Salaries related to Logistics,Expense,10004.27,GBP,Completed
+TXN-919109,2025-07-07,Legal,Subscription Revenue,Subscription Revenue related to Legal,Revenue,104882.65,GBP,Completed
+TXN-338295,2024-04-16,Sales,Other Revenue,Other Revenue related to Sales,Revenue,"$133,248.23",USD,Completed
+TXN-990817,2025-06-22,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,112340.69,USD,Completed
+TXN-556269,2025-05-14,Operations,Procurement,Procurement related to Operations,Expense,1218.06,USD,Completed
+TXN-889076,14/07/2025,Procurement,Product Sales,Product Sales related to Procurement,Revenue,68418.04,GBP,Completed
+TXN-439485,2023-12-14,Operations,Office,Office related to Operations,Expense,43596.66,GBP,Completed
+TXN-550623,2023-12-20,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,28382.41,GBP,Completed
+TXN-149298,01/03/2025,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,55137.16,USD,Completed
+TXN-504069,2024-08-19,Finance,Service Revenue,Service Revenue related to Finance,Revenue,"$6,219.29",USD,Completed
+TXN-335417,2025-01-08,Sales,Maintenance,Maintenance related to Sales,Expense,15953.83,GBP,Completed
+TXN-359123,2024-02-02,Operations,Utilities,Utilities related to Operations,Expense,8444.28,EUR,Completed
+TXN-120709,2024-07-16,IT,Marketing,Marketing related to IT,Expense,13754.16,USD,Completed
+TXN-740802,25/11/2023,HR,Service Revenue,Service Revenue related to HR,Revenue,123191.89,USD,Completed
+TXN-126749,2025-04-30,Finance,Product Sales,Product Sales related to Finance,Revenue,9761.41,USD,Completed
+TXN-614205,2023-06-14,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,36204.62,USD,Completed
+TXN-212853,2025-05-16,Finance,Office,Office related to Finance,Expense,3375.27,USD,Completed
+TXN-850487,2024-01-25,Administration,Consulting Revenue,Consulting Revenue related to Administration,Revenue,19433.93,USD,Completed
+TXN-331988,12/07/2025,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,135951.89,GBP,Completed
+TXN-581085,28/05/2025,Finance,Training,Training related to Finance,Expense,45837.94,GBP,Completed
+TXN-150322,2023-09-10,Finance,Procurement,Procurement related to Finance,Expense,34302.18,USD,Completed
+TXN-130043,20/01/2023,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,15582.68,USD,Completed
+TXN-510884,23/01/2024,Procurement,Salaries,Salaries related to Procurement,Expense,41447.95,USD,Completed
+TXN-514305,2023-03-10,Logistics,Utilities,Utilities related to Logistics,Expense,30229.13,USD,Completed
+TXN-298992,2024-10-01,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,226975.72,EUR,Completed
+TXN-298992,2024-10-01,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,226975.72,EUR,Completed
+TXN-521798,01/12/2025,Procurement,Logistics,Logistics related to Procurement,Expense,9536.72,USD,Completed
+TXN-141973,2024-07-31,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,88841.73,USD,Completed
+TXN-441968,2023-11-16,Finance,Logistics,Logistics related to Finance,Expense,47357.59,USD,Completed
+TXN-827877,2024-06-18,R&D,Utilities,Utilities related to R&D,Expense,303802.55,USD,Completed
+TXN-842218,2025-07-29,Marketing,Marketing,Marketing related to Marketing,Expense,10807.66,EUR,Completed
+TXN-646677,2024-06-08,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,101326.49,USD,Completed
+TXN-869101,2023-01-17,Finance,Maintenance,Maintenance related to Finance,Expense,17281.42,USD,Completed
+TXN-946604,29/01/2025,Finance,Other Revenue,Other Revenue related to Finance,Revenue,19197.45,EUR,Completed
+TXN-721461,2025-01-08,Finance,Professional Services,Professional Services related to Finance,Expense,25980.50,USD,Completed
+TXN-790340,03/04/2024,Administration,Software,Software related to Administration,Expense,177544.66,EUR,Completed
+TXN-432770,2025-05-31,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,147684.42,USD,Completed
+TXN-118595,2023-12-29,Sales,Training,Training related to Sales,Expense,38662.12,USD,Completed
+TXN-717871,2024-01-11,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,44577.53,USD,Completed
+TXN-168411,14/12/2023,Operations,Office,Office related to Operations,Expense,29891.50,EUR,Completed
+TXN-765714,2024-04-09,Marketing,Procurement,Procurement related to Marketing,Expense,13733.12,USD,Completed
+TXN-498488,2025-10-15,Finance,Maintenance,Maintenance related to Finance,Expense,2665.53,USD,Completed
+TXN-293568,2023-11-30,Sales,Salaries,Salaries related to Sales,Expense,35262.95,GBP,Completed
+TXN-725228,2025-05-19,Sales,Maintenance,Maintenance related to Sales,Expense,20327.86,USD,Completed
+TXN-778369,25/02/2025,R&D,Service Revenue,Service Revenue related to R&D,Revenue,42417.40,GBP,Completed
+TXN-405131,2024-02-02,Customer Support,Logistics,Logistics related to Customer Support,Expense,"$4,070.95",USD,Completed
+TXN-604971,2023-02-12,Administration,Product Sales,Product Sales related to Administration,Revenue,90338.80,USD,Completed
+TXN-637412,2025-11-12,Legal,Service Revenue,Service Revenue related to Legal,Revenue,217843.12,USD,Completed
+TXN-334667,2024-04-19,Operations,Procurement,Procurement related to Operations,Expense,19432.62,USD,Completed
+TXN-346858,23/11/2024,IT,Travel,Travel related to IT,Expense,30740.26,USD,Completed
+TXN-892390,2023-06-12,Logistics,Software,Software related to Logistics,Expense,46717.15,USD,Completed
+TXN-764554,2025-05-16,IT,Professional Services,Professional Services related to IT,Expense,9396.56,USD,Completed
+TXN-725944,2023-04-10,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,"$26,424.21",USD,Completed
+TXN-709250,2023-06-19,Sales,Office,Office related to Sales,Expense,31810.87,USD,Completed
+TXN-366862,2025-12-17,Legal,Maintenance,Maintenance related to Legal,Expense,14246.37,GBP,Completed
+TXN-822849,2023-05-02,Sales,Logistics,Logistics related to Sales,Expense,25277.42,USD,Completed
+TXN-317137,2023-03-22,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,"$52,875.50",USD,Completed
+TXN-133911,2023-06-03,Administration,Office,Office related to Administration,Expense,26604.38,USD,Completed
+TXN-310462,2023-10-16,Administration,Product Sales,Product Sales related to Administration,Revenue,197269.84,USD,Completed
+TXN-169157,2025-06-30,R&D,Marketing,Marketing related to R&D,Expense,28209.39,USD,Completed
+TXN-260841,2025-11-07,IT,Subscription Revenue,Subscription Revenue related to IT,Revenue,112453.06,EUR,Completed
+TXN-387047,11/05/2024,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,33070.67,USD,Completed
+TXN-930157,2023-12-22,Procurement,Salaries,Salaries related to Procurement,Expense,"$22,305.52",USD,Completed
+TXN-415482,2023-06-24,Administration,Procurement,Procurement related to Administration,Expense,28664.06,USD,Completed
+TXN-773031,2024-11-11,Logistics,Maintenance,Maintenance related to Logistics,Expense,"$14,829.57",USD,Completed
+TXN-870668,2023-02-15,IT,Procurement,Procurement related to IT,Expense,44718.76,EUR,Completed
+TXN-330521,2023-06-19,Procurement,Logistics,Logistics related to Procurement,Expense,48596.77,EUR,Completed
+TXN-662401,2023-03-07,Operations,Service Revenue,Service Revenue related to Operations,Revenue,58058.48,USD,Completed
+TXN-737760,2023-10-24,Legal,Office,Office related to Legal,Expense,"$7,820.63",USD,Completed
+TXN-410665,02/06/2023,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,144657.94,EUR,Completed
+TXN-885148,2024-01-23,R&D,Salaries,Salaries related to R&D,Expense,5183.44,USD,Completed
+TXN-810669,23/02/2025,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,37740.30,USD,Completed
+TXN-219858,2025-07-21,Operations,Software,Software related to Operations,Expense,10132.81,EUR,Completed
+TXN-933469,2024-12-19,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,25363.62,GBP,Completed
+TXN-635240,2024-12-05,Sales,Procurement,Procurement related to Sales,Expense,45851.97,USD,Completed
+TXN-199259,2023-08-31,Administration,Other Revenue,Other Revenue related to Administration,Revenue,"$71,975.51",USD,Completed
+TXN-913442,2025-08-26,Logistics,Maintenance,Maintenance related to Logistics,Expense,38119.91,USD,Completed
+TXN-588751,05/09/2023,Marketing,Marketing,Marketing related to Marketing,Expense,18071.17,USD,Completed
+TXN-403801,2024-10-11,Administration,Marketing,Marketing related to Administration,Expense,213245.95,USD,Completed
+TXN-167251,16/05/2024,Administration,Salaries,Salaries related to Administration,Expense,48756.22,EUR,Completed
+TXN-979623,2023-11-26,Customer Support,Marketing,Marketing related to Customer Support,Expense,"$27,049.72",USD,Completed
+TXN-806690,2023-01-19,Customer Support,Subscription Revenue,Subscription Revenue related to Customer Support,Revenue,20028.99,USD,Completed
+TXN-301689,19/02/2025,Finance,Logistics,Logistics related to Finance,Expense,24131.94,GBP,Completed
+TXN-401486,2025-10-08,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,260697.60,USD,Completed
+TXN-824440,08/12/2023,Finance,Maintenance,Maintenance related to Finance,Expense,"$27,958.48",USD,Completed
+TXN-832814,01/10/2023,Logistics,Office,Office related to Logistics,Expense,34063.00,USD,Completed
+TXN-385027,2024-03-31,Procurement,Procurement,Procurement related to Procurement,Expense,46427.01,EUR,Completed
+TXN-976443,02/10/2025,IT,Service Revenue,Service Revenue related to IT,Revenue,134135.61,USD,Completed
+TXN-712639,17/01/2025,Finance,Service Revenue,Service Revenue related to Finance,Revenue,27786.75,GBP,Completed
+TXN-890474,2023-03-25,Legal,Product Sales,Product Sales related to Legal,Revenue,117560.60,USD,Completed
+TXN-888501,2024-03-03,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,115105.30,USD,Completed
+TXN-747135,2024-12-12,R&D,Training,Training related to R&D,Expense,9987.76,USD,Completed
+TXN-819220,2024-03-31,R&D,Marketing,Marketing related to R&D,Expense,2716.71,EUR,Completed
+TXN-718148,2024-12-25,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,60718.36,USD,Completed
+TXN-589570,09/01/2023,Sales,Travel,Travel related to Sales,Expense,7398.42,USD,Completed
+TXN-368903,2023-11-17,Legal,Logistics,Logistics related to Legal,Expense,46262.02,USD,Completed
+TXN-249612,2024-10-27,Finance,Logistics,Logistics related to Finance,Expense,46348.40,GBP,Completed
+TXN-873604,28/11/2023,IT,Office,Office related to IT,Expense,23716.30,USD,Completed
+TXN-368570,06/10/2025,Procurement,Product Sales,Product Sales related to Procurement,Revenue,111641.88,EUR,Completed
+TXN-645731,2024-05-31,Finance,Office,Office related to Finance,Expense,31605.01,EUR,Completed
+TXN-510466,2024-08-28,Finance,Product Sales,Product Sales related to Finance,Revenue,932434.43,USD,Completed
+TXN-501265,2025-03-21,HR,Marketing,Marketing related to HR,Expense,43410.91,USD,Completed
+TXN-855397,2025-08-06,Administration,Product Sales,Product Sales related to Administration,Revenue,78441.11,USD,Completed
+TXN-412591,2025-09-17,Marketing,Product Sales,Product Sales related to Marketing,Revenue,96587.49,USD,Completed
+TXN-748683,29/10/2025,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,55036.27,USD,Completed
+TXN-142279,2024-04-15,Logistics,Procurement,Procurement related to Logistics,Expense,20472.43,USD,Completed
+TXN-372838,2023-07-08,Marketing,Office,Office related to Marketing,Expense,25791.34,USD,Completed
+TXN-350193,2025-03-31,HR,Travel,Travel related to HR,Expense,2253.99,USD,Completed
+TXN-592456,14/01/2024,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,13738.48,EUR,Completed
+TXN-379265,2025-06-22,Finance,Procurement,Procurement related to Finance,Expense,"$35,796.66",USD,Completed
+TXN-213279,2023-12-09,Sales,Procurement,Procurement related to Sales,Expense,7642.12,USD,Completed
+TXN-301844,2024-10-15,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,144911.32,USD,Completed
+TXN-621081,2023-06-24,Logistics,Software,Software related to Logistics,Expense,34666.05,USD,Completed
+TXN-772440,01/06/2024,IT,Other Revenue,Other Revenue related to IT,Revenue,61963.00,USD,Completed
+TXN-983896,25/04/2023,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,8162.83,USD,Completed
+TXN-733741,2024-05-28,Sales,Utilities,Utilities related to Sales,Expense,252280.48,USD,Completed
+TXN-457342,2024-10-27,Administration,Utilities,Utilities related to Administration,Expense,39123.97,USD,Completed
+TXN-110650,2024-06-14,Operations,Service Revenue,Service Revenue related to Operations,Revenue,71978.06,USD,Completed
+TXN-515387,2023-03-18,IT,Utilities,Utilities related to IT,Expense,39657.09,USD,Completed
+TXN-761102,29/11/2025,IT,Salaries,Salaries related to IT,Expense,164477.45,USD,Completed
+TXN-368533,2023-10-19,IT,Salaries,Salaries related to IT,Expense,49178.81,USD,Completed
+TXN-783873,2023-04-23,Sales,Procurement,Procurement related to Sales,Expense,38355.30,USD,Completed
+TXN-764628,2023-03-16,Sales,Salaries,Salaries related to Sales,Expense,3717.85,GBP,Completed
+TXN-582071,2024-07-15,IT,Cloud Infrastructure,Cloud Infrastructure related to IT,Expense,33758.56,USD,Completed
+TXN-793554,2025-10-02,Legal,Maintenance,Maintenance related to Legal,Expense,11261.96,GBP,Completed
+TXN-144749,2025-04-12,Administration,Procurement,Procurement related to Administration,Expense,"$28,562.25",USD,Completed
+TXN-446782,2025-06-12,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,74900.98,USD,Completed
+TXN-174699,2023-02-17,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,38799.73,EUR,Completed
+TXN-172096,2025-03-27,Procurement,Cloud Infrastructure,Cloud Infrastructure related to Procurement,Expense,5785.42,USD,Completed
+TXN-846167,2023-08-16,Procurement,Procurement,Procurement related to Procurement,Expense,38200.00,EUR,Completed
+TXN-579556,2024-02-09,Logistics,Product Sales,Product Sales related to Logistics,Revenue,29740.83,USD,Completed
+TXN-351227,2023-12-11,IT,Product Sales,Product Sales related to IT,Revenue,"$26,102.29",USD,Completed
+TXN-945485,2024-02-04,Procurement,Professional Services,Professional Services related to Procurement,Expense,26471.79,USD,Completed
+TXN-971504,2023-06-02,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,"$96,719.06",USD,Completed
+TXN-168597,2024-01-23,IT,Office,Office related to IT,Expense,1199.62,GBP,Completed
+TXN-368479,2023-04-06,Procurement,Subscription Revenue,Subscription Revenue related to Procurement,Revenue,87554.83,USD,Completed
+TXN-497097,2025-02-11,HR,Product Sales,Product Sales related to HR,Revenue,75613.61,USD,Completed
+TXN-415335,2024-04-16,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,"$70,749.10",USD,Completed
+TXN-796089,2025-11-09,Legal,Maintenance,Maintenance related to Legal,Expense,2853.45,GBP,Completed
+TXN-514906,02/08/2023,Sales,Other Revenue,Other Revenue related to Sales,Revenue,107887.99,USD,Completed
+TXN-263961,2023-01-15,Legal,Service Revenue,Service Revenue related to Legal,Revenue,40933.38,GBP,Completed
+TXN-198295,2023-11-18,Finance,Travel,Travel related to Finance,Expense,36641.28,USD,Completed
+TXN-553592,2025-06-06,Customer Support,Procurement,Procurement related to Customer Support,Expense,30704.41,USD,Completed
+TXN-340517,2024-05-28,Logistics,Marketing,Marketing related to Logistics,Expense,43467.63,USD,Completed
+TXN-297680,2023-03-17,Sales,Utilities,Utilities related to Sales,Expense,45807.26,EUR,Completed
+TXN-179949,2025-10-09,Sales,Software,Software related to Sales,Expense,30296.95,USD,Completed
+TXN-338384,17/02/2025,IT,Other Revenue,Other Revenue related to IT,Revenue,"$32,326.21",USD,Completed
+TXN-854049,2025-04-30,Finance,Logistics,Logistics related to Finance,Expense,47005.34,USD,Completed
+TXN-972205,2023-09-28,Procurement,Marketing,Marketing related to Procurement,Expense,31196.20,EUR,Completed
+TXN-484194,2025-09-02,Finance,Travel,Travel related to Finance,Expense,7800.02,USD,Completed
+TXN-562063,2025-05-16,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,"$117,334.79",USD,Completed
+TXN-771351,2023-03-21,Logistics,Cloud Infrastructure,Cloud Infrastructure related to Logistics,Expense,24863.05,USD,Completed
+TXN-728628,2024-02-13,Logistics,Office,Office related to Logistics,Expense,12314.69,USD,Completed
+TXN-762641,2025-05-23,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,84976.88,EUR,Completed
+TXN-400752,2024-05-07,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,119783.53,USD,Completed
+TXN-613937,2023-06-14,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,46427.48,USD,Completed
+TXN-736453,2024-05-03,Legal,Other Revenue,Other Revenue related to Legal,Revenue,137097.09,GBP,Completed
+TXN-227119,21/01/2023,Legal,Travel,Travel related to Legal,Expense,18375.15,GBP,Completed
+TXN-470385,2023-04-09,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,71246.73,GBP,Completed
+TXN-320704,2023-10-24,Finance,Travel,Travel related to Finance,Expense,32094.35,USD,Completed
+TXN-289790,2024-09-19,Operations,Salaries,Salaries related to Operations,Expense,23056.67,USD,Completed
+TXN-317459,2024-06-25,Finance,Other Revenue,Other Revenue related to Finance,Revenue,42671.33,USD,Completed
+TXN-726489,2025-11-10,IT,Software,Software related to IT,Expense,22345.20,USD,Completed
+TXN-282664,2025-02-03,HR,Office,Office related to HR,Expense,44148.48,USD,Completed
+TXN-901993,2024-08-30,Legal,Utilities,Utilities related to Legal,Expense,43789.01,USD,Completed
+TXN-411845,01/07/2025,Operations,Software,Software related to Operations,Expense,30937.21,USD,Completed
+TXN-537077,12/01/2025,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,147502.88,USD,Completed
+TXN-340521,2024-12-29,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,10645.59,USD,Completed
+TXN-668519,2025-05-22,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,110507.34,USD,Completed
+TXN-285379,2023-09-03,HR,Salaries,Salaries related to HR,Expense,45417.47,USD,Completed
+TXN-266355,2023-06-14,Finance,Other Revenue,Other Revenue related to Finance,Revenue,27595.20,EUR,Completed
+TXN-171086,2023-07-25,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,30199.54,USD,Completed
+TXN-781786,29/06/2025,Operations,Logistics,Logistics related to Operations,Expense,19490.71,EUR,Completed
+TXN-725015,18/04/2024,Logistics,Logistics,Logistics related to Logistics,Expense,48422.32,USD,Completed
+TXN-983949,2024-09-02,Administration,Logistics,Logistics related to Administration,Expense,3435.02,GBP,Completed
+TXN-448284,2023-06-26,Legal,Logistics,Logistics related to Legal,Expense,14871.56,USD,Completed
+TXN-913534,2023-12-02,R&D,Salaries,Salaries related to R&D,Expense,43881.88,GBP,Completed
+TXN-107707,2025-07-02,HR,Software,Software related to HR,Expense,14845.19,USD,Completed
+TXN-303859,06/02/2025,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,41576.02,USD,Completed
+TXN-746275,2025-11-29,Logistics,Office,Office related to Logistics,Expense,3575.72,USD,Completed
+TXN-783111,2025-12-17,HR,Professional Services,Professional Services related to HR,Expense,23323.52,GBP,Completed
+TXN-812079,2025-04-27,IT,Logistics,Logistics related to IT,Expense,"$11,069.95",USD,Completed
+TXN-352103,09/11/2025,IT,Other Revenue,Other Revenue related to IT,Revenue,118929.07,USD,Completed
+TXN-466304,2024-09-26,R&D,Other Revenue,Other Revenue related to R&D,Revenue,109612.06,USD,Completed
+TXN-436503,01/05/2023,Operations,Marketing,Marketing related to Operations,Expense,26826.82,USD,Completed
+TXN-624849,2025-02-23,Legal,Subscription Revenue,Subscription Revenue related to Legal,Revenue,7603.65,USD,Completed
+TXN-829250,2023-05-28,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,122690.28,USD,Completed
+TXN-921810,17/05/2025,Logistics,Cloud Infrastructure,Cloud Infrastructure related to Logistics,Expense,47585.09,EUR,Completed
+TXN-612845,2023-12-29,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,"$123,765.65",USD,Completed
+TXN-348920,2025-10-01,R&D,Office,Office related to R&D,Expense,22284.63,GBP,Completed
+TXN-772007,2024-11-09,Sales,Cloud Infrastructure,Cloud Infrastructure related to Sales,Expense,24971.87,GBP,Completed
+TXN-564259,2023-01-03,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,126725.74,USD,Completed
+TXN-119563,2025-09-03,Finance,Product Sales,Product Sales related to Finance,Revenue,120557.46,USD,Completed
+TXN-336532,2024-11-05,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,58947.10,GBP,Completed
+TXN-425173,2025-03-21,HR,Product Sales,Product Sales related to HR,Revenue,"$128,961.42",USD,Completed
+TXN-841675,2023-11-29,Administration,Marketing,Marketing related to Administration,Expense,40182.15,USD,Completed
+TXN-841675,2023-11-29,Administration,Marketing,Marketing related to Administration,Expense,40182.15,USD,Completed
+TXN-153897,13/02/2024,Sales,Service Revenue,Service Revenue related to Sales,Revenue,103720.45,USD,Completed
+TXN-682221,2023-12-26,Marketing,Product Sales,Product Sales related to Marketing,Revenue,74426.32,USD,Completed
+TXN-233042,2025-03-16,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,53080.39,EUR,Completed
+TXN-411222,2024-06-01,Operations,Service Revenue,Service Revenue related to Operations,Revenue,74258.92,USD,Completed
+TXN-632816,2024-08-16,R&D,Professional Services,Professional Services related to R&D,Expense,17513.22,USD,Completed
+TXN-705892,2024-08-19,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,142813.83,GBP,Completed
+TXN-577539,2023-02-11,Procurement,Training,Training related to Procurement,Expense,33114.14,USD,Completed
+TXN-150556,02/11/2024,Finance,Travel,Travel related to Finance,Expense,35255.56,EUR,Completed
+TXN-944441,2025-06-10,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,31604.33,GBP,Completed
+TXN-571045,2024-11-16,Legal,Logistics,Logistics related to Legal,Expense,"$13,505.81",USD,Completed
+TXN-571045,2024-11-16,Legal,Logistics,Logistics related to Legal,Expense,"$13,505.81",USD,Completed
+TXN-486299,2025-09-06,Operations,Service Revenue,Service Revenue related to Operations,Revenue,123125.33,USD,Completed
+TXN-568284,2024-11-30,Operations,Service Revenue,Service Revenue related to Operations,Revenue,10424.16,USD,Completed
+TXN-383940,2023-06-22,HR,Service Revenue,Service Revenue related to HR,Revenue,"$99,861.66",USD,Completed
+TXN-203155,14/12/2024,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,74848.50,USD,Completed
+TXN-529679,2024-07-01,IT,Utilities,Utilities related to IT,Expense,49074.88,USD,Completed
+TXN-161071,2023-05-29,Logistics,Travel,Travel related to Logistics,Expense,"$39,194.21",USD,Completed
+TXN-286504,2023-07-03,HR,Other Revenue,Other Revenue related to HR,Revenue,62541.73,USD,Completed
+TXN-499380,03/12/2024,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,70599.12,USD,Completed
+TXN-781321,2024-11-20,Administration,Procurement,Procurement related to Administration,Expense,29586.45,GBP,Completed
+TXN-168301,2023-05-26,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,75078.91,USD,Completed
+TXN-362159,18/06/2024,R&D,Product Sales,Product Sales related to R&D,Revenue,34914.73,USD,Completed
+TXN-249649,16/08/2023,Administration,Training,Training related to Administration,Expense,35218.73,USD,Completed
+TXN-522784,2025-10-31,Customer Support,Consulting Revenue,Consulting Revenue related to Customer Support,Revenue,16599.59,GBP,Completed
+TXN-687223,2024-04-14,Finance,Utilities,Utilities related to Finance,Expense,24071.07,USD,Completed
+TXN-487574,2023-08-08,Logistics,Maintenance,Maintenance related to Logistics,Expense,4626.14,USD,Completed
+TXN-513263,2023-08-02,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,13100.65,USD,Completed
+TXN-483599,11/05/2023,Procurement,Product Sales,Product Sales related to Procurement,Revenue,114656.22,USD,Completed
+TXN-135041,2024-03-24,Marketing,Software,Software related to Marketing,Expense,26032.55,GBP,Completed
+TXN-394578,2025-08-16,Sales,Procurement,Procurement related to Sales,Expense,39375.75,USD,Completed
+TXN-748393,2023-11-29,HR,Product Sales,Product Sales related to HR,Revenue,34801.26,USD,Completed
+TXN-416234,2023-01-01,Finance,Product Sales,Product Sales related to Finance,Revenue,118972.79,USD,Completed
+TXN-724210,2025-04-23,Sales,Logistics,Logistics related to Sales,Expense,21055.06,USD,Completed
+TXN-327076,2025-12-08,HR,Product Sales,Product Sales related to HR,Revenue,21704.76,USD,Completed
+TXN-636142,2023-02-01,Sales,Professional Services,Professional Services related to Sales,Expense,"$28,159.42",USD,Completed
+TXN-202777,2023-12-02,Administration,Professional Services,Professional Services related to Administration,Expense,18898.18,USD,Completed
+TXN-841003,2025-06-15,Logistics,Marketing,Marketing related to Logistics,Expense,19720.80,USD,Completed
+TXN-193643,24/10/2025,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,207421.57,USD,Completed
+TXN-399742,2024-07-11,R&D,Procurement,Procurement related to R&D,Expense,8335.35,USD,Completed
+TXN-925438,2025-06-12,Customer Support,Maintenance,Maintenance related to Customer Support,Expense,"$25,378.19",USD,Completed
+TXN-992579,2024-05-04,Legal,Software,Software related to Legal,Expense,16426.82,USD,Completed
+TXN-993390,2024-01-14,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,133150.31,USD,Completed
+TXN-503897,2025-06-14,Administration,Marketing,Marketing related to Administration,Expense,37634.82,USD,Completed
+TXN-902493,2024-09-07,IT,Other Revenue,Other Revenue related to IT,Revenue,"$145,858.41",USD,Completed
+TXN-850968,21/06/2023,Finance,Maintenance,Maintenance related to Finance,Expense,"$46,138.06",USD,Completed
+TXN-331043,2025-11-28,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,205849.43,USD,Completed
+TXN-431215,14/06/2024,Customer Support,Subscription Revenue,Subscription Revenue related to Customer Support,Revenue,147006.68,USD,Completed
+TXN-286571,2025-10-10,IT,Other Revenue,Other Revenue related to IT,Revenue,228261.68,USD,Completed
+TXN-246810,20/10/2024,Operations,Service Revenue,Service Revenue related to Operations,Revenue,47536.42,EUR,Completed
+TXN-788400,26/07/2024,IT,Training,Training related to IT,Expense,39823.13,USD,Completed
+TXN-232179,2023-01-24,Customer Support,Logistics,Logistics related to Customer Support,Expense,45136.91,GBP,Completed
+TXN-134394,2023-07-20,IT,Training,Training related to IT,Expense,48212.60,USD,Completed
+TXN-778477,2023-07-08,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,52941.56,EUR,Completed
+TXN-941508,2025-10-23,Sales,Other Revenue,Other Revenue related to Sales,Revenue,69770.36,EUR,Completed
+TXN-758090,2025-10-23,IT,Subscription Revenue,Subscription Revenue related to IT,Revenue,45323.08,GBP,Completed
+TXN-266212,13/10/2024,HR,Service Revenue,Service Revenue related to HR,Revenue,22259.72,USD,Completed
+TXN-868239,2024-03-08,Administration,Other Revenue,Other Revenue related to Administration,Revenue,19857.18,USD,Completed
+TXN-901504,2025-03-29,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,14027.41,USD,Completed
+TXN-595805,2024-09-02,Marketing,Training,Training related to Marketing,Expense,32108.99,USD,Completed
+TXN-971084,2023-11-30,R&D,Utilities,Utilities related to R&D,Expense,23152.26,USD,Completed
+TXN-252390,2024-12-25,Customer Support,Other Revenue,Other Revenue related to Customer Support,Revenue,176400.71,USD,Completed
+TXN-767171,2025-10-28,Operations,Logistics,Logistics related to Operations,Expense,20355.43,USD,Completed
+TXN-427509,13/10/2024,Legal,Procurement,Procurement related to Legal,Expense,25168.77,EUR,Completed
+TXN-900165,2023-07-31,Operations,Other Revenue,Other Revenue related to Operations,Revenue,118821.31,EUR,Completed
+TXN-123734,09/05/2025,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,141833.07,EUR,Completed
+TXN-554811,2023-05-05,Operations,Service Revenue,Service Revenue related to Operations,Revenue,50638.97,USD,Completed
+TXN-271738,2024-12-22,Marketing,Product Sales,Product Sales related to Marketing,Revenue,207964.74,EUR,Completed
+TXN-579327,2024-02-10,Finance,Cloud Infrastructure,Cloud Infrastructure related to Finance,Expense,5520.50,EUR,Completed
+TXN-536931,29/12/2023,Operations,Training,Training related to Operations,Expense,40968.96,USD,Completed
+TXN-678835,2025-03-22,Administration,Utilities,Utilities related to Administration,Expense,1803.32,GBP,Completed
+TXN-100324,2023-09-26,Legal,Logistics,Logistics related to Legal,Expense,46175.70,USD,Completed
+TXN-921535,2025-10-08,HR,Maintenance,Maintenance related to HR,Expense,31087.12,EUR,Completed
+TXN-361777,30/06/2024,Sales,Maintenance,Maintenance related to Sales,Expense,43417.81,GBP,Completed
+TXN-672863,2025-01-01,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,37459.37,USD,Completed
+TXN-728309,2025-11-27,Marketing,Procurement,Procurement related to Marketing,Expense,47655.87,USD,Completed
+TXN-977009,2023-05-18,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,87354.60,USD,Completed
+TXN-250996,21/09/2025,Customer Support,Travel,Travel related to Customer Support,Expense,48757.72,GBP,Completed
+TXN-296832,28/02/2025,Finance,Other Revenue,Other Revenue related to Finance,Revenue,25070.65,USD,Completed
+TXN-812287,06/08/2023,Operations,Software,Software related to Operations,Expense,8301.75,USD,Completed
+TXN-243188,2024-01-28,R&D,Service Revenue,Service Revenue related to R&D,Revenue,104836.76,USD,Completed
+TXN-751510,2024-08-28,R&D,Office,Office related to R&D,Expense,22340.49,USD,Completed
+TXN-419672,2025-12-18,Administration,Consulting Revenue,Consulting Revenue related to Administration,Revenue,67376.08,USD,Completed
+TXN-976609,23/10/2023,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,48828.34,GBP,Completed
+TXN-603355,2023-05-10,Procurement,Utilities,Utilities related to Procurement,Expense,8868.53,EUR,Completed
+TXN-459322,2025-03-14,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,"$20,762.98",USD,Completed
+TXN-781662,2024-05-07,HR,Professional Services,Professional Services related to HR,Expense,49296.78,USD,Completed
+TXN-173772,2025-07-28,R&D,Training,Training related to R&D,Expense,42443.56,GBP,Completed
+TXN-225115,2025-12-08,Administration,Travel,Travel related to Administration,Expense,32590.20,USD,Completed
+TXN-577496,2025-01-30,Sales,Marketing,Marketing related to Sales,Expense,"$15,272.18",USD,Completed
+TXN-424094,2023-08-21,R&D,Office,Office related to R&D,Expense,"$25,336.17",USD,Completed
+TXN-322309,2023-03-18,Marketing,Procurement,Procurement related to Marketing,Expense,2332.76,EUR,Completed
+TXN-368215,2025-09-08,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,"$118,043.13",USD,Completed
+TXN-538074,2024-10-29,Customer Support,Subscription Revenue,Subscription Revenue related to Customer Support,Revenue,103397.01,USD,Completed
+TXN-547800,18/06/2025,Procurement,Procurement,Procurement related to Procurement,Expense,5749.09,EUR,Completed
+TXN-270292,2024-06-26,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,"$59,766.27",USD,Completed
+TXN-791740,12/11/2025,Finance,Salaries,Salaries related to Finance,Expense,21706.10,USD,Completed
+TXN-804309,27/11/2023,Legal,Procurement,Procurement related to Legal,Expense,"$38,071.91",USD,Completed
+TXN-627494,2023-12-16,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,220153.77,USD,Completed
+TXN-962718,2024-02-19,Finance,Product Sales,Product Sales related to Finance,Revenue,98865.07,USD,Completed
+TXN-626009,2025-05-28,Marketing,Salaries,Salaries related to Marketing,Expense,33391.71,USD,Completed
+TXN-523840,11/08/2025,Finance,Marketing,Marketing related to Finance,Expense,"$39,528.66",USD,Completed
+TXN-781102,2025-07-14,Administration,Other Revenue,Other Revenue related to Administration,Revenue,130548.87,USD,Completed
+TXN-501661,2024-05-30,Finance,Procurement,Procurement related to Finance,Expense,12812.43,GBP,Completed
+TXN-831887,2023-02-24,IT,Salaries,Salaries related to IT,Expense,48996.61,GBP,Completed
+TXN-547205,2025-08-15,IT,Travel,Travel related to IT,Expense,36064.88,EUR,Completed
+TXN-750031,2023-03-31,Administration,Service Revenue,Service Revenue related to Administration,Revenue,113551.84,GBP,Completed
+TXN-940283,2024-02-03,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,109599.76,USD,Completed
+TXN-547282,2024-05-19,Administration,Utilities,Utilities related to Administration,Expense,17520.16,USD,Completed
+TXN-869601,2025-08-17,HR,Office,Office related to HR,Expense,16447.59,USD,Completed
+TXN-685136,29/11/2025,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,"$526,373.05",USD,Completed
+TXN-908235,2025-07-02,HR,Service Revenue,Service Revenue related to HR,Revenue,106758.57,EUR,Completed
+TXN-648627,2023-11-07,Procurement,Marketing,Marketing related to Procurement,Expense,12949.94,EUR,Completed
+TXN-684888,2024-06-07,Administration,Utilities,Utilities related to Administration,Expense,18984.04,GBP,Completed
+TXN-860264,2023-09-17,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,68919.02,USD,Completed
+TXN-856900,16/04/2023,Administration,Utilities,Utilities related to Administration,Expense,23199.84,USD,Completed
+TXN-954609,11/12/2024,Logistics,Service Revenue,Service Revenue related to Logistics,Revenue,1115560.51,USD,Completed
+TXN-653251,2023-03-05,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,"$113,087.81",USD,Completed
+TXN-342725,2023-08-07,Customer Support,Procurement,Procurement related to Customer Support,Expense,41553.04,USD,Completed
+TXN-471851,28/03/2025,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,91104.46,USD,Completed
+TXN-778876,2023-07-19,Customer Support,Maintenance,Maintenance related to Customer Support,Expense,14022.45,USD,Completed
+TXN-948415,2023-12-17,Administration,Travel,Travel related to Administration,Expense,23524.91,USD,Completed
+TXN-794689,2025-06-10,Administration,Maintenance,Maintenance related to Administration,Expense,5332.93,USD,Completed
+TXN-626369,29/10/2025,Administration,Other Revenue,Other Revenue related to Administration,Revenue,21410.78,EUR,Completed
+TXN-211385,2025-06-07,Administration,Product Sales,Product Sales related to Administration,Revenue,81676.99,USD,Completed
+TXN-479253,2025-12-29,IT,Other Revenue,Other Revenue related to IT,Revenue,206339.26,USD,Completed
+TXN-570852,2025-03-25,HR,Other Revenue,Other Revenue related to HR,Revenue,67435.70,USD,Completed
+TXN-607106,2024-05-06,Logistics,Service Revenue,Service Revenue related to Logistics,Revenue,121821.67,USD,Completed
+TXN-291228,2024-08-30,Logistics,Professional Services,Professional Services related to Logistics,Expense,"$36,960.50",USD,Completed
+TXN-454953,2025-12-18,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,117565.21,USD,Completed
+TXN-341118,26/01/2023,Marketing,Professional Services,Professional Services related to Marketing,Expense,4151.56,USD,Completed
+TXN-481371,25/03/2023,Administration,Utilities,Utilities related to Administration,Expense,"$46,261.17",USD,Completed
+TXN-655940,2024-07-15,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,57965.85,USD,Completed
+TXN-350107,2023-02-23,Sales,Salaries,Salaries related to Sales,Expense,37931.23,USD,Completed
+TXN-660354,04/10/2025,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,65136.12,USD,Completed
+TXN-553221,2025-02-08,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,"$124,388.95",USD,Completed
+TXN-813055,2023-03-01,IT,Service Revenue,Service Revenue related to IT,Revenue,"$71,599.25",USD,Completed
+TXN-229018,14/05/2024,Legal,Utilities,Utilities related to Legal,Expense,16079.06,USD,Completed
+TXN-331392,18/11/2025,Administration,Professional Services,Professional Services related to Administration,Expense,22162.07,USD,Completed
+TXN-129657,2024-07-02,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,40114.44,GBP,Completed
+TXN-662448,25/09/2024,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,88356.83,USD,Completed
+TXN-811696,20/12/2023,Administration,Logistics,Logistics related to Administration,Expense,14639.63,USD,Completed
+TXN-150679,2023-04-13,Procurement,Logistics,Logistics related to Procurement,Expense,26001.13,USD,Completed
+TXN-367487,2023-03-31,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,101331.50,USD,Completed
+TXN-835017,2025-09-11,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,642122.24,USD,Completed
+TXN-734433,2023-03-20,Customer Support,Logistics,Logistics related to Customer Support,Expense,46171.39,USD,Completed
+TXN-361408,2023-08-07,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,97807.65,USD,Completed
+TXN-977099,2025-04-03,Finance,Salaries,Salaries related to Finance,Expense,29623.83,USD,Completed
+TXN-305688,06/07/2023,Procurement,Professional Services,Professional Services related to Procurement,Expense,36522.36,USD,Completed
+TXN-316760,04/11/2024,Operations,Logistics,Logistics related to Operations,Expense,"$102,616.35",USD,Completed
+TXN-661737,2025-11-27,Legal,Utilities,Utilities related to Legal,Expense,41109.95,USD,Completed
+TXN-330750,03/05/2024,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,"$7,571.58",USD,Completed
+TXN-648440,2023-09-24,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,148359.37,EUR,Completed
+TXN-427544,17/09/2024,Legal,Maintenance,Maintenance related to Legal,Expense,"$13,652.74",USD,Completed
+TXN-519431,2024-06-11,Logistics,Travel,Travel related to Logistics,Expense,"$28,429.30",USD,Completed
+TXN-827866,2024-11-10,IT,Service Revenue,Service Revenue related to IT,Revenue,98266.89,USD,Completed
+TXN-473195,2024-09-29,Sales,Training,Training related to Sales,Expense,22503.46,EUR,Completed
+TXN-323467,2023-05-23,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,28485.30,USD,Completed
+TXN-571863,2025-04-08,Sales,Product Sales,Product Sales related to Sales,Revenue,35957.78,USD,Completed
+TXN-289366,2024-02-20,R&D,Utilities,Utilities related to R&D,Expense,26512.86,USD,Completed
+TXN-578024,2025-04-17,Legal,Maintenance,Maintenance related to Legal,Expense,"$16,319.87",USD,Completed
+TXN-769683,24/05/2025,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,54629.12,USD,Completed
+TXN-272759,2025-12-26,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,106190.41,EUR,Completed
+TXN-743908,2025-12-28,Legal,Professional Services,Professional Services related to Legal,Expense,26349.37,USD,Completed
+TXN-106864,2024-12-19,Legal,Procurement,Procurement related to Legal,Expense,"$1,773.38",USD,Completed
+TXN-968694,2024-03-07,Customer Support,Salaries,Salaries related to Customer Support,Expense,"$16,252.82",USD,Completed
+TXN-234873,2023-06-17,Customer Support,Subscription Revenue,Subscription Revenue related to Customer Support,Revenue,62933.46,USD,Completed
+TXN-566030,2025-05-27,Administration,Product Sales,Product Sales related to Administration,Revenue,38384.86,USD,Completed
+TXN-545447,27/01/2024,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,74944.88,USD,Completed
+TXN-101428,2024-07-23,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,115990.32,EUR,Completed
+TXN-259089,2025-10-22,Administration,Consulting Revenue,Consulting Revenue related to Administration,Revenue,148030.77,EUR,Completed
+TXN-473571,2023-06-27,Customer Support,Procurement,Procurement related to Customer Support,Expense,21744.49,USD,Completed
+TXN-361238,2025-06-09,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,19790.25,USD,Completed
+TXN-735913,2023-10-07,Finance,Product Sales,Product Sales related to Finance,Revenue,65042.50,USD,Completed
+TXN-935562,2024-08-15,Operations,Maintenance,Maintenance related to Operations,Expense,39273.10,USD,Completed
+TXN-715688,2024-10-04,R&D,Service Revenue,Service Revenue related to R&D,Revenue,38609.31,USD,Completed
+TXN-957447,2023-08-30,HR,Office,Office related to HR,Expense,26151.91,USD,Completed
+TXN-126005,2025-05-17,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,117467.28,USD,Completed
+TXN-863183,2024-10-08,Operations,Training,Training related to Operations,Expense,42442.58,USD,Completed
+TXN-838617,2023-11-29,R&D,Service Revenue,Service Revenue related to R&D,Revenue,102640.90,USD,Completed
+TXN-512330,2025-01-15,Operations,Marketing,Marketing related to Operations,Expense,36803.19,USD,Completed
+TXN-224089,2024-06-05,Finance,Training,Training related to Finance,Expense,"$16,311.77",USD,Completed
+TXN-614853,2023-06-13,Sales,Training,Training related to Sales,Expense,9882.62,USD,Completed
+TXN-289536,2023-01-04,Administration,Product Sales,Product Sales related to Administration,Revenue,145030.27,USD,Completed
+TXN-777822,2025-02-06,Customer Support,Subscription Revenue,Subscription Revenue related to Customer Support,Revenue,"$101,922.14",USD,Completed
+TXN-644143,22/10/2025,Logistics,Product Sales,Product Sales related to Logistics,Revenue,33812.81,USD,Completed
+TXN-903487,2024-04-06,Operations,Professional Services,Professional Services related to Operations,Expense,17787.50,EUR,Completed
+TXN-892048,2024-10-21,Marketing,Utilities,Utilities related to Marketing,Expense,7096.18,EUR,Completed
+TXN-836009,2025-02-10,Customer Support,Software,Software related to Customer Support,Expense,42914.73,USD,Completed
+TXN-921051,08/11/2025,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,12977.60,USD,Completed
+TXN-643090,2023-10-06,Finance,Travel,Travel related to Finance,Expense,3498.48,USD,Completed
+TXN-664520,2023-02-11,Administration,Other Revenue,Other Revenue related to Administration,Revenue,41745.59,EUR,Completed
+TXN-193246,2024-02-04,Customer Support,Software,Software related to Customer Support,Expense,"$12,169.93",USD,Completed
+TXN-466489,2025-07-04,Operations,Other Revenue,Other Revenue related to Operations,Revenue,"$106,374.12",USD,Completed
+TXN-139415,2025-09-16,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,14494.56,USD,Completed
+TXN-778173,2023-02-11,HR,Cloud Infrastructure,Cloud Infrastructure related to HR,Expense,30732.18,USD,Completed
+TXN-936554,2025-11-05,Operations,Maintenance,Maintenance related to Operations,Expense,35391.07,GBP,Completed
+TXN-441125,20/05/2023,IT,Service Revenue,Service Revenue related to IT,Revenue,"$135,020.31",USD,Completed
+TXN-630425,2025-07-01,Legal,Salaries,Salaries related to Legal,Expense,34598.57,USD,Completed
+TXN-912180,19/12/2023,Operations,Training,Training related to Operations,Expense,2486.55,USD,Completed
+TXN-770926,2023-09-28,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,79945.16,USD,Completed
+TXN-157410,03/10/2023,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,37157.79,GBP,Completed
+TXN-363142,2024-09-23,Legal,Marketing,Marketing related to Legal,Expense,8909.26,USD,Completed
+TXN-421575,20/06/2024,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,43119.23,USD,Completed
+TXN-571312,2025-02-22,IT,Professional Services,Professional Services related to IT,Expense,6662.41,USD,Completed
+TXN-525812,2023-09-03,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,147314.28,USD,Completed
+TXN-984497,2024-12-31,Marketing,Office,Office related to Marketing,Expense,15335.84,USD,Completed
+TXN-951140,2025-09-23,Finance,Service Revenue,Service Revenue related to Finance,Revenue,143138.68,USD,Completed
+TXN-544063,2024-06-26,Legal,Procurement,Procurement related to Legal,Expense,"$25,302.41",USD,Completed
+TXN-208126,2025-08-09,IT,Training,Training related to IT,Expense,159356.79,EUR,Completed
+TXN-997103,2025-02-22,Legal,Training,Training related to Legal,Expense,11523.76,USD,Completed
+TXN-754089,2023-03-13,HR,Cloud Infrastructure,Cloud Infrastructure related to HR,Expense,26101.81,USD,Completed
+TXN-755644,10/05/2024,Logistics,Service Revenue,Service Revenue related to Logistics,Revenue,"$9,234.53",USD,Completed
+TXN-198833,29/05/2024,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,105048.53,USD,Completed
+TXN-338238,2025-02-25,Legal,Service Revenue,Service Revenue related to Legal,Revenue,72304.32,USD,Completed
+TXN-929568,2023-11-29,Logistics,Software,Software related to Logistics,Expense,4316.10,GBP,Completed
+TXN-785762,2025-05-18,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,14870.33,USD,Completed
+TXN-174419,2025-08-02,Administration,Service Revenue,Service Revenue related to Administration,Revenue,6941.92,USD,Completed
+TXN-157380,2025-04-24,IT,Other Revenue,Other Revenue related to IT,Revenue,110091.10,EUR,Completed
+TXN-978786,2024-12-25,R&D,Product Sales,Product Sales related to R&D,Revenue,91761.21,USD,Completed
+TXN-180618,2024-01-14,Customer Support,Office,Office related to Customer Support,Expense,11910.44,USD,Completed
+TXN-712788,2025-11-01,Marketing,Office,Office related to Marketing,Expense,34551.60,USD,Completed
+TXN-810271,2023-05-26,Procurement,Maintenance,Maintenance related to Procurement,Expense,46646.38,USD,Completed
+TXN-792259,2024-01-10,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,11976.50,EUR,Completed
+TXN-202472,2025-12-04,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,"$30,418.60",USD,Completed
+TXN-806763,2024-04-05,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,34376.24,USD,Completed
+TXN-631761,2023-12-04,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,40855.75,GBP,Completed
+TXN-572822,2024-10-27,Finance,Service Revenue,Service Revenue related to Finance,Revenue,143652.42,USD,Completed
+TXN-639098,2025-05-15,Legal,Product Sales,Product Sales related to Legal,Revenue,23893.67,USD,Completed
+TXN-902026,2023-07-22,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,14019.29,USD,Completed
+TXN-332346,2025-02-06,Procurement,Salaries,Salaries related to Procurement,Expense,12386.39,USD,Completed
+TXN-365435,2025-09-21,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,98090.55,USD,Completed
+TXN-579459,2025-06-22,Finance,Other Revenue,Other Revenue related to Finance,Revenue,"$107,522.16",USD,Completed
+TXN-715040,2024-04-15,Procurement,Software,Software related to Procurement,Expense,"$47,268.06",USD,Completed
+TXN-748057,2023-11-17,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,96926.54,USD,Completed
+TXN-113885,2023-10-18,Operations,Cloud Infrastructure,Cloud Infrastructure related to Operations,Expense,"$32,747.68",USD,Completed
+TXN-550418,2024-07-24,Operations,Other Revenue,Other Revenue related to Operations,Revenue,57877.09,GBP,Completed
+TXN-436862,2023-03-22,Sales,Procurement,Procurement related to Sales,Expense,12255.54,USD,Completed
+TXN-247904,2024-06-25,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,128466.80,USD,Completed
+TXN-236751,2023-04-10,Logistics,Professional Services,Professional Services related to Logistics,Expense,14551.65,USD,Completed
+TXN-668984,2024-06-05,IT,Product Sales,Product Sales related to IT,Revenue,10763.00,USD,Completed
+TXN-469602,2023-07-12,Logistics,Professional Services,Professional Services related to Logistics,Expense,"$5,947.37",USD,Completed
+TXN-862094,2024-05-06,Finance,Marketing,Marketing related to Finance,Expense,"$24,782.88",USD,Completed
+TXN-261758,2024-03-08,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,21640.52,USD,Completed
+TXN-909381,2023-03-04,Legal,Other Revenue,Other Revenue related to Legal,Revenue,89686.23,USD,Completed
+TXN-935477,06/02/2023,Customer Support,Software,Software related to Customer Support,Expense,19654.08,USD,Completed
+TXN-665232,2024-05-14,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,11996.66,USD,Completed
+TXN-765920,2024-03-14,IT,Maintenance,Maintenance related to IT,Expense,3876.64,USD,Completed
+TXN-215630,2025-07-27,Customer Support,Office,Office related to Customer Support,Expense,48295.15,USD,Completed
+TXN-697192,2025-12-01,Marketing,Training,Training related to Marketing,Expense,34372.24,GBP,Completed
+TXN-277950,2024-10-23,Procurement,Product Sales,Product Sales related to Procurement,Revenue,136067.40,GBP,Completed
+TXN-338905,2024-04-16,IT,Procurement,Procurement related to IT,Expense,48359.72,USD,Completed
+TXN-577765,2023-06-28,HR,Product Sales,Product Sales related to HR,Revenue,7084.01,USD,Completed
+TXN-114061,2023-05-21,HR,Maintenance,Maintenance related to HR,Expense,"$17,593.08",USD,Completed
+TXN-438294,2023-11-02,Marketing,Service Revenue,Service Revenue related to Marketing,Revenue,"$25,219.45",USD,Completed
+TXN-496404,2025-11-29,Administration,Other Revenue,Other Revenue related to Administration,Revenue,109738.25,USD,Completed
+TXN-769338,2025-01-24,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,72344.43,USD,Completed
+TXN-372870,2024-01-27,Legal,Office,Office related to Legal,Expense,32666.97,USD,Completed
+TXN-459025,2024-08-08,Operations,Logistics,Logistics related to Operations,Expense,39786.20,GBP,Completed
+TXN-871176,2024-03-29,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,55604.01,USD,Completed
+TXN-783275,2023-05-03,Finance,Cloud Infrastructure,Cloud Infrastructure related to Finance,Expense,"$4,068.19",USD,Completed
+TXN-153860,2025-11-03,IT,Other Revenue,Other Revenue related to IT,Revenue,"$179,069.73",USD,Completed
+TXN-618009,2023-04-25,Operations,Salaries,Salaries related to Operations,Expense,"$42,109.92",USD,Completed
+TXN-548500,2023-12-21,Logistics,Service Revenue,Service Revenue related to Logistics,Revenue,261448.80,USD,Completed
+TXN-535000,10/07/2025,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,143377.28,USD,Completed
+TXN-433327,2024-04-07,Customer Support,Maintenance,Maintenance related to Customer Support,Expense,40047.47,USD,Completed
+TXN-890400,2023-08-31,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,"$66,416.58",USD,Completed
+TXN-691099,2024-08-18,Legal,Service Revenue,Service Revenue related to Legal,Revenue,"$141,031.95",USD,Completed
+TXN-336626,2023-07-22,R&D,Marketing,Marketing related to R&D,Expense,37877.61,EUR,Completed
+TXN-944021,2025-08-30,HR,Travel,Travel related to HR,Expense,207445.13,USD,Completed
+TXN-709957,2024-12-04,HR,Training,Training related to HR,Expense,41543.96,USD,Completed
+TXN-117859,05/09/2025,Procurement,Office,Office related to Procurement,Expense,8062.99,USD,Completed
+TXN-119220,22/04/2023,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,16686.45,EUR,Completed
+TXN-778691,23/11/2025,Procurement,Subscription Revenue,Subscription Revenue related to Procurement,Revenue,93569.85,USD,Completed
+TXN-633093,2023-12-12,Procurement,Subscription Revenue,Subscription Revenue related to Procurement,Revenue,61673.41,USD,Completed
+TXN-249289,2023-06-17,R&D,Product Sales,Product Sales related to R&D,Revenue,117850.61,USD,Completed
+TXN-338922,2023-01-21,Logistics,Training,Training related to Logistics,Expense,4874.34,EUR,Completed
+TXN-796138,2025-06-30,Administration,Procurement,Procurement related to Administration,Expense,43518.81,EUR,Completed
+TXN-369040,2024-01-30,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,108675.98,USD,Completed
+TXN-794619,2023-12-18,Logistics,Utilities,Utilities related to Logistics,Expense,43912.50,USD,Completed
+TXN-356292,2025-10-07,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,"$9,764.36",USD,Completed
+TXN-392682,2023-06-10,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,"$117,116.58",USD,Completed
+TXN-132692,2023-02-15,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,140024.01,USD,Completed
+TXN-252430,2023-04-14,HR,Salaries,Salaries related to HR,Expense,8628.23,USD,Completed
+TXN-686833,2024-07-28,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,135445.75,EUR,Completed
+TXN-846400,2023-09-13,IT,Training,Training related to IT,Expense,49735.16,USD,Completed
+TXN-622598,2024-07-21,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,52462.13,USD,Completed
+TXN-751223,2025-07-21,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,31370.58,USD,Completed
+TXN-582391,2025-06-09,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,81525.64,USD,Completed
+TXN-170418,2023-02-17,IT,Travel,Travel related to IT,Expense,16165.08,USD,Completed
+TXN-198618,2023-03-25,IT,Service Revenue,Service Revenue related to IT,Revenue,35837.84,USD,Completed
+TXN-791722,2024-02-24,R&D,Maintenance,Maintenance related to R&D,Expense,17519.70,USD,Completed
+TXN-241070,2024-12-22,Sales,Other Revenue,Other Revenue related to Sales,Revenue,79943.36,GBP,Completed
+TXN-872449,2024-04-04,Finance,Product Sales,Product Sales related to Finance,Revenue,28881.99,USD,Completed
+TXN-326117,12/04/2025,Finance,Other Revenue,Other Revenue related to Finance,Revenue,110415.28,USD,Completed
+TXN-959622,16/05/2023,Procurement,Salaries,Salaries related to Procurement,Expense,8946.34,USD,Completed
+TXN-650806,27/07/2024,IT,Software,Software related to IT,Expense,24545.66,USD,Completed
+TXN-494295,14/07/2024,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,7133.90,EUR,Completed
+TXN-666758,2025-09-16,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,134681.71,USD,Completed
+TXN-393109,2024-02-26,Customer Support,Professional Services,Professional Services related to Customer Support,Expense,20088.63,EUR,Completed
+TXN-731579,2023-05-06,Finance,Travel,Travel related to Finance,Expense,37333.60,USD,Completed
+TXN-993813,2025-04-06,Procurement,Professional Services,Professional Services related to Procurement,Expense,"$23,136.56",USD,Completed
+TXN-904696,2024-05-28,IT,Product Sales,Product Sales related to IT,Revenue,43561.02,USD,Completed
+TXN-387123,2024-05-21,R&D,Procurement,Procurement related to R&D,Expense,29455.00,USD,Completed
+TXN-869171,2024-12-20,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,46146.72,USD,Completed
+TXN-174024,2024-07-11,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,44520.01,USD,Completed
+TXN-479773,2025-12-17,HR,Training,Training related to HR,Expense,"$17,209.39",USD,Completed
+TXN-123881,2025-09-18,HR,Utilities,Utilities related to HR,Expense,23148.39,USD,Completed
+TXN-484419,12/10/2023,Legal,Other Revenue,Other Revenue related to Legal,Revenue,6913.60,USD,Completed
+TXN-787423,2024-08-25,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,21345.90,EUR,Completed
+TXN-646826,2025-05-02,R&D,Service Revenue,Service Revenue related to R&D,Revenue,31538.56,USD,Completed
+TXN-338483,2023-09-02,HR,Travel,Travel related to HR,Expense,38037.31,USD,Completed
+TXN-113966,2025-07-05,Administration,Product Sales,Product Sales related to Administration,Revenue,78301.21,USD,Completed
+TXN-133545,2025-08-06,R&D,Service Revenue,Service Revenue related to R&D,Revenue,23759.40,USD,Completed
+TXN-794670,05/06/2024,HR,Salaries,Salaries related to HR,Expense,38956.38,USD,Completed
+TXN-771521,2024-03-23,HR,Salaries,Salaries related to HR,Expense,"$43,842.04",USD,Completed
+TXN-423064,28/09/2023,Marketing,Marketing,Marketing related to Marketing,Expense,31070.56,USD,Completed
+TXN-665786,2023-11-05,Legal,Subscription Revenue,Subscription Revenue related to Legal,Revenue,"$46,723.15",USD,Completed
+TXN-893179,2024-12-25,Administration,Professional Services,Professional Services related to Administration,Expense,"$4,961.52",USD,Completed
+TXN-571043,2023-08-23,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,114952.07,EUR,Completed
+TXN-357225,2024-03-26,Operations,Training,Training related to Operations,Expense,25934.90,EUR,Completed
+TXN-203510,2024-05-12,IT,Service Revenue,Service Revenue related to IT,Revenue,78791.95,USD,Completed
+TXN-914197,2023-05-27,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,11438.16,EUR,Completed
+TXN-880243,09/05/2024,Finance,Subscription Revenue,Subscription Revenue related to Finance,Revenue,"$119,607.98",USD,Completed
+TXN-100709,2025-04-23,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,"$124,791.23",USD,Completed
+TXN-751958,2025-11-28,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,107144.71,GBP,Completed
+TXN-600290,2025-05-29,Sales,Utilities,Utilities related to Sales,Expense,17981.06,USD,Completed
+TXN-166319,16/08/2023,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,99469.83,USD,Completed
+TXN-681198,2024-02-18,HR,Utilities,Utilities related to HR,Expense,436487.88,GBP,Completed
+TXN-452798,2025-02-04,Finance,Software,Software related to Finance,Expense,18926.94,USD,Completed
+TXN-347696,20/01/2024,Operations,Other Revenue,Other Revenue related to Operations,Revenue,122205.68,USD,Completed
+TXN-228249,2023-10-09,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,118471.92,EUR,Completed
+TXN-846337,2024-11-23,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,"$32,743.01",USD,Completed
+TXN-677806,2025-03-06,Finance,Product Sales,Product Sales related to Finance,Revenue,"$108,412.81",USD,Completed
+TXN-645891,2025-01-17,Operations,Utilities,Utilities related to Operations,Expense,10815.99,USD,Completed
+TXN-516463,2025-09-25,R&D,Service Revenue,Service Revenue related to R&D,Revenue,62405.17,USD,Completed
+TXN-821146,2024-01-11,HR,Other Revenue,Other Revenue related to HR,Revenue,80642.88,USD,Completed
+TXN-624892,2025-01-17,Customer Support,Salaries,Salaries related to Customer Support,Expense,39883.27,USD,Completed
+TXN-871140,05/10/2023,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,"$30,012.17",USD,Completed
+TXN-143244,2025-11-20,Customer Support,Training,Training related to Customer Support,Expense,33513.23,USD,Completed
+TXN-298044,2023-03-23,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,23905.19,USD,Completed
+TXN-311957,2023-06-29,Customer Support,Other Revenue,Other Revenue related to Customer Support,Revenue,78295.60,USD,Completed
+TXN-537824,2023-05-06,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,105015.60,USD,Completed
+TXN-400333,2025-04-13,IT,Marketing,Marketing related to IT,Expense,38083.81,USD,Completed
+TXN-132194,2025-01-16,Legal,Procurement,Procurement related to Legal,Expense,29548.38,GBP,Completed
+TXN-363093,2025-10-18,Customer Support,Marketing,Marketing related to Customer Support,Expense,2251.09,USD,Completed
+TXN-275298,14/12/2024,Legal,Utilities,Utilities related to Legal,Expense,9017.07,USD,Completed
+TXN-899729,2024-02-07,Operations,Software,Software related to Operations,Expense,6328.75,GBP,Completed
+TXN-113715,2025-06-22,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,143647.87,USD,Completed
+TXN-388944,16/12/2023,HR,Professional Services,Professional Services related to HR,Expense,40921.14,USD,Completed
+TXN-506698,2023-01-15,IT,Travel,Travel related to IT,Expense,31944.58,USD,Completed
+TXN-515614,03/10/2023,Finance,Travel,Travel related to Finance,Expense,40377.87,USD,Completed
+TXN-495641,2024-03-06,Customer Support,Logistics,Logistics related to Customer Support,Expense,6608.96,USD,Completed
+TXN-641238,2025-09-03,IT,Logistics,Logistics related to IT,Expense,30869.61,EUR,Completed
+TXN-322012,2024-05-14,Marketing,Maintenance,Maintenance related to Marketing,Expense,9523.08,USD,Completed
+TXN-754681,06/08/2024,Legal,Office,Office related to Legal,Expense,21855.63,USD,Completed
+TXN-976830,2023-06-10,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,125450.25,USD,Completed
+TXN-559402,2024-03-24,HR,Service Revenue,Service Revenue related to HR,Revenue,"$124,958.02",USD,Completed
+TXN-392917,2024-07-31,Administration,Utilities,Utilities related to Administration,Expense,43955.13,USD,Completed
+TXN-232090,2023-12-17,Customer Support,Other Revenue,Other Revenue related to Customer Support,Revenue,135304.87,USD,Completed
+TXN-391926,2024-06-06,Legal,Other Revenue,Other Revenue related to Legal,Revenue,454334.34,EUR,Completed
+TXN-369115,2025-06-02,Operations,Travel,Travel related to Operations,Expense,16904.81,USD,Completed
+TXN-921695,2025-08-05,Administration,Logistics,Logistics related to Administration,Expense,30628.79,USD,Completed
+TXN-343867,2024-08-30,Legal,Service Revenue,Service Revenue related to Legal,Revenue,117430.12,USD,Completed
+TXN-664287,2023-01-31,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,104851.52,USD,Completed
+TXN-640008,27/01/2025,Procurement,Office,Office related to Procurement,Expense,19648.13,USD,Completed
+TXN-348146,2024-07-07,Operations,Marketing,Marketing related to Operations,Expense,32066.82,EUR,Completed
+TXN-159394,2023-05-30,Logistics,Travel,Travel related to Logistics,Expense,27762.81,USD,Completed
+TXN-638692,2023-04-26,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,122111.87,GBP,Completed
+TXN-715600,2023-03-06,Administration,Software,Software related to Administration,Expense,29475.62,USD,Completed
+TXN-833701,2025-09-27,Customer Support,Office,Office related to Customer Support,Expense,9010.83,GBP,Completed
+TXN-402483,2023-08-20,Customer Support,Salaries,Salaries related to Customer Support,Expense,47669.06,USD,Completed
+TXN-752659,2025-04-30,Marketing,Maintenance,Maintenance related to Marketing,Expense,12388.24,USD,Completed
+TXN-281521,2023-04-10,Finance,Professional Services,Professional Services related to Finance,Expense,40698.48,USD,Completed
+TXN-528745,2025-05-06,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,109232.24,USD,Completed
+TXN-219844,2024-12-08,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,41051.16,EUR,Completed
+TXN-360101,2025-10-14,Sales,Service Revenue,Service Revenue related to Sales,Revenue,"$9,480.99",USD,Completed
+TXN-838769,2023-10-14,Legal,Travel,Travel related to Legal,Expense,12663.19,USD,Completed
+TXN-668888,2024-11-05,Logistics,Logistics,Logistics related to Logistics,Expense,35078.83,EUR,Completed
+TXN-404628,02/01/2025,Procurement,Professional Services,Professional Services related to Procurement,Expense,14493.71,USD,Completed
+TXN-648327,2024-07-30,Legal,Other Revenue,Other Revenue related to Legal,Revenue,10605.84,USD,Completed
+TXN-994276,2024-07-16,HR,Marketing,Marketing related to HR,Expense,9385.92,GBP,Completed
+TXN-306348,15/02/2023,HR,Training,Training related to HR,Expense,"$32,759.71",USD,Completed
+TXN-684074,2025-09-29,Marketing,Logistics,Logistics related to Marketing,Expense,44653.11,USD,Completed
+TXN-911526,2025-03-21,Customer Support,Consulting Revenue,Consulting Revenue related to Customer Support,Revenue,50359.73,USD,Completed
+TXN-411092,05/05/2023,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,20685.65,USD,Completed
+TXN-252457,2023-01-22,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,111659.86,USD,Completed
+TXN-524596,2025-03-31,IT,Other Revenue,Other Revenue related to IT,Revenue,8302.34,USD,Completed
+TXN-194232,2025-10-25,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,"$20,362.38",USD,Completed
+TXN-791803,2025-08-10,IT,Maintenance,Maintenance related to IT,Expense,29075.01,USD,Completed
+TXN-734362,2024-01-08,R&D,Product Sales,Product Sales related to R&D,Revenue,27970.07,USD,Completed
+TXN-545490,2023-05-16,R&D,Maintenance,Maintenance related to R&D,Expense,42910.44,GBP,Completed
+TXN-400283,2024-05-10,Finance,Professional Services,Professional Services related to Finance,Expense,8918.02,GBP,Completed
+TXN-346443,26/08/2024,R&D,Training,Training related to R&D,Expense,15073.83,USD,Completed
+TXN-940932,2025-07-24,Finance,Maintenance,Maintenance related to Finance,Expense,12901.35,USD,Completed
+TXN-610235,2023-07-23,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,91183.65,USD,Completed
+TXN-323802,2023-07-12,IT,Utilities,Utilities related to IT,Expense,49630.36,USD,Completed
+TXN-885755,2024-08-02,Administration,Training,Training related to Administration,Expense,4043.48,USD,Completed
+TXN-411863,2024-05-05,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,144875.38,USD,Completed
+TXN-737790,2024-07-07,Logistics,Marketing,Marketing related to Logistics,Expense,25308.18,USD,Completed
+TXN-461898,09/01/2023,HR,Marketing,Marketing related to HR,Expense,18590.57,USD,Completed
+TXN-257278,2023-06-13,Sales,Training,Training related to Sales,Expense,14821.75,EUR,Completed
+TXN-254568,2024-06-26,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,41192.14,USD,Completed
+TXN-365809,2023-10-21,Finance,Other Revenue,Other Revenue related to Finance,Revenue,142608.43,USD,Completed
+TXN-201589,2023-03-01,Logistics,Logistics,Logistics related to Logistics,Expense,"$37,289.83",USD,Completed
+TXN-527232,2025-05-22,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,5875.85,USD,Completed
+TXN-470614,03/03/2025,Finance,Office,Office related to Finance,Expense,43412.70,USD,Completed
+TXN-813845,2024-05-07,Operations,Other Revenue,Other Revenue related to Operations,Revenue,140794.91,USD,Completed
+TXN-922766,31/12/2023,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,31797.20,USD,Completed
+TXN-373906,2025-12-15,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,57300.17,GBP,Completed
+TXN-578416,24/08/2025,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,146459.54,USD,Completed
+TXN-166214,2024-11-11,Marketing,Salaries,Salaries related to Marketing,Expense,27114.29,GBP,Completed
+TXN-791459,06/11/2024,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,"$45,835.37",USD,Completed
+TXN-622378,20/10/2025,Sales,Maintenance,Maintenance related to Sales,Expense,14159.24,EUR,Completed
+TXN-824855,24/11/2025,Customer Support,Consulting Revenue,Consulting Revenue related to Customer Support,Revenue,36442.08,USD,Completed
+TXN-733672,2025-01-12,IT,Salaries,Salaries related to IT,Expense,2174.93,USD,Completed
+TXN-582753,2023-04-02,Legal,Service Revenue,Service Revenue related to Legal,Revenue,9560.63,USD,Completed
+TXN-915307,2023-09-03,Logistics,Salaries,Salaries related to Logistics,Expense,"$12,265.27",USD,Completed
+TXN-417339,2024-06-16,Procurement,Cloud Infrastructure,Cloud Infrastructure related to Procurement,Expense,46418.51,USD,Completed
+TXN-157964,2025-06-30,Logistics,Marketing,Marketing related to Logistics,Expense,"$25,356.02",USD,Completed
+TXN-532598,2024-12-24,Administration,Other Revenue,Other Revenue related to Administration,Revenue,64948.77,USD,Completed
+TXN-658100,2024-03-27,Procurement,Travel,Travel related to Procurement,Expense,"$18,600.69",USD,Completed
+TXN-223163,2024-06-18,Operations,Procurement,Procurement related to Operations,Expense,28151.80,USD,Completed
+TXN-655186,11/07/2025,Administration,Professional Services,Professional Services related to Administration,Expense,16214.45,USD,Completed
+TXN-817131,20/04/2024,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,71860.55,USD,Completed
+TXN-127698,06/12/2024,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,56777.45,USD,Completed
+TXN-676323,2025-11-12,Procurement,Maintenance,Maintenance related to Procurement,Expense,20938.57,EUR,Completed
+TXN-988790,29/07/2023,HR,Utilities,Utilities related to HR,Expense,16352.00,USD,Completed
+TXN-293049,2023-01-09,IT,Office,Office related to IT,Expense,13821.57,GBP,Completed
+TXN-104244,2025-11-27,Sales,Service Revenue,Service Revenue related to Sales,Revenue,101064.44,USD,Completed
+TXN-273314,2025-03-15,IT,Product Sales,Product Sales related to IT,Revenue,103658.51,USD,Completed
+TXN-534448,2023-07-16,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,45692.07,USD,Completed
+TXN-278110,2023-06-13,IT,Professional Services,Professional Services related to IT,Expense,29658.33,GBP,Completed
+TXN-850129,2024-06-12,R&D,Professional Services,Professional Services related to R&D,Expense,3808.34,USD,Completed
+TXN-686097,2024-09-30,HR,Logistics,Logistics related to HR,Expense,29501.24,USD,Completed
+TXN-667968,2024-01-12,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,118378.01,EUR,Completed
+TXN-580184,2023-05-29,Finance,Logistics,Logistics related to Finance,Expense,8057.99,USD,Completed
+TXN-588028,2025-09-20,Finance,Professional Services,Professional Services related to Finance,Expense,"$39,980.82",USD,Completed
+TXN-950488,2023-08-09,Administration,Product Sales,Product Sales related to Administration,Revenue,120395.10,USD,Completed
+TXN-785365,06/02/2024,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,"$135,731.68",USD,Completed
+TXN-961043,29/12/2025,Operations,Service Revenue,Service Revenue related to Operations,Revenue,101940.90,USD,Completed
+TXN-607276,2025-02-02,Operations,Training,Training related to Operations,Expense,49006.96,EUR,Completed
+TXN-409746,2025-04-21,Finance,Logistics,Logistics related to Finance,Expense,"$36,057.46",USD,Completed
+TXN-946771,2023-09-28,Operations,Procurement,Procurement related to Operations,Expense,4672.14,GBP,Completed
+TXN-943357,2023-07-08,Sales,Cloud Infrastructure,Cloud Infrastructure related to Sales,Expense,45015.11,USD,Completed
+TXN-348358,06/07/2024,IT,Maintenance,Maintenance related to IT,Expense,40427.80,GBP,Completed
+TXN-370403,29/03/2025,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,99718.52,USD,Completed
+TXN-798217,2023-04-17,IT,Travel,Travel related to IT,Expense,23085.78,USD,Completed
+TXN-649248,2024-05-20,HR,Product Sales,Product Sales related to HR,Revenue,7318.27,USD,Completed
+TXN-219218,2025-11-30,Administration,Professional Services,Professional Services related to Administration,Expense,3001.53,USD,Completed
+TXN-256860,2023-04-03,Administration,Professional Services,Professional Services related to Administration,Expense,"$30,358.75",USD,Completed
+TXN-585361,2023-11-08,Legal,Service Revenue,Service Revenue related to Legal,Revenue,131501.96,USD,Completed
+TXN-436698,14/01/2024,HR,Product Sales,Product Sales related to HR,Revenue,48684.24,USD,Completed
+TXN-525803,2023-12-29,Legal,Other Revenue,Other Revenue related to Legal,Revenue,81624.23,USD,Completed
+TXN-974453,2023-03-04,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,146853.50,USD,Completed
+TXN-852354,2025-07-31,Logistics,Professional Services,Professional Services related to Logistics,Expense,5501.42,GBP,Completed
+TXN-114610,2025-02-20,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,137726.01,USD,Completed
+TXN-699485,2024-09-01,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,"$135,582.02",USD,Completed
+TXN-463797,2023-02-26,Administration,Other Revenue,Other Revenue related to Administration,Revenue,107307.42,EUR,Completed
+TXN-357860,2025-03-29,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,132358.95,USD,Completed
+TXN-276560,2024-10-28,Administration,Training,Training related to Administration,Expense,3136.33,USD,Completed
+TXN-862340,2024-11-01,Sales,Utilities,Utilities related to Sales,Expense,"$8,338.51",USD,Completed
+TXN-367313,2025-12-09,Operations,Software,Software related to Operations,Expense,42025.63,USD,Completed
+TXN-473963,2024-09-10,Finance,Travel,Travel related to Finance,Expense,32766.06,USD,Completed
+TXN-162449,2025-10-07,IT,Maintenance,Maintenance related to IT,Expense,38198.49,USD,Completed
+TXN-394790,2025-09-15,Administration,Salaries,Salaries related to Administration,Expense,24785.54,USD,Completed
+TXN-452354,2024-07-30,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,83145.18,USD,Completed
+TXN-740768,2025-06-16,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,74376.46,USD,Completed
+TXN-932234,2024-02-29,HR,Other Revenue,Other Revenue related to HR,Revenue,60431.41,USD,Completed
+TXN-606120,2024-01-08,IT,Training,Training related to IT,Expense,11750.88,USD,Completed
+TXN-460088,2024-04-25,HR,Professional Services,Professional Services related to HR,Expense,13230.73,USD,Completed
+TXN-192997,2025-03-02,Legal,Subscription Revenue,Subscription Revenue related to Legal,Revenue,124578.91,USD,Completed
+TXN-989774,2024-03-11,Sales,Cloud Infrastructure,Cloud Infrastructure related to Sales,Expense,4782.95,USD,Completed
+TXN-777477,2025-07-06,Operations,Travel,Travel related to Operations,Expense,24811.01,USD,Completed
+TXN-509177,2024-08-03,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,121311.72,EUR,Completed
+TXN-849441,2023-01-02,Customer Support,Software,Software related to Customer Support,Expense,42007.40,USD,Completed
+TXN-665568,2025-04-11,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,"$133,997.45",USD,Completed
+TXN-144850,2024-01-07,HR,Service Revenue,Service Revenue related to HR,Revenue,"$46,414.01",USD,Completed
+TXN-471319,01/07/2025,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,126880.40,USD,Completed
+TXN-323636,2025-03-19,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,136625.24,EUR,Completed
+TXN-770674,25/10/2024,Administration,Consulting Revenue,Consulting Revenue related to Administration,Revenue,123593.20,GBP,Completed
+TXN-226418,2023-03-25,IT,Professional Services,Professional Services related to IT,Expense,36563.70,USD,Completed
+TXN-235007,2025-06-14,Administration,Service Revenue,Service Revenue related to Administration,Revenue,41657.90,USD,Completed
+TXN-589886,2023-04-14,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,128604.39,GBP,Completed
+TXN-788178,23/09/2025,Legal,Maintenance,Maintenance related to Legal,Expense,"$20,917.20",USD,Completed
+TXN-912477,2023-01-09,Procurement,Procurement,Procurement related to Procurement,Expense,15172.29,USD,Completed
+TXN-597386,2025-07-06,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,92871.75,USD,Completed
+TXN-918674,2025-01-05,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,60833.20,USD,Completed
+TXN-520592,2024-03-13,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,"$51,060.34",USD,Completed
+TXN-729435,2025-09-18,R&D,Product Sales,Product Sales related to R&D,Revenue,87208.47,USD,Completed
+TXN-349018,2023-01-25,Administration,Maintenance,Maintenance related to Administration,Expense,45738.29,USD,Completed
+TXN-262348,2024-09-06,R&D,Utilities,Utilities related to R&D,Expense,9508.60,GBP,Completed
+TXN-133146,2024-07-23,HR,Service Revenue,Service Revenue related to HR,Revenue,"$12,178.95",USD,Completed
+TXN-263872,2024-10-07,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,"$101,780.73",USD,Completed
+TXN-925693,02/10/2024,IT,Training,Training related to IT,Expense,"$48,662.31",USD,Completed
+TXN-134445,2024-07-21,Sales,Procurement,Procurement related to Sales,Expense,6166.72,USD,Completed
+TXN-645103,2024-05-14,HR,Product Sales,Product Sales related to HR,Revenue,14002.79,USD,Completed
+TXN-223325,20/09/2025,R&D,Professional Services,Professional Services related to R&D,Expense,11617.90,USD,Completed
+TXN-165258,2023-03-11,HR,Software,Software related to HR,Expense,26683.37,USD,Completed
+TXN-915069,2023-11-08,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,56064.09,USD,Completed
+TXN-482579,2025-05-07,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,44130.23,USD,Completed
+TXN-789276,2023-01-24,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,14595.63,GBP,Completed
+TXN-492773,21/05/2025,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,30604.01,USD,Completed
+TXN-455797,2023-11-10,Finance,Office,Office related to Finance,Expense,38837.29,USD,Completed
+TXN-591566,09/08/2024,Finance,Procurement,Procurement related to Finance,Expense,28233.34,USD,Completed
+TXN-338621,07/01/2025,Logistics,Salaries,Salaries related to Logistics,Expense,16936.58,USD,Completed
+TXN-815173,2025-10-23,IT,Office,Office related to IT,Expense,"$26,259.20",USD,Completed
+TXN-308754,2024-10-07,Sales,Training,Training related to Sales,Expense,36942.88,USD,Completed
+TXN-815354,2025-11-05,IT,Subscription Revenue,Subscription Revenue related to IT,Revenue,22186.35,USD,Completed
+TXN-497227,2024-05-19,Operations,Other Revenue,Other Revenue related to Operations,Revenue,142768.10,GBP,Completed
+TXN-971658,2024-10-26,Sales,Salaries,Salaries related to Sales,Expense,38160.09,USD,Completed
+TXN-252379,2023-04-29,Finance,Software,Software related to Finance,Expense,42016.61,USD,Completed
+TXN-423716,2023-03-18,IT,Office,Office related to IT,Expense,3474.11,USD,Completed
+TXN-596381,2023-03-15,Administration,Service Revenue,Service Revenue related to Administration,Revenue,149548.95,USD,Completed
+TXN-486484,2023-04-17,Administration,Salaries,Salaries related to Administration,Expense,17821.22,USD,Completed
+TXN-409090,2025-12-15,Logistics,Professional Services,Professional Services related to Logistics,Expense,45900.58,USD,Completed
+TXN-534762,2025-09-05,Marketing,Travel,Travel related to Marketing,Expense,5781.63,USD,Completed
+TXN-294479,21/10/2023,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,60191.00,USD,Completed
+TXN-944665,2024-02-15,Finance,Subscription Revenue,Subscription Revenue related to Finance,Revenue,"$121,046.68",USD,Completed
+TXN-238457,2025-04-13,HR,Professional Services,Professional Services related to HR,Expense,"$16,478.36",USD,Completed
+TXN-795510,2024-02-29,Sales,Service Revenue,Service Revenue related to Sales,Revenue,"$353,527.00",USD,Completed
+TXN-736786,2023-04-10,Finance,Other Revenue,Other Revenue related to Finance,Revenue,32758.20,USD,Completed
+TXN-154718,2024-09-15,Finance,Product Sales,Product Sales related to Finance,Revenue,128439.97,USD,Completed
+TXN-995233,2024-02-16,Marketing,Other Revenue,Other Revenue related to Marketing,Revenue,81268.33,USD,Completed
+TXN-960345,2024-11-06,R&D,Service Revenue,Service Revenue related to R&D,Revenue,116819.31,USD,Completed
+TXN-803606,2025-11-17,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,13879.89,GBP,Completed
+TXN-308175,2025-04-17,Logistics,Subscription Revenue,Subscription Revenue related to Logistics,Revenue,93476.67,USD,Completed
+TXN-665947,2025-02-20,Procurement,Maintenance,Maintenance related to Procurement,Expense,33401.64,USD,Completed
+TXN-671426,31/01/2025,Procurement,Product Sales,Product Sales related to Procurement,Revenue,90651.99,USD,Completed
+TXN-254727,2025-12-29,R&D,Product Sales,Product Sales related to R&D,Revenue,130920.13,USD,Completed
+TXN-172711,2025-03-25,Sales,Salaries,Salaries related to Sales,Expense,5670.77,USD,Completed
+TXN-427702,2025-05-12,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,7705.03,USD,Completed
+TXN-328700,2023-03-22,Sales,Marketing,Marketing related to Sales,Expense,"$43,275.13",USD,Completed
+TXN-450886,06/09/2023,HR,Service Revenue,Service Revenue related to HR,Revenue,69164.27,USD,Completed
+TXN-997665,2024-10-27,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,80385.59,USD,Completed
+TXN-273291,2023-07-30,HR,Consulting Revenue,Consulting Revenue related to HR,Revenue,81360.98,USD,Completed
+TXN-904435,2025-02-04,Marketing,Utilities,Utilities related to Marketing,Expense,5722.35,GBP,Completed
+TXN-851553,10/08/2024,Customer Support,Software,Software related to Customer Support,Expense,6657.95,USD,Completed
+TXN-382718,2024-04-10,Finance,Consulting Revenue,Consulting Revenue related to Finance,Revenue,57627.78,USD,Completed
+TXN-112127,2025-08-21,IT,Service Revenue,Service Revenue related to IT,Revenue,117512.92,USD,Completed
+TXN-741185,2025-05-13,R&D,Software,Software related to R&D,Expense,"$11,772.22",USD,Completed
+TXN-631785,03/05/2024,R&D,Cloud Infrastructure,Cloud Infrastructure related to R&D,Expense,5924.56,USD,Completed
+TXN-270934,2023-03-01,Finance,Software,Software related to Finance,Expense,22688.41,GBP,Completed
+TXN-849669,2023-11-29,IT,Marketing,Marketing related to IT,Expense,36170.16,USD,Completed
+TXN-974099,24/04/2023,R&D,Marketing,Marketing related to R&D,Expense,"$2,784.17",USD,Completed
+TXN-351469,2024-07-24,HR,Office,Office related to HR,Expense,44349.18,USD,Completed
+TXN-129446,2023-05-10,Finance,Service Revenue,Service Revenue related to Finance,Revenue,"$48,688.62",USD,Completed
+TXN-566258,2024-10-22,Administration,Cloud Infrastructure,Cloud Infrastructure related to Administration,Expense,24785.87,USD,Completed
+TXN-861478,2025-03-30,Marketing,Utilities,Utilities related to Marketing,Expense,42628.19,USD,Completed
+TXN-746710,2023-04-29,R&D,Office,Office related to R&D,Expense,18252.14,USD,Completed
+TXN-558912,2024-09-22,Operations,Marketing,Marketing related to Operations,Expense,"$47,554.24",USD,Completed
+TXN-981652,2025-01-18,IT,Utilities,Utilities related to IT,Expense,1480.82,USD,Completed
+TXN-916546,2024-12-19,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,89897.82,USD,Completed
+TXN-957089,2024-04-17,Customer Support,Logistics,Logistics related to Customer Support,Expense,19714.63,USD,Completed
+TXN-575963,27/05/2024,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,34377.80,USD,Completed
+TXN-440513,2023-12-27,R&D,Logistics,Logistics related to R&D,Expense,3446.98,USD,Completed
+TXN-909356,2025-10-24,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,122697.31,EUR,Completed
+TXN-670647,2024-01-03,Customer Support,Logistics,Logistics related to Customer Support,Expense,41216.58,USD,Completed
+TXN-670647,2024-01-03,Customer Support,Logistics,Logistics related to Customer Support,Expense,41216.58,USD,Completed
+TXN-662741,2023-11-28,Operations,Product Sales,Product Sales related to Operations,Revenue,194622.48,USD,Completed
+TXN-102319,2025-01-06,Sales,Service Revenue,Service Revenue related to Sales,Revenue,84244.63,USD,Completed
+TXN-939155,2024-08-24,R&D,Product Sales,Product Sales related to R&D,Revenue,24377.31,USD,Completed
+TXN-273459,2024-10-04,Operations,Maintenance,Maintenance related to Operations,Expense,46931.96,USD,Completed
+TXN-608729,2023-11-03,Finance,Software,Software related to Finance,Expense,3267.20,USD,Completed
+TXN-486543,2024-07-24,Sales,Product Sales,Product Sales related to Sales,Revenue,26531.31,GBP,Completed
+TXN-354716,10/10/2025,Finance,Office,Office related to Finance,Expense,37544.70,USD,Completed
+TXN-805299,2025-09-05,Customer Support,Training,Training related to Customer Support,Expense,8503.42,USD,Completed
+TXN-599513,2023-07-01,Administration,Salaries,Salaries related to Administration,Expense,14409.47,USD,Completed
+TXN-884639,25/12/2025,Procurement,Subscription Revenue,Subscription Revenue related to Procurement,Revenue,114792.79,GBP,Completed
+TXN-137106,2025-09-12,Legal,Cloud Infrastructure,Cloud Infrastructure related to Legal,Expense,47153.27,USD,Completed
+TXN-692271,2025-04-10,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,75936.45,USD,Completed
+TXN-882899,2023-02-18,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,"$20,391.28",USD,Completed
+TXN-844020,2024-04-01,Sales,Product Sales,Product Sales related to Sales,Revenue,113752.23,USD,Completed
+TXN-792576,09/09/2024,Procurement,Cloud Infrastructure,Cloud Infrastructure related to Procurement,Expense,30905.28,USD,Completed
+TXN-170153,2023-11-26,IT,Other Revenue,Other Revenue related to IT,Revenue,55097.72,EUR,Completed
+TXN-400615,2024-11-01,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,17348.01,USD,Completed
+TXN-141584,09/10/2024,IT,Procurement,Procurement related to IT,Expense,31753.34,USD,Completed
+TXN-529296,2024-03-27,Sales,Cloud Infrastructure,Cloud Infrastructure related to Sales,Expense,42708.14,EUR,Completed
+TXN-962233,2025-01-22,Logistics,Salaries,Salaries related to Logistics,Expense,11553.40,USD,Completed
+TXN-875488,2023-10-30,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,"$50,788.14",USD,Completed
+TXN-954606,2023-09-10,HR,Procurement,Procurement related to HR,Expense,8936.61,EUR,Completed
+TXN-891564,2025-09-24,Legal,Maintenance,Maintenance related to Legal,Expense,1914.95,USD,Completed
+TXN-483723,2023-05-27,Administration,Utilities,Utilities related to Administration,Expense,"$45,811.68",USD,Completed
+TXN-795814,2023-04-10,Finance,Procurement,Procurement related to Finance,Expense,38839.73,USD,Completed
+TXN-682171,2024-03-29,IT,Travel,Travel related to IT,Expense,11775.56,USD,Completed
+TXN-405581,2025-05-07,Customer Support,Procurement,Procurement related to Customer Support,Expense,"$25,798.79",USD,Completed
+TXN-727242,2025-08-14,Procurement,Travel,Travel related to Procurement,Expense,49447.17,USD,Completed
+TXN-667403,2025-09-24,Sales,Software,Software related to Sales,Expense,20787.15,EUR,Completed
+TXN-875241,2023-04-24,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,"$42,871.35",USD,Completed
+TXN-797989,2025-08-02,HR,Subscription Revenue,Subscription Revenue related to HR,Revenue,39958.01,EUR,Completed
+TXN-762188,03/12/2023,Procurement,Utilities,Utilities related to Procurement,Expense,13164.57,EUR,Completed
+TXN-470661,05/10/2024,Procurement,Service Revenue,Service Revenue related to Procurement,Revenue,95633.06,USD,Completed
+TXN-852328,2023-06-01,Sales,Utilities,Utilities related to Sales,Expense,33964.86,USD,Completed
+TXN-220170,27/10/2023,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,220533.97,USD,Completed
+TXN-421040,30/03/2023,R&D,Consulting Revenue,Consulting Revenue related to R&D,Revenue,29159.33,EUR,Completed
+TXN-766306,2023-07-30,Administration,Professional Services,Professional Services related to Administration,Expense,12960.30,USD,Completed
+TXN-937628,2023-07-01,Logistics,Training,Training related to Logistics,Expense,43853.72,USD,Completed
+TXN-463417,2023-11-29,Finance,Office,Office related to Finance,Expense,19196.06,GBP,Completed
+TXN-697103,2024-09-03,HR,Travel,Travel related to HR,Expense,12340.61,USD,Completed
+TXN-665239,2025-12-24,Legal,Travel,Travel related to Legal,Expense,25664.78,USD,Completed
+TXN-713890,2023-08-08,Operations,Consulting Revenue,Consulting Revenue related to Operations,Revenue,"$115,819.26",USD,Completed
+TXN-535195,21/02/2023,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,20090.45,EUR,Completed
+TXN-117367,2023-03-31,R&D,Service Revenue,Service Revenue related to R&D,Revenue,145873.06,USD,Completed
+TXN-769793,2023-10-28,Finance,Salaries,Salaries related to Finance,Expense,8898.35,GBP,Completed
+TXN-992327,2023-12-05,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,106748.76,USD,Completed
+TXN-179899,2024-04-06,Sales,Procurement,Procurement related to Sales,Expense,19751.06,USD,Completed
+TXN-627574,2025-04-08,Procurement,Other Revenue,Other Revenue related to Procurement,Revenue,10095.84,USD,Completed
+TXN-625878,2024-09-20,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,116331.41,USD,Completed
+TXN-667083,2023-01-24,Finance,Service Revenue,Service Revenue related to Finance,Revenue,15852.80,USD,Completed
+TXN-203016,2025-06-11,Customer Support,Product Sales,Product Sales related to Customer Support,Revenue,97863.28,USD,Completed
+TXN-593182,2025-02-15,Operations,Travel,Travel related to Operations,Expense,17823.12,USD,Completed
+TXN-960500,07/07/2024,Sales,Utilities,Utilities related to Sales,Expense,43086.37,USD,Completed
+TXN-301745,2025-07-19,Marketing,Consulting Revenue,Consulting Revenue related to Marketing,Revenue,18213.86,USD,Completed
+TXN-412642,2025-09-01,Administration,Training,Training related to Administration,Expense,24670.98,USD,Completed
+TXN-486611,2023-07-13,R&D,Professional Services,Professional Services related to R&D,Expense,"$6,278.47",USD,Completed
+TXN-877308,16/02/2024,Marketing,Salaries,Salaries related to Marketing,Expense,14427.73,GBP,Completed
+TXN-441925,2023-08-21,Finance,Cloud Infrastructure,Cloud Infrastructure related to Finance,Expense,47815.79,USD,Completed
+TXN-368217,2024-06-20,Finance,Office,Office related to Finance,Expense,2504.10,USD,Completed
+TXN-772528,24/01/2025,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,128947.61,USD,Completed
+TXN-502968,2023-07-08,Legal,Other Revenue,Other Revenue related to Legal,Revenue,61345.15,USD,Completed
+TXN-274286,2024-02-20,Administration,Product Sales,Product Sales related to Administration,Revenue,122581.62,USD,Completed
+TXN-970286,2023-08-14,Sales,Consulting Revenue,Consulting Revenue related to Sales,Revenue,130452.30,USD,Completed
+TXN-606110,2025-06-04,Sales,Training,Training related to Sales,Expense,36852.63,USD,Completed
+TXN-130184,2023-08-04,Administration,Product Sales,Product Sales related to Administration,Revenue,114259.62,USD,Completed
+TXN-603025,2023-04-10,Logistics,Product Sales,Product Sales related to Logistics,Revenue,"$50,153.00",USD,Completed
+TXN-696820,2023-05-22,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,62868.43,USD,Completed
+TXN-991935,2024-10-10,Procurement,Product Sales,Product Sales related to Procurement,Revenue,41090.76,GBP,Completed
+TXN-727230,2023-12-24,IT,Maintenance,Maintenance related to IT,Expense,"$6,185.53",USD,Completed
+TXN-208034,2024-05-03,Logistics,Consulting Revenue,Consulting Revenue related to Logistics,Revenue,48770.45,USD,Completed
+TXN-226307,2024-10-31,Sales,Subscription Revenue,Subscription Revenue related to Sales,Revenue,17824.07,USD,Completed
+TXN-619319,2024-03-02,IT,Other Revenue,Other Revenue related to IT,Revenue,533679.74,USD,Completed
+TXN-597899,2024-03-04,Logistics,Other Revenue,Other Revenue related to Logistics,Revenue,"$129,367.49",USD,Completed
+TXN-149926,2025-10-30,Administration,Marketing,Marketing related to Administration,Expense,19770.43,USD,Completed
+TXN-664184,2025-06-13,Logistics,Travel,Travel related to Logistics,Expense,49868.13,USD,Completed
+TXN-420467,2024-07-09,Finance,Utilities,Utilities related to Finance,Expense,2817.23,EUR,Completed
+TXN-977678,2024-05-20,Customer Support,Consulting Revenue,Consulting Revenue related to Customer Support,Revenue,"$129,524.03",USD,Completed
+TXN-812312,2024-08-01,Customer Support,Procurement,Procurement related to Customer Support,Expense,49730.34,USD,Completed
+TXN-119009,17/12/2024,Marketing,Maintenance,Maintenance related to Marketing,Expense,45957.78,EUR,Completed
+TXN-654380,2023-03-10,Sales,Service Revenue,Service Revenue related to Sales,Revenue,121294.59,EUR,Completed
+TXN-396484,2024-03-21,HR,Professional Services,Professional Services related to HR,Expense,33268.08,USD,Completed
+TXN-145755,2023-08-09,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,17229.04,USD,Completed
+TXN-348189,2024-07-23,Administration,Maintenance,Maintenance related to Administration,Expense,"$49,348.14",USD,Completed
+TXN-871831,2023-05-18,Operations,Subscription Revenue,Subscription Revenue related to Operations,Revenue,"$98,131.99",USD,Completed
+TXN-682483,06/07/2025,Procurement,Software,Software related to Procurement,Expense,26829.58,USD,Completed
+TXN-537067,31/08/2025,Customer Support,Cloud Infrastructure,Cloud Infrastructure related to Customer Support,Expense,1021.61,USD,Completed
+TXN-511601,2023-09-16,Marketing,Professional Services,Professional Services related to Marketing,Expense,45751.47,USD,Completed
+TXN-201894,2024-08-03,Procurement,Travel,Travel related to Procurement,Expense,"$13,499.15",USD,Completed
+TXN-357248,2024-07-19,Operations,Logistics,Logistics related to Operations,Expense,28900.88,USD,Completed
+TXN-613839,2024-05-05,Procurement,Product Sales,Product Sales related to Procurement,Revenue,24525.96,USD,Completed
+TXN-843176,2023-11-04,R&D,Logistics,Logistics related to R&D,Expense,20601.89,USD,Completed
+TXN-787766,2025-09-20,Procurement,Consulting Revenue,Consulting Revenue related to Procurement,Revenue,116372.67,GBP,Completed
+TXN-574622,2024-10-11,Legal,Product Sales,Product Sales related to Legal,Revenue,104311.32,USD,Completed
+TXN-974424,2023-02-25,HR,Salaries,Salaries related to HR,Expense,15096.24,USD,Completed
+TXN-628451,2023-10-04,IT,Training,Training related to IT,Expense,3640.31,USD,Completed
+TXN-987138,15/05/2023,Legal,Consulting Revenue,Consulting Revenue related to Legal,Revenue,111259.28,USD,Completed
+TXN-343757,28/06/2025,IT,Training,Training related to IT,Expense,5830.56,USD,Completed
+TXN-537101,2023-08-06,Legal,Cloud Infrastructure,Cloud Infrastructure related to Legal,Expense,"$43,608.81",USD,Completed
+TXN-281293,08/09/2024,Finance,Salaries,Salaries related to Finance,Expense,16347.22,EUR,Completed
+TXN-573617,2024-11-03,Finance,Product Sales,Product Sales related to Finance,Revenue,86427.72,USD,Completed
+TXN-327857,2025-01-05,Customer Support,Software,Software related to Customer Support,Expense,30924.49,USD,Completed
+TXN-945248,2023-09-21,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,14230.84,USD,Completed
+TXN-945248,2023-09-21,Administration,Subscription Revenue,Subscription Revenue related to Administration,Revenue,14230.84,USD,Completed
+TXN-896140,2024-03-25,IT,Consulting Revenue,Consulting Revenue related to IT,Revenue,143128.71,USD,Completed
+TXN-331094,2023-11-04,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,30724.68,USD,Completed
+TXN-653342,09/06/2024,R&D,Subscription Revenue,Subscription Revenue related to R&D,Revenue,7264.83,USD,Completed
+TXN-481924,2023-07-15,Customer Support,Service Revenue,Service Revenue related to Customer Support,Revenue,113854.33,USD,Completed
+TXN-129576,2024-10-01,Administration,Other Revenue,Other Revenue related to Administration,Revenue,11460.92,GBP,Completed
+TXN-671225,2024-02-19,Customer Support,Travel,Travel related to Customer Support,Expense,36040.19,USD,Completed
+TXN-614716,2024-02-27,Administration,Other Revenue,Other Revenue related to Administration,Revenue,98644.40,EUR,Completed
+TXN-394435,2023-08-03,Marketing,Subscription Revenue,Subscription Revenue related to Marketing,Revenue,70663.41,GBP,Completed
+TXN-279695,2025-07-14,Sales,Procurement,Procurement related to Sales,Expense,35475.53,USD,Completed
+TXN-995793,2023-07-25,Procurement,Procurement,Procurement related to Procurement,Expense,12556.42,GBP,Completed
+TXN-952084,31/10/2025,Procurement,Subscription Revenue,Subscription Revenue related to Procurement,Revenue,22993.35,USD,Completed

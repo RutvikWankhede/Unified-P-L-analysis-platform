@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from schemas.pl_schemas import PLRecordResponse
 
@@ -20,9 +20,13 @@ class AnomalyResponse(AnomalyBase):
     detected_at: datetime
     resolved_at: Optional[datetime] = None
     assigned_to: Optional[int] = None
+    line_item: Optional[str] = None
+    description: Optional[str] = None
+    department: Optional[str] = None
+    impact_amount: Optional[float] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 class AnomalyDetail(AnomalyResponse):
@@ -72,8 +76,7 @@ class RecommendationResponse(BaseModel):
     status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CopilotRequest(BaseModel):

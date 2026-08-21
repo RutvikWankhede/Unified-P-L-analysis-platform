@@ -20,8 +20,43 @@ class LearningAgent:
             f"[{self.agent_name}] Processing feedback for anomaly {anomaly_id}: {was_correct}"
         )
 
-        # In a real app, retrain the model or update knowledge graph
-        action = "update_model_weights" if not was_correct else "reinforce_model"
+        db = SessionLocal()
+        try:
+            from models.anomaly import Anomaly
+            from models.pl_record import PLRecord
+            from models.domain_settings import DomainSettings
+
+            anomaly = db.query(Anomaly).filter(Anomaly.id == anomaly_id).first()
+            if anomaly:
+                pl_record = db.query(PLRecord).filter(PLRecord.id == anomaly.pl_record_id).first()
+                if pl_record:
+                    domain = pl_record.domain
+                    domain_setting = db.query(DomainSettings).filter(DomainSettings.domain == domain).first()
+                    
+                    if not domain_setting:
+                        from backend.ml.isolation_forest import get_contamination
+                        domain_setting = DomainSettings(domain=domain, contamination_rate=get_contamination(domain, db))
+                        db.add(domain_setting)
+                        
+                    # If it was a false positive, lower contamination (make it stricter)
+                    if not was_correct:
+                        # Reduce by 10% (e.g. 0.05 -> 0.045)
+                        domain_setting.contamination_rate = max(0.01, domain_setting.contamination_rate * 0.9)
+                        action = "update_model_weights (reduced contamination)"
+                    else:
+                        # Reinforce: maybe slightly increase or keep same
+                        domain_setting.contamination_rate = min(0.15, domain_setting.contamination_rate * 1.05)
+                        action = "reinforce_model (increased contamination)"
+                        
+                    db.commit()
+            else:
+                action = "unknown_anomaly"
+                
+        except Exception as e:
+            logger.error(f"Error processing feedback: {e}")
+            action = "error"
+        finally:
+            db.close()
 
         result = {"action_taken": action, "status": "Feedback incorporated"}
         self._log_action(

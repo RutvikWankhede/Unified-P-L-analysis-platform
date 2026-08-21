@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_UploadData" name="P&amp;L Data Upload and Analysis" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Data Uploaded">
+      <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_SchemaDetection" />
+    
+    <bpmn:serviceTask id="Task_SchemaDetection" name="Schema Detection" camunda:type="external" camunda:topic="schema_detection">
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_SchemaDetection" targetRef="Task_AIMapping" />
+    
+    <bpmn:serviceTask id="Task_AIMapping" name="AI Schema Mapping" camunda:type="external" camunda:topic="ai_mapping">
+      <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_AIMapping" targetRef="Task_DataCleaning" />
+
+    <bpmn:serviceTask id="Task_DataCleaning" name="Data Cleaning" camunda:type="external" camunda:topic="data_cleaning">
+      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_DataCleaning" targetRef="Task_DataValidation" />
+
+    <bpmn:serviceTask id="Task_DataValidation" name="Data Validation" camunda:type="external" camunda:topic="data_validation">
+      <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_5" sourceRef="Task_DataValidation" targetRef="Task_QualityCheck" />
+
+    <bpmn:serviceTask id="Task_QualityCheck" name="Quality Check" camunda:type="external" camunda:topic="quality_check">
+      <bpmn:incoming>SequenceFlow_5</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="Task_QualityCheck" targetRef="Task_AnomalyDetection" />
+
+    <bpmn:serviceTask id="Task_AnomalyDetection" name="Anomaly Detection" camunda:type="external" camunda:topic="anomaly_detection">
+      <bpmn:incoming>SequenceFlow_6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_7" sourceRef="Task_AnomalyDetection" targetRef="Task_Forecast" />
+
+    <bpmn:serviceTask id="Task_Forecast" name="Forecast" camunda:type="external" camunda:topic="forecast">
+      <bpmn:incoming>SequenceFlow_7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_8" sourceRef="Task_Forecast" targetRef="Task_Recommendations" />
+
+    <bpmn:serviceTask id="Task_Recommendations" name="Recommendations" camunda:type="external" camunda:topic="recommendations">
+      <bpmn:incoming>SequenceFlow_8</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_9" sourceRef="Task_Recommendations" targetRef="Task_GenerateReport" />
+
+    <bpmn:serviceTask id="Task_GenerateReport" name="Generate Report" camunda:type="external" camunda:topic="generate_report">
+      <bpmn:incoming>SequenceFlow_9</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_10" sourceRef="Task_GenerateReport" targetRef="Task_NotifyUser" />
+
+    <bpmn:serviceTask id="Task_NotifyUser" name="Notify User" camunda:type="external" camunda:topic="notify_user">
+      <bpmn:incoming>SequenceFlow_10</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_11" sourceRef="Task_NotifyUser" targetRef="EndEvent_1" />
+
+    <bpmn:endEvent id="EndEvent_1" name="Workflow Complete">
+      <bpmn:incoming>SequenceFlow_11</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_UploadData">
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

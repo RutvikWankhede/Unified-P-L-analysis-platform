@@ -34,10 +34,33 @@ def get_current_user(
     return user
 
 
+# Enterprise RBAC Hierarchy mapping
+ROLE_HIERARCHY = {
+    "ADMINISTRATOR": ["ADMINISTRATOR", "FINANCE_MANAGER", "DEPARTMENT_HEAD", "AUDITOR", "EMPLOYEE", "Viewer"],
+    "FINANCE_MANAGER": ["FINANCE_MANAGER", "DEPARTMENT_HEAD", "AUDITOR", "EMPLOYEE", "Viewer"],
+    "DEPARTMENT_HEAD": ["DEPARTMENT_HEAD", "EMPLOYEE", "Viewer"],
+    "AUDITOR": ["AUDITOR", "Viewer"],
+    "EMPLOYEE": ["EMPLOYEE", "Viewer"],
+    "Admin": ["ADMINISTRATOR", "FINANCE_MANAGER", "DEPARTMENT_HEAD", "AUDITOR", "EMPLOYEE", "Viewer"],  # Legacy compat
+    "Finance": ["FINANCE_MANAGER", "DEPARTMENT_HEAD", "AUDITOR", "EMPLOYEE", "Viewer"],  # Legacy compat
+    "Manager": ["DEPARTMENT_HEAD", "EMPLOYEE", "Viewer"],  # Legacy compat
+    "Viewer": ["Viewer"]
+}
+
 def require_role(allowed_roles: list[str]):
     def role_checker(current_user: User = Depends(get_current_user)):
-        if current_user.role not in allowed_roles:
-            raise HTTPException(status_code=403, detail="Not enough permissions")
+        user_role = current_user.role or "Viewer"
+        has_permission = False
+        
+        # Check if user's role grants them any of the allowed roles
+        user_capabilities = ROLE_HIERARCHY.get(user_role, [])
+        for allowed in allowed_roles:
+            if allowed in user_capabilities:
+                has_permission = True
+                break
+                
+        if not has_permission:
+            raise HTTPException(status_code=403, detail="Not enough permissions. Requires one of: " + ", ".join(allowed_roles))
         return current_user
 
     return role_checker

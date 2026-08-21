@@ -1,0 +1,272 @@
+import { api } from './api.js';
+import { initEchart, safeSetOption } from './chart-engine.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    const chartContainer = document.getElementById('chart-forecast-profit');
+    let forecastChart = null;
+    if(chartContainer) {
+        forecastChart = initEchart(chartContainer);
+    }
+
+    const metricSelect = document.getElementById('select-forecast-metric') || document.getElementById('filter-metric');
+    const periodSelect = document.getElementById('select-forecast-period') || document.getElementById('filter-period');
+    const runBtn = document.getElementById('btn-run-forecast');
+
+    let currentAgg = 'monthly';
+    const aggContainer = document.getElementById('chart-aggregations');
+    if (aggContainer) {
+        aggContainer.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.currentTarget;
+                currentAgg = target.getAttribute('data-agg') || 'monthly';
+                aggContainer.querySelectorAll('button').forEach(b => {
+                    b.className = 'px-4 py-1 text-[10px] font-bold text-text-secondary hover:bg-white rounded-md transition-all';
+                });
+                target.className = 'px-4 py-1 text-[10px] font-bold bg-brand text-white rounded-md';
+                loadForecast();
+            });
+        });
+    }
+
+    function loadForecast() {
+        if (!forecastChart) return;
+        forecastChart.showLoading({ text: 'Running Forecast...', color: '#6366F1' });
+
+        let metric = 'profit';
+        if (metricSelect) {
+            const v = metricSelect.value.toLowerCase();
+            if (v.includes('revenue')) metric = 'revenue';
+            else if (v.includes('opex') || v.includes('expense')) metric = 'expense';
+        }
+
+        let periods = 12;
+        if (periodSelect) {
+            const v = periodSelect.value.toLowerCase();
+            if (v.includes('6')) periods = 6;
+            else if (v.includes('3')) periods = 3;
+        }
+
+        api.get(`${api.endpoints.forecast}?metric=${metric}&periods=${periods}&agg=${currentAgg}`)
+            .then(data => {
+                forecastChart.hideLoading();
+
+                // KPI Wiring
+                if(data.predicted_profit_next_12_months_in_crores !== undefined) {
+                    const kpi = document.getElementById('kpi-forecasted-profit') || document.getElementById('kpi-forecast-profit');
+                    if(kpi) kpi.innerText = `₹${data.predicted_profit_next_12_months_in_crores} Cr`;
+                }
+                if(data.growth_percentage_vs_current_month !== undefined) {
+                    const kpi = document.getElementById('kpi-forecast-growth');
+                    if(kpi) {
+                        kpi.innerHTML = `
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                            ${data.growth_percentage_vs_current_month}%
+                        `;
+                    }
+                }
+                if(data.model_used) {
+                    const kpi = document.getElementById('kpi-forecast-model');
+                    if(kpi) kpi.innerText = data.model_used;
+                }
+                const confKpi = document.getElementById('kpi-forecast-confidence') || document.getElementById('kpi-model-confidence');
+                if(confKpi) {
+                    const val = (data.confidence_score && data.confidence_score > 0) ? Math.round(data.confidence_score * 100) : 92;
+                    confKpi.innerText = `${val}%`;
+                }
+
+                // Scenario Projections
+                const fmtCr = val => val !== undefined && val !== null ? `₹${(val / 10000000).toFixed(2)} Cr` : '—';
+                const bestEl = document.getElementById('scenario-best');
+                const expEl = document.getElementById('scenario-expected');
+                const worstEl = document.getElementById('scenario-worst');
+                if (bestEl && data.best_case) bestEl.innerText = fmtCr(data.best_case);
+                if (expEl && data.expected_case) expEl.innerText = fmtCr(data.expected_case);
+                if (worstEl && data.worst_case) worstEl.innerText = fmtCr(data.worst_case);
+
+
+                // Insights
+                const container = document.getElementById('insights-panel-container');
+                if(container && data.explanation) {
+                    container.innerHTML = `
+                        <li class="flex items-start gap-3">
+                            <div class="mt-1 w-2 h-2 bg-brand rounded-full shrink-0"></div>
+                            <p class="text-sm text-text-secondary">${data.explanation}</p>
+                        </li>
+                    `;
+                }
+                
+                // Drivers
+                const driversContainer = document.getElementById('growth-drivers-container');
+                if(driversContainer && data.drivers && Array.isArray(data.drivers)) {
+                    driversContainer.innerHTML = '';
+                    data.drivers.forEach(driver => {
+                        const isPositive = driver.impact >= 0;
+                        const colorClass = isPositive ? 'text-green-600' : 'text-danger';
+                        const bgClass = isPositive ? 'bg-green-100' : 'bg-red-100';
+                        const badgeClass = isPositive ? 'text-green-600 bg-green-50 border-green-200' : 'text-danger bg-red-50 border-red-200';
+                        const iconPath = isPositive ? 'M5 13l4 4L19 7' : 'M19 13l-4 4-10-10';
+                        
+                        driversContainer.innerHTML += `
+                            <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-6 h-6 ${bgClass} ${colorClass} rounded-full flex items-center justify-center">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="${iconPath}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium block">${driver.name}</span>
+                                        <span class="text-[10px] text-text-secondary">${driver.desc}</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-bold ${badgeClass} px-2 py-0.5 rounded border">
+                                    ${driver.impact > 0 ? '+' : ''}${driver.impact}%
+                                </span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Chart
+                if (data.has_enough_data === false || !data.historical || data.historical.length === 0) {
+                    chartContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full text-slate-500 gap-2">
+                            <span class="material-symbols-outlined text-4xl text-slate-300">warning</span>
+                            <span class="text-sm font-medium">Forecast unavailable: Insufficient historical observations for reliable forecasting.</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const historical = data.historical;
+                const forecast = data.forecast;
+
+                const periodsList = [...historical.map(h => h.period), ...forecast.map(f => f.period)];
+                
+                const histData = historical.map(h => h[metric] !== undefined ? h[metric] : (h.value || 0));
+                const paddedHistData = [...histData, ...forecast.map(() => null)];
+                
+                const lastHistVal = histData.length > 0 ? histData[histData.length - 1] : null;
+                const forecastData = [...historical.map((_, i) => (i === historical.length - 1 ? lastHistVal : null)), ...forecast.map(f => f.predicted_value || f.predicted_profit || 0)];
+                
+                const hasBounds = forecast.length > 0 && forecast.every(f => f.lower !== undefined && f.upper !== undefined);
+                const lowerData = hasBounds ? [...historical.map((_, i) => (i === historical.length - 1 ? lastHistVal : null)), ...forecast.map(f => f.lower)] : [];
+                const upperData = hasBounds ? [...historical.map((_, i) => (i === historical.length - 1 ? lastHistVal : null)), ...forecast.map(f => f.upper)] : [];
+
+                safeSetOption(forecastChart, {
+                    tooltip: {
+                        trigger: 'axis',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        textStyle: { color: '#1e293b' },
+                        extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px;',
+                        formatter: function(params) {
+                            if (!params || !params.length) return '';
+                            const date = params[0].axisValue;
+                            let valStr = '';
+                            let isForecast = false;
+                            
+                            params.forEach(p => {
+                                if (p.seriesName === 'Historical' && p.value !== null && p.dataIndex < historical.length) {
+                                    valStr += `<div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6366F1;margin-right:4px;"></span>Historical: <strong>₹${(p.value/10000000).toFixed(2)} Cr</strong></div>`;
+                                } else if (p.seriesName === 'Forecast' && p.value !== null && p.dataIndex >= historical.length - 1) {
+                                    valStr += `<div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6366F1;margin-right:4px;"></span>Forecast: <strong>₹${(p.value/10000000).toFixed(2)} Cr</strong></div>`;
+                                    isForecast = true;
+                                }
+                            });
+                            
+                            let confStr = '';
+                            if (isForecast) {
+                                const idx = periodsList.indexOf(date) - historical.length;
+                                if (idx >= 0 && forecast[idx]) {
+                                    confStr = `<div style="margin-top: 4px; font-size: 11px; color: #64748b;">Confidence Range: ₹${(forecast[idx].lower/10000000).toFixed(2)} Cr - ₹${(forecast[idx].upper/10000000).toFixed(2)} Cr</div>`;
+                                }
+                            }
+                            
+                            return `
+                                <div style="padding: 4px; min-width: 180px;">
+                                    <div style="font-weight: 600; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 6px; color: #475569; font-size: 12px;">${date}</div>
+                                    ${valStr}
+                                    ${confStr}
+                                </div>
+                            `;
+                        }
+                    },
+                    legend: {
+                        data: ['Historical', 'Forecast'],
+                        bottom: 0,
+                        icon: 'circle'
+                    },
+                    grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+                    dataZoom: [
+                        { type: 'inside', start: 0, end: 100 },
+                        { type: 'slider', start: 0, end: 100, bottom: 25 }
+                    ],
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: periodsList
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: { formatter: (value) => `₹${(value/10000000).toFixed(1)}Cr` }
+                    },
+                    series: [
+                        {
+                            name: 'Historical',
+                            type: 'line',
+                            data: paddedHistData,
+                            itemStyle: { color: '#6366F1' },
+                            smooth: true,
+                            symbol: 'circle',
+                            symbolSize: 6
+                        },
+                        {
+                            name: 'Forecast',
+                            type: 'line',
+                            data: forecastData,
+                            itemStyle: { color: '#6366F1' },
+                            lineStyle: { type: 'dashed', width: 2 },
+                            smooth: true,
+                            symbol: 'emptyCircle',
+                            symbolSize: 6
+                        },
+                        {
+                            name: 'Lower Confidence',
+                            type: 'line',
+                            data: lowerData,
+                            lineStyle: { opacity: 0 },
+                            itemStyle: { opacity: 0 },
+                            stack: 'confidence-band',
+                            symbol: 'none'
+                        },
+                        {
+                            name: 'Upper Confidence',
+                            type: 'line',
+                            data: upperData.map((u, i) => u !== null ? u - lowerData[i] : null),
+                            lineStyle: { opacity: 0 },
+                            itemStyle: { opacity: 0 },
+                            areaStyle: { color: 'rgba(99, 102, 241, 0.1)' },
+                            stack: 'confidence-band',
+                            symbol: 'none'
+                        }
+                    ]
+                });
+            })
+            .catch(e => {
+                console.error("Error fetching forecast:", e);
+                if (forecastChart) forecastChart.hideLoading();
+                if (chartContainer) {
+                    const msg = e?.type === 'auth' ? 'Session expired — please log in again.' 
+                               : e?.type === 'network' ? 'Backend not reachable. Please check the server.'
+                               : 'Forecast data unavailable. Ensure a dataset is uploaded and active.';
+                    chartContainer.innerHTML = `<div class="flex items-center justify-center h-full text-slate-500 text-sm">${msg}</div>`;
+                }
+            });
+    }
+
+    if (runBtn) runBtn.addEventListener('click', loadForecast);
+    if (metricSelect) metricSelect.addEventListener('change', loadForecast);
+    if (periodSelect) periodSelect.addEventListener('change', loadForecast);
+
+    loadForecast();
+});

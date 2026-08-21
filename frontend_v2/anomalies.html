@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomalies - P&L AI</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .panel {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            bottom: 0;
+            width: 450px;
+            background: var(--color-bg-secondary);
+            box-shadow: var(--shadow-modal);
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 200;
+            padding: var(--space-8);
+            overflow-y: auto;
+            border-left: 1px solid var(--color-border);
+        }
+        .panel.open {
+            right: 0;
+        }
+        .close-btn {
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            float: right;
+            transition: all var(--transition-fast);
+        }
+        .close-btn:hover {
+            background: var(--color-bg-glass-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <span class="material-symbols-outlined" style="font-size: 28px;">analytics</span>
+            <span class="logo-text">P&L AI</span>
+        </div>
+        <a href="dashboard.html" class="nav-item">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="nav-text">Dashboard</span>
+        </a>
+        <a href="upload.html" class="nav-item">
+            <span class="material-symbols-outlined">upload_file</span>
+            <span class="nav-text">Upload Data</span>
+        </a>
+        <a href="anomalies.html" class="nav-item active">
+            <span class="material-symbols-outlined">warning</span>
+            <span class="nav-text">Anomalies</span>
+        </a>
+        <div style="flex-grow: 1;"></div>
+        <a href="#" class="nav-item" id="logout-btn">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="nav-text">Logout</span>
+        </a>
+    </div>
+
+    <div class="main-content" id="main-content">
+        <div class="topbar">
+            <div style="display: flex; align-items: center; gap: var(--space-4);">
+                <button class="icon-btn" id="sidebar-toggle">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+            
+            <div class="topbar-actions">
+                <button class="icon-btn" id="theme-toggle">
+                    <span class="material-symbols-outlined">light_mode</span>
+                </button>
+                <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
+                    AD
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-6);">
+            <div>
+                <h1 style="margin-bottom: var(--space-2);">Anomaly Review</h1>
+                <p style="color: var(--color-text-secondary); margin: 0;">Review and resolve identified data irregularities.</p>
+            </div>
+            <div style="display: flex; gap: var(--space-3);">
+                <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 8px 16px; border-radius: var(--radius-sm);">
+                    <option>All Severities</option>
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                </select>
+                <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 8px 16px; border-radius: var(--radius-sm);">
+                    <option>All Statuses</option>
+                    <option>Pending</option>
+                    <option>Resolved</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card" style="animation: fadeIn 0.4s ease-out;">
+            <div class="table-wrapper">
+                <table id="anomalies-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Severity</th>
+                            <th>Anomaly Score</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Loading Skeletons -->
+                        <tr>
+                            <td><div class="skeleton" style="height: 20px; width: 40px;"></div></td>
+                            <td><div class="skeleton" style="height: 24px; width: 60px; border-radius: 12px;"></div></td>
+                            <td><div class="skeleton" style="height: 20px; width: 50px;"></div></td>
+                            <td><div class="skeleton" style="height: 20px; width: 80px;"></div></td>
+                            <td><div class="skeleton" style="height: 36px; width: 100px; border-radius: 6px;"></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="skeleton" style="height: 20px; width: 40px;"></div></td>
+                            <td><div class="skeleton" style="height: 24px; width: 60px; border-radius: 12px;"></div></td>
+                            <td><div class="skeleton" style="height: 20px; width: 50px;"></div></td>
+                            <td><div class="skeleton" style="height: 20px; width: 80px;"></div></td>
+                            <td><div class="skeleton" style="height: 36px; width: 100px; border-radius: 6px;"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Panel -->
+    <div class="panel" id="detail-panel">
+        <button class="close-btn" id="close-panel">
+            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+        </button>
+        <h2 style="color: var(--color-accent-teal); margin-top: 0; display: flex; align-items: center; gap: var(--space-2);">
+            <span class="material-symbols-outlined">plagiarism</span>
+            Investigation
+        </h2>
+        
+        <div id="panel-content" style="margin-top: var(--space-6);">
+            <div class="skeleton" style="height: 100px; width: 100%;"></div>
+        </div>
+        
+        <hr style="border: 0; height: 1px; background: var(--color-border); margin: var(--space-6) 0;">
+        
+        <h3 style="color: var(--color-accent-primary); display: flex; align-items: center; gap: var(--space-2);">
+            <span class="material-symbols-outlined">smart_toy</span>
+            AI Copilot Explanation
+        </h3>
+        
+        <div id="ai-explanation" style="background: var(--color-bg-elevated); padding: var(--space-5); border-radius: var(--radius-md); border-left: 3px solid var(--color-accent-primary); margin-top: var(--space-4);">
+            <div style="display: flex; gap: var(--space-3); align-items: center;">
+                <div class="skeleton" style="height: 40px; width: 40px; border-radius: 50%;"></div>
+                <div style="flex: 1;">
+                    <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 8px;"></div>
+                    <div class="skeleton" style="height: 12px; width: 80%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script>
+        // UI logic
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            const html = document.documentElement;
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeBtn.innerHTML = '<span class="material-symbols-outlined">light_mode</span>';
+            }
+        });
+
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        });
+
+        // Panel and API logic
+        const panel = document.getElementById('detail-panel');
+        document.getElementById('close-panel').addEventListener('click', () => panel.classList.remove('open'));
+
+        async function loadAnomalies() {
+            const tbody = document.querySelector('#anomalies-table tbody');
+            try {
+                const anomalies = await window.api.getAnomalies();
+                tbody.innerHTML = '';
+                anomalies.forEach(a => {
+                    const badgeClass = a.severity === 'High' ? 'badge-high' : (a.severity === 'Medium' ? 'badge-medium' : 'badge-low');
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 500;">#${a.id}</td>
+                        <td><span class="badge ${badgeClass}">${a.severity}</span></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: var(--space-2);">
+                                <div style="flex: 1; height: 6px; background: var(--color-bg-elevated); border-radius: var(--radius-full); overflow: hidden;">
+                                    <div style="height: 100%; width: ${Math.min(a.anomaly_score * 10, 100)}%; background: ${a.severity === 'High' ? 'var(--color-accent-red)' : 'var(--color-accent-amber)'};"></div>
+                                </div>
+                                <span style="font-size: var(--font-size-xs); font-weight: 600;">${a.anomaly_score.toFixed(1)}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="display: inline-flex; align-items: center; gap: 4px; color: ${a.status === 'Resolved' ? 'var(--color-accent-green)' : 'var(--color-text-secondary)'}">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">${a.status === 'Resolved' ? 'check_circle' : 'pending'}</span>
+                                ${a.status}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewDetails(${a.id})" style="padding: 6px 12px; font-size: var(--font-size-xs);">
+                                Investigate
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-accent-red);">Failed to load anomalies.</td></tr>`;
+            }
+        }
+
+        window.viewDetails = async (id) => {
+            panel.classList.add('open');
+            document.getElementById('panel-content').innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                    <div class="skeleton" style="height: 20px; width: 60%;"></div>
+                    <div class="skeleton" style="height: 20px; width: 80%;"></div>
+                    <div class="skeleton" style="height: 20px; width: 50%;"></div>
+                </div>
+            `;
+            document.getElementById('ai-explanation').innerHTML = `
+                <div style="display: flex; gap: var(--space-3); align-items: center;">
+                    <div class="skeleton" style="height: 40px; width: 40px; border-radius: 50%; flex-shrink: 0;"></div>
+                    <div style="flex: 1;">
+                        <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 8px;"></div>
+                        <div class="skeleton" style="height: 12px; width: 80%;"></div>
+                    </div>
+                </div>
+            `;
+            
+            try {
+                const detail = await window.api.getAnomalyDetail(id);
+                document.getElementById('panel-content').innerHTML = `
+                    <div style="background: var(--color-bg-primary); padding: var(--space-4); border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-family: monospace;">
+                        <div style="margin-bottom: var(--space-2); color: var(--color-text-secondary);">RECORD DATA:</div>
+                        <div style="display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-4);">
+                            <span style="color: var(--color-accent-teal);">ID:</span> <span>${detail.pl_record_id}</span>
+                            <span style="color: var(--color-accent-teal);">Score:</span> <span>${detail.anomaly_score.toFixed(2)}</span>
+                            <span style="color: var(--color-accent-teal);">Detected:</span> <span>${new Date(detail.detected_at).toLocaleString()}</span>
+                            <span style="color: var(--color-accent-teal);">Status:</span> <span>${detail.status}</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Fetch explanation
+                try {
+                    const exp = await window.api.request(`/explanations/generate/${id}`, { method: 'POST' });
+                    document.getElementById('ai-explanation').innerHTML = `
+                        <p style="margin-top: 0; line-height: 1.6;">${exp.explanation_text}</p>
+                        <div style="margin-top: var(--space-4); padding: var(--space-3); background: rgba(255, 181, 71, 0.1); border: 1px dashed var(--color-accent-amber); border-radius: var(--radius-sm);">
+                            <strong style="color: var(--color-accent-amber); font-size: var(--font-size-sm);">Root Cause Identified:</strong><br>
+                            <span style="font-size: var(--font-size-sm);">${exp.root_cause}</span>
+                        </div>
+                    `;
+                } catch (e) {
+                    document.getElementById('ai-explanation').innerHTML = `<p style="color: var(--color-accent-red);">Failed to load AI analysis. ${e.message}</p>`;
+                }
+
+            } catch (err) {
+                document.getElementById('panel-content').innerHTML = `<p style="color: var(--color-accent-red);">Error loading record details.</p>`;
+            }
+        };
+
+        loadAnomalies();
+    </script>
+</body>
+</html>

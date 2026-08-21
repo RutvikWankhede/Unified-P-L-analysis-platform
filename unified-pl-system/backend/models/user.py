@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, JSON
 from sqlalchemy.sql import func
 
 from database import Base
@@ -15,3 +15,4 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=func.now())
     last_login = Column(DateTime, nullable=True)
+    preferences = Column(JSON, nullable=True)

@@ -1,0 +1,263 @@
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+ <div style="padding: var(--space-4); display: flex; align-items: center; gap: var(--space-3);">
+ <img src="./assets/logo.svg" alt="Logo" style="width: 28px; height: 28px;">
+ <div class="sidebar__brand-text">
+ <h1 class="text-h2" style="white-space: nowrap; font-size: 14px;">Unified P&amp;L</h1>
+ <p class="text-caption text-secondary" style="font-size: 10px;">Enterprise Workspace</p>
+ </div>
+ </div>
+ 
+ <div class="sidebar__workspace-selector" style="padding: 0 var(--space-4) var(--space-4) var(--space-4);">
+ <button class="btn btn--secondary" style="width: 100%; justify-content: space-between; font-size: 12px; padding: var(--space-2);">
+ <span class="sidebar__brand-text" style="display: flex; align-items: center; gap: var(--space-2);">
+ <span class="material-symbols-outlined" style="font-size: 16px;">domain</span>
+ Acme Corp
+ </span>
+ <span class="material-symbols-outlined sidebar__brand-text" style="font-size: 16px;">unfold_more</span>
+ </button>
+ </div>
+ 
+ <nav style="flex: 1; overflow-y: auto; padding: 0 var(--space-3);">
+ <div class="sidebar__group-label text-caption text-muted sidebar__brand-text" style="margin: var(--space-3) var(--space-2) var(--space-2); font-size: 10px;">ANALYTICS</div>
+ <a href="./dashboard.html" class="sidebar__item" data-sidebar-item="Dashboard" title="Dashboard">
+ <span class="material-symbols-outlined" style="font-size: 18px;">grid_view</span>
+ <span class="sidebar__item-label">Dashboard</span>
+ </a>
+ <a href="./departments.html" class="sidebar__item" data-sidebar-item="Department" title="Departments">
+ <span class="material-symbols-outlined" style="font-size: 18px;">corporate_fare</span>
+ <span class="sidebar__item-label">Departments</span>
+ </a>
+ <a href="./forecast.html" class="sidebar__item" data-sidebar-item="Forecast" title="Forecast">
+ <span class="material-symbols-outlined" style="font-size: 18px;">monitoring</span>
+ <span class="sidebar__item-label">Forecast Engine</span>
+ </a>
+
+ <div class="sidebar__group-label text-caption text-muted sidebar__brand-text" style="margin: var(--space-4) var(--space-2) var(--space-2); font-size: 10px;">OPERATIONS</div>
+ <a href="./anomalies.html" class="sidebar__item" data-sidebar-item="Anomaly" title="Anomalies">
+ <span class="material-symbols-outlined" style="font-size: 18px;">warning</span>
+ <span class="sidebar__item-label">Anomalies</span>
+ </a>
+ <a href="./workflow.html" class="sidebar__item" data-sidebar-item="Workflow" title="Workflow">
+ <span class="material-symbols-outlined" style="font-size: 18px;">task_alt</span>
+ <span class="sidebar__item-label flex items-center justify-between" style="width: 100%;">
+ Workflow
+ <span class="badge badge--warning" style="display: none;" id="workflow-badge">0</span>
+ </span>
+ </a>
+ <a href="./reports.html" class="sidebar__item" data-sidebar-item="Reports" title="Reports">
+ <span class="material-symbols-outlined" style="font-size: 18px;">description</span>
+ <span class="sidebar__item-label">Reports</span>
+ </a>
+
+ <div class="sidebar__group-label text-caption text-muted sidebar__brand-text" style="margin: var(--space-4) var(--space-2) var(--space-2); font-size: 10px;">DATA</div>
+ <a href="./datasets.html" class="sidebar__item" data-sidebar-item="Upload" title="Datasets">
+ <span class="material-symbols-outlined" style="font-size: 18px;">database</span>
+ <span class="sidebar__item-label">Datasets</span>
+ </a>
+ 
+ <div class="sidebar__group-label text-caption text-muted sidebar__brand-text" style="margin: var(--space-4) var(--space-2) var(--space-2); font-size: 10px;">SYSTEM</div>
+ <a href="./admin-users.html" class="sidebar__item" data-sidebar-item="Users" title="Users">
+ <span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+ <span class="sidebar__item-label">Users</span>
+ </a>
+ <a href="./settings.html" class="sidebar__item" data-sidebar-item="Settings" title="Settings">
+ <span class="material-symbols-outlined" style="font-size: 18px;">settings</span>
+ <span class="sidebar__item-label">Settings</span>
+ </a>
+ </nav>
+ 
+ <div style="padding: var(--space-4); border-top: 1px solid var(--border-subtle);">
+ <div class="sidebar__brand-text" style="margin-bottom: var(--space-3);">
+ <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">
+ <span>Storage</span>
+ <span>45GB / 100GB</span>
+ </div>
+ <div style="width: 100%; height: 4px; background: var(--bg-surface); border-radius: 2px; overflow: hidden;">
+ <div style="width: 45%; height: 100%; background: var(--accent-primary);"></div>
+ </div>
+ </div>
+ 
+ <button class="btn btn--ghost" id="theme-toggle" style="width: 100%; justify-content: flex-start; padding: var(--space-2); margin-bottom: var(--space-2);" aria-label="Toggle theme">
+ <span class="material-symbols-outlined" style="font-size: 18px;" id="theme-icon">dark_mode</span>
+ <span class="sidebar__brand-text sidebar__item-label" style="font-size: 12px; margin-left: var(--space-2);">Toggle Theme</span>
+ </button>
+ 
+ <div class="p-3 bg-slate-100 rounded-xl mb-3">
+ <div class="flex items-center justify-between text-[10px] mb-1 text-slate-500">
+ <span>Organization</span>
+ <span class="px-1.5 py-0.5 bg-primary/10 text-primary rounded font-bold">ENTERPRISE</span>
+ </div>
+ <p class="font-bold text-xs text-slate-900 ">Acme Corporation</p>
+ </div>
+
+ <div class="flex items-center gap-3 p-2 mb-2">
+ <div style="width: 32px; height: 32px; border-radius: var(--radius-full); background: var(--accent-primary-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--accent-primary); font-weight: 600; font-size: 14px;" id="user-initials">
+ A
+ </div>
+ <div class="sidebar__brand-text" style="margin-left: var(--space-2); display: flex; flex-direction: column; overflow: hidden; flex: 1;">
+ <span class="text-body-sm font-bold text-slate-900 " style="font-size: 12px;" id="user-display-name">Admin</span>
+ <span class="text-caption text-secondary" style="font-size: 10px;" id="user-role">Administrator</span>
+ </div>
+ </div>
+
+ <div class="flex justify-between gap-1 text-[11px] font-semibold">
+ <a href="profile.html" style="flex: 1; text-align: center; padding: 6px; background: var(--bg-surface); border-radius: var(--radius-md); color: var(--text-primary); text-decoration: none;">Profile</a>
+ <a href="settings.html" style="flex: 1; text-align: center; padding: 6px; background: var(--bg-surface); border-radius: var(--radius-md); color: var(--text-primary); text-decoration: none;">Settings</a>
+ <button onclick="window.auth.logout()" style="flex: 1; text-align: center; padding: 6px; background: rgba(239, 68, 68, 0.1); border: none; border-radius: var(--radius-md); color: var(--danger); cursor: pointer;">Logout</button>
+ </div>
+ </div>
+</aside>
+
+<!-- Top Navbar -->
+<header style="height: 56px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-canvas); position: fixed; top: 0; right: 0; left: 240px; z-index: 40; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-5); transition: left var(--duration-base) var(--ease-standard);" id="navbar">
+ <div style="display: flex; align-items: center; gap: var(--space-4); flex: 1;">
+ <button class="btn btn--ghost btn--sm" id="sidebar-toggle" aria-label="Toggle sidebar" style="padding: var(--space-1);">
+ <span class="material-symbols-outlined" style="font-size: 20px;">menu_open</span>
+ </button>
+ 
+ <!-- Breadcrumbs / Title Context -->
+ <div style="display: flex; align-items: center; gap: var(--space-2); color: var(--text-secondary); font-size: 13px;">
+ <span class="material-symbols-outlined" style="font-size: 16px;">domain</span>
+ <span>Acme Corp</span>
+ <span class="material-symbols-outlined" style="font-size: 14px;">chevron_right</span>
+ <strong id="page-title-context" style="color: var(--text-primary);">Dashboard</strong>
+ </div>
+ </div>
+ 
+ <div style="display: flex; align-items: center; gap: var(--space-3);">
+ <div style="position: relative; max-width: 300px; width: 100%;">
+ <span class="material-symbols-outlined" style="position: absolute; left: var(--space-2); top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 16px;">search</span>
+ <input type="text" class="input" ="Search data (Cmd+K)" style="padding-left: var(--space-5); height: 32px; font-size: 12px; background: var(--bg-surface);">
+ </div>
+ 
+ <div style="position: relative;">
+ <button class="btn btn--ghost btn--sm" aria-label="Notifications" id="notifications-trigger" style="padding: var(--space-1);">
+ <span class="material-symbols-outlined" style="font-size: 20px;">notifications</span>
+ </button>
+ <div id="notifications-badge" style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--danger); border-radius: var(--radius-full); display: none;"></div>
+ </div>
+ </div>
+</header>
+
+<style>
+ /* Extra styles for sidebar responsiveness */
+ .sidebar {
+ width: 240px;
+ background: var(--bg-canvas);
+ }
+ .sidebar--collapsed {
+ width: 64px;
+ }
+ .sidebar--collapsed .sidebar__brand-text {
+ display: none;
+ }
+ .sidebar__item {
+ border-radius: var(--radius-md);
+ margin-bottom: var(--space-1);
+ padding: var(--space-2) var(--space-3);
+ }
+ .sidebar__item--active {
+ background: var(--bg-surface);
+ color: var(--text-primary);
+ border-left: none;
+ font-weight: 500;
+ }
+ .sidebar__item--active .material-symbols-outlined {
+ color: var(--accent-primary);
+ }
+</style>
+
+<script type="module">
+ import { applyRoleGating } from '../js/roles.js';
+ import { getCurrentUser } from '../js/auth.js';
+ import { api } from '../js/api.js';
+
+ document.addEventListener('DOMContentLoaded', () => {
+ applyRoleGating();
+ 
+ const user = getCurrentUser();
+ if (user) {
+ const name = user.displayName || user.username || 'User';
+ document.getElementById('user-display-name').textContent = name;
+ document.getElementById('user-role').textContent = user.role || 'Guest';
+ document.getElementById('user-initials').textContent = name.charAt(0).toUpperCase();
+ }
+ 
+ // Highlight active sidebar item and set context
+ const currentPath = window.location.pathname.split('/').pop() || 'dashboard.html';
+ document.querySelectorAll('.sidebar__item').forEach(item => {
+ const href = item.getAttribute('href');
+ if (href && (href === `./${currentPath}` || href === `/${currentPath}`)) {
+ item.classList.add('sidebar__item--active');
+ const label = item.getAttribute('data-sidebar-item');
+ if(label) document.getElementById('page-title-context').textContent = label;
+ }
+ });
+ 
+ // Sidebar toggle logic
+ const sidebar = document.getElementById('sidebar');
+ const navbar = document.getElementById('navbar');
+ const mainContent = document.getElementById('main-content');
+ const toggleBtn = document.getElementById('sidebar-toggle');
+ const toggleIcon = toggleBtn.querySelector('.material-symbols-outlined');
+ 
+ const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+ if (isCollapsed) {
+ sidebar.classList.add('sidebar--collapsed');
+ navbar.style.left = '64px';
+ if(mainContent) mainContent.style.marginLeft = '64px';
+ toggleIcon.textContent = 'menu';
+ }
+ 
+ toggleBtn.addEventListener('click', () => {
+ sidebar.classList.toggle('sidebar--collapsed');
+ const collapsed = sidebar.classList.contains('sidebar--collapsed');
+ localStorage.setItem('sidebar_collapsed', collapsed);
+ 
+ if (collapsed) {
+ navbar.style.left = '64px';
+ if(mainContent) mainContent.style.marginLeft = '64px';
+ toggleIcon.textContent = 'menu';
+ } else {
+ navbar.style.left = '240px';
+ if(mainContent) mainContent.style.marginLeft = '240px';
+ toggleIcon.textContent = 'menu_open';
+ }
+ });
+ 
+ // Theme toggle
+ const themeToggleBtn = document.getElementById('theme-toggle');
+ const themeIcon = document.getElementById('theme-icon');
+ 
+ const updateThemeIcon = () => {
+ const current = document.documentElement.getAttribute('data-theme');
+ themeIcon.textContent = current === 'dark' ? 'light_mode' : 'dark_mode';
+ };
+ updateThemeIcon(); // init
+ 
+ themeToggleBtn.addEventListener('click', () => {
+ if (window.toggleTheme) {
+ window.toggleTheme();
+ updateThemeIcon();
+ }
+ });
+ 
+ // Notifications polling
+ const pollNotifications = async () => {
+ try {
+ const res = await api.get(api.endpoints.notifications);
+ if (res && res.unread_count > 0) {
+ document.getElementById('notifications-badge').style.display = 'block';
+ } else {
+ document.getElementById('notifications-badge').style.display = 'none';
+ }
+ } catch (e) {
+ // fail silently for polling
+ }
+ };
+ 
+ pollNotifications();
+ setInterval(pollNotifications, 10000);
+ });
+</script>

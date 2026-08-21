@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -10,7 +11,9 @@ from sqlalchemy.orm import Session
 from config import settings
 from database import get_db
 from models.user import User
-from schemas.auth_schemas import UserCreate, UserResponse
+from schemas.auth_schemas import UserCreate, UserResponse, LoginRequest
+from core.security import get_current_user
+from models.audit_log import AuditLog
 
 auth_logger = logging.getLogger(__name__)
 
@@ -57,7 +60,8 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(user: UserCreate, db: Session = Depends(get_db)):
+def login(user: LoginRequest, response: Response, db: Session = Depends(get_db)):
+    """Authenticate with username + password. Returns JWT access and refresh tokens."""
     db_user = db.query(User).filter(User.username == user.username).first()
     if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
         raise HTTPException(
@@ -65,29 +69,47 @@ def login(user: UserCreate, db: Session = Depends(get_db)):
         )
 
     db_user.last_login = datetime.utcnow()
+
+    # Log the login action
+    audit = AuditLog(
+        user_id=db_user.id,
+        action_type="LOGIN",
+        resource_type="Session",
+        description="User logged in via UI"
+    )
+    db.add(audit)
     db.commit()
 
     access_token = create_access_token(
         data={"sub": db_user.username, "role": db_user.role}
     )
     refresh_token = create_refresh_token(data={"sub": db_user.username})
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        samesite="lax",
+        secure=True,  # assumes HTTPS
+    )
+
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "token_type": "bearer",
         "role": db_user.role,
     }
 
 
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str
-
-
 @router.post("/refresh")
-def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
+def refresh_token(
+    response: Response, refresh_token: str = Cookie(None), db: Session = Depends(get_db)
+):
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
     try:
         payload = jwt.decode(
-            request.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         username = payload.get("sub")
         if username is None:
@@ -102,9 +124,17 @@ def refresh_token(request: RefreshTokenRequest, db: Session = Depends(get_db)):
     new_access = create_access_token(data={"sub": user.username, "role": user.role})
     new_refresh = create_refresh_token(data={"sub": user.username})
 
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh,
+        httponly=True,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        samesite="lax",
+        secure=True,
+    )
+
     return {
         "access_token": new_access,
-        "refresh_token": new_refresh,
         "token_type": "bearer",
     }
 
@@ -143,3 +173,75 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         return {"message": "Email verified successfully."}
     except JWTError:
         raise HTTPException(status_code=400, detail="Invalid token")
+
+
+class ProfileUpdateRequest(BaseModel):
+    email: str | None = None
+    username: str | None = None
+    password: str | None = None
+    preferences: Optional[dict] = None
+
+
+@router.get("/me")
+def get_me(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "role": current_user.role,
+        "is_active": current_user.is_active,
+        "created_at": current_user.created_at,
+        "last_login": current_user.last_login,
+        "preferences": current_user.preferences,
+    }
+
+
+@router.put("/me")
+def update_me(
+    req: ProfileUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if req.email:
+        current_user.email = req.email
+    if req.username:
+        # Check if already exists
+        exist = db.query(User).filter(User.username == req.username).first()
+        if exist and exist.id != current_user.id:
+            raise HTTPException(status_code=400, detail="Username already taken")
+        current_user.username = req.username
+    if req.password:
+        current_user.hashed_password = pwd_context.hash(req.password)
+    if req.preferences is not None:
+        current_user.preferences = req.preferences
+
+    db.commit()
+    db.refresh(current_user)
+    return {"message": "Profile updated successfully"}
+
+
+@router.get("/audit-logs")
+def get_my_audit_logs(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    logs = (
+        db.query(AuditLog)
+        .filter(AuditLog.user_id == current_user.id)
+        .order_by(AuditLog.timestamp.desc())
+        .limit(100)
+        .all()
+    )
+    return [
+        {
+            "id": log.id,
+            "action_type": log.action_type,
+            "resource_type": log.resource_type,
+            "resource_id": log.resource_id,
+            "description": log.description,
+            "ip_address": log.ip_address,
+            "user_agent": log.user_agent,
+            "timestamp": log.timestamp,
+            "metadata": log.metadata_json,
+        }
+        for log in logs
+    ]

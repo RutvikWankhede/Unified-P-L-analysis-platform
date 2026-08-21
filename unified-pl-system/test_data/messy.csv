@@ -1,0 +1,8 @@
+Date,  Amount , Department  ,   Line Item  , Currency
+  01-13-2024,  " $1,000.50 " ,Sales,  Marketing Campaign, USD
+,  2500,  IT,  Server Hosting  , 
+14/02/2024 , 500, HR, , EUR
+  2024.03.15, "€ 2,000,00", Finance, Audit Fees, EUR
+Invalid Date, 50, Sales, Travel, 
+04-05-2024, -1500, IT, Software License, USD
+05-06-2024, , Marketing, Ads, USD

@@ -12,4 +12,6 @@ class SchemaMappingHistory(Base):
     original_column = Column(String(100), nullable=False)
     mapped_column = Column(String(100), nullable=False)
     confidence = Column(Integer, default=100)
+    sample_values = Column(String(500), nullable=True)  # new column
+    currency_context = Column(String(10), nullable=True) # new column
     created_at = Column(DateTime, default=func.now())

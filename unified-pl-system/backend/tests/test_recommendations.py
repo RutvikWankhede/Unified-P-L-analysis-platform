@@ -13,7 +13,9 @@ def test_recommendations_endpoints(client):
     upload_id = response.json()["upload_id"]
 
     # Detect anomaly
-    res = client.post(f"/api/v1/anomalies/detect?upload_id={upload_id}", headers=headers)
+    res = client.post(
+        f"/api/v1/anomalies/detect?upload_id={upload_id}", headers=headers
+    )
     assert res.status_code == 201
 
     # Fetch anomalies to find an ID
@@ -22,7 +24,9 @@ def test_recommendations_endpoints(client):
     if anomalies:
         anomaly_id = anomalies[0]["id"]
         # Generate recommendations
-        res = client.post(f"/api/v1/recommendations/generate/{anomaly_id}", headers=headers)
+        res = client.post(
+            f"/api/v1/recommendations/generate/{anomaly_id}", headers=headers
+        )
         assert res.status_code in [200, 201]
 
         # Get recommendations
