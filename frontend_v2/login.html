@@ -101,7 +101,7 @@
  <div>
  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2" for="emailField">Username</label>
  <input type="text" id="emailField" name="username" required
- ="admin"
+ value="admin" placeholder="admin"
  autocomplete="username"
  class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
  </div>
@@ -114,7 +114,7 @@
  </div>
  <div class="relative">
  <input type="password" id="passwordField" name="password" required
- ="••••••••"
+ value="admin123" placeholder="••••••••"
  autocomplete="current-password"
  class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
  <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -204,7 +204,7 @@
  // Use replace() so back button won't return to login
  const urlParams = new URLSearchParams(window.location.search);
  const returnTo = urlParams.get('return_to');
- window.location.replace(returnTo ? decodeURIComponent(returnTo) : 'pl_dashboard.html');
+ window.location.replace(returnTo ? decodeURIComponent(returnTo) : 'dashboard.html');
  } else {
  throw { message: 'No access token in response' };
  }

@@ -1,753 +1,528 @@
-<!-- Unified P&L Dashboard -->
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Unified P&amp;L - AI Governance System</title>
-<!-- Tailwind CSS v3 CDN with plugins -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google Fonts: Inter -->
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-<!-- Material Symbols for Icons -->
-<link
-href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-primary: '#5b5ceb',
-'primary-container': '#e5e6ff',
-'on-primary-container': '#1a1a4b',
-surface: '#f8f9fd',
-'surface-container-lowest': '#ffffff',
-'surface-container-low': '#f2f3f7',
-'on-surface': '#1a1c1e',
-'on-surface-variant': '#44474e',
-'outline-variant': '#c4c6d0',
-success: '#10b981',
-danger: '#ef4444',
-warning: '#f59e0b',
-},
-fontFamily: {
-sans: ['Inter', 'sans-serif'],
-},
-borderRadius: {
-'card': '20px',
-}
-}
-}
-}
-</script>
-<style data-purpose="custom-layout">
-body {
-background-color: #FAFBFF;
-font-family: 'Inter', sans-serif;
-}
-.custom-scrollbar::-webkit-scrollbar {
-width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-background: #e2e8f0;
-border-radius: 10px;
-}
-.glass-effect {
-background: rgba(255, 255, 255, 0.8);
-backdrop-filter: blur(12px);
-}
-.sidebar-active {
-background-color: #e5e6ff;
-color: #5b5ceb;
-font-weight: 600;
-}
-/* Circular Progress Bar Styles */
-.progress-ring-circle {
-transition: stroke-dashoffset 0.35s;
-transform: rotate(-90deg);
-transform-origin: 50% 50%;
-}
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Executive Dashboard - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .dash-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .dash-kpi {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 12px;
+      padding: 12px 14px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sparkline-canvas {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 75px;
+      height: 38px;
+      pointer-events: none;
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body class="text-on-surface">
-<!-- Synchronous auth guard: prevents flash of unauthenticated content -->
-<script>
-(function() {
- var token = sessionStorage.getItem('pl_access_token') || localStorage.getItem('pl_access_token');
- if (!token) { window.location.replace('login.html'); }
-})();
-</script>
-<!-- Sidebar injected by shell.js -->
-<div id="sidebar-container"></div>
-<!-- BEGIN: Main Content Area -->
-<main class="ml-[240px] min-h-screen pb-16">
-<!-- BEGIN: Top Bar -->
-<header class="h-16 glass-effect border-b border-outline-variant/20 flex items-center justify-between px-8 sticky top-0 z-40" data-purpose="top-nav-bar">
-<div class="flex items-center gap-2">
-<span class="text-on-surface-variant text-sm">Home</span>
-<span class="material-symbols-outlined text-sm text-on-surface-variant">chevron_right</span>
-<span class="font-semibold text-sm">Dashboard</span>
-</div>
-<div class="flex-1 max-w-xl px-12">
-<div class="relative group">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all" ="Search anything..." type="text">
-</div>
-</div>
-<div class="flex items-center gap-4">
-<button class="relative p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
-<span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-white"></span>
-</button>
-<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
-<span class="material-symbols-outlined">help</span>
-</button>
-<div class="flex items-center gap-3 ml-2">
-<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">RW</div>
-<button class="bg-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-opacity-90 transition-all">
-<span class="material-symbols-outlined text-sm">add</span> Quick Action
-<span class="material-symbols-outlined text-sm border-l border-white/20 pl-1">keyboard_arrow_down</span>
-</button>
-</div>
-</div>
-</header>
-<!-- END: Top Bar -->
-<!-- BEGIN: Page Header -->
-<section class="p-8 pb-0">
-<div class="flex justify-between items-end mb-8">
-<div>
-<h2 class="text-2xl font-bold mb-1">Good morning, Rutvik!   </h2>
-<p class="text-on-surface-variant">Here's what's happening with your business today.</p>
-</div>
-<div class="flex items-center gap-4">
-<div class="bg-white border border-outline-variant/30 rounded-lg px-4 py-2 flex items-center gap-3 text-sm font-medium shadow-sm">
-<span class="material-symbols-outlined text-on-surface-variant">calendar_today</span>
-<span class="">May 13 â May 19, 2025</span>
-<span class="material-symbols-outlined text-on-surface-variant">keyboard_arrow_down</span>
-</div>
-</div>
-</div>
-</section>
-<!-- END: Page Header -->
-<div class="px-8 space-y-8">
-<!-- BEGIN: Hero KPI Row -->
-<section class="grid grid-cols-12 gap-6 items-stretch">
-<!-- Financial Health Score Card -->
-<div class="col-span-4 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20 flex items-center justify-between">
-<div class="space-y-4">
-<h3 class="text-on-surface-variant font-medium text-sm">Financial Health Score</h3>
-<div>
-<p class="text-5xl font-bold" id="kpi-health-score">96 <span class="text-2xl text-on-surface-variant font-normal">/100</span></p>
-<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success mt-2">
-Excellent
-</div>
-</div>
-<div class="flex items-center gap-1 text-success text-xs">
-<span class="material-symbols-outlined text-sm">arrow_upward</span>
-<span class="">8 pts vs last month</span>
-</div>
-</div>
-<div class="relative w-32 h-32">
-<svg class="w-full h-full" viewBox="0 0 100 100">
-<circle class="text-surface-container-low stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
-<circle class="text-success stroke-current progress-ring-circle" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="10" stroke-linecap="round" stroke-width="8"></circle>
-</svg>
-<div class="absolute inset-0 flex items-center justify-center">
-<span class="material-symbols-outlined text-success text-3xl">favorite</span>
-</div>
-</div>
-</div>
-<!-- 4 Small KPI Cards -->
-<div class="col-span-8 grid grid-cols-4 gap-6">
-<!-- Total Revenue -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">payments</span>
-</div>
-</div>
-<p class="text-on-surface-variant text-xs font-medium mb-1">Total Revenue</p>
-<p class="text-xl font-bold mb-3" id="kpi-total-revenue">â¹5.32 Cr</p>
-<div class="flex items-center gap-1 text-success text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_upward</span>
-<span class="">12.8% <span class="text-on-surface-variant font-normal">vs last month</span></span>
-</div>
-</div>
-<!-- Total Expense -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-danger/10 text-danger rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">shopping_cart</span>
-</div>
-</div>
-<p class="text-on-surface-variant text-xs font-medium mb-1">Total Expense</p>
-<p class="text-xl font-bold mb-3" id="kpi-total-expense">â¹3.11 Cr</p>
-<div class="flex items-center gap-1 text-danger text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_downward</span>
-<span class="">8.3% <span class="text-on-surface-variant font-normal">vs last month</span></span>
-</div>
-</div>
-<!-- Net Profit -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-success/10 text-success rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">trending_up</span>
-</div>
-</div>
-<p class="text-on-surface-variant text-xs font-medium mb-1">Net Profit</p>
-<p class="text-xl font-bold mb-3" id="kpi-net-profit">â¹2.21 Cr</p>
-<div class="flex items-center gap-1 text-success text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_upward</span>
-<span class="">18.7% <span class="text-on-surface-variant font-normal">vs last month</span></span>
-</div>
-</div>
-<!-- Forecasted Profit -->
-<div class="bg-white rounded-card shadow-sm border border-outline-variant/20 p-6">
-<div class="flex items-center justify-between mb-4">
-<div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-<span class="material-symbols-outlined">auto_graph</span>
-</div>
-<span class="material-symbols-outlined text-on-surface-variant text-sm">info</span>
-</div>
-<p class="text-on-surface-variant text-xs font-medium mb-1">Forecasted Profit</p>
-<p class="text-xl font-bold mb-3" id="kpi-forecasted-profit">â¹2.46 Cr</p>
-<div class="flex items-center gap-1 text-success text-xs font-medium">
-<span class="material-symbols-outlined text-sm">arrow_upward</span>
-<span class="">11.2% <span class="text-on-surface-variant font-normal">vs current month</span></span>
-</div>
-</div>
-</div>
-</section>
-<!-- END: Hero KPI Row -->
-<!-- BEGIN: Middle Row -->
-<section class="grid grid-cols-12 gap-6 items-stretch">
-<!-- Chart Section -->
-<div class="col-span-6 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20">
-<div class="flex items-center justify-between mb-8">
-<div class="flex items-center gap-2">
-<h3 class="font-bold text-base">Revenue vs Expense vs Profit</h3>
-<span class="material-symbols-outlined text-on-surface-variant text-sm">info</span>
-</div>
-<div class="flex items-center gap-3">
-<div class="flex items-center gap-4 mr-4">
-<div class="flex items-center gap-2">
-<div class="w-3 h-3 rounded-full bg-primary"></div>
-<span class="text-xs text-on-surface-variant">Revenue</span>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-3 h-3 rounded-full bg-danger"></div>
-<span class="text-xs text-on-surface-variant">Expense</span>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-3 h-3 rounded-full bg-success"></div>
-<span class="text-xs text-on-surface-variant">Profit</span>
-</div>
-</div>
-<div class="bg-surface-container-low px-3 py-1 rounded text-xs font-medium flex items-center gap-1 cursor-pointer">
-This Week <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
-</div>
-<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">more_vert</span>
-</div>
-</div>
-<div class="h-64 w-full relative">
-<canvas data-purpose="revenue-expense-chart" id="chart-revenue-expense" width="407" height="256"></canvas>
-<!-- Overlay for Y-Axis labels (simulated) -->
-<div class="absolute inset-0 flex flex-col justify-between text-[10px] text-on-surface-variant pb-8">
-<span class="">8Cr</span>
-<span class="">6Cr</span>
-<span class="">4Cr</span>
-<span class="">2Cr</span>
-<span class="">0</span>
-</div>
-</div>
-<div class="flex justify-between mt-4 text-[10px] text-on-surface-variant px-12">
-<span class="">13 May</span><span class="">14 May</span><span class="">15 May</span><span class="">16 May</span><span class="">17 May</span><span class="">18 May</span><span class="">19 May</span>
-</div>
-</div>
-<!-- AI Insights -->
-<div class="col-span-3 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20 flex flex-col">
-<div class="flex items-center gap-2 mb-6">
-<span class="material-symbols-outlined text-primary">auto_awesome</span>
-<h3 class="font-bold text-base">AI Insights</h3>
-</div>
-<div class="space-y-4 flex-1" id="ai-insights-container">
-<div data-row-template="true" class="p-3 bg-surface-container-low rounded-xl flex gap-3">
-<div class="w-8 h-8 rounded-lg bg-success/10 text-success flex-shrink-0 flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">check_circle</span>
-</div>
-<p class="text-xs text-on-surface-variant leading-relaxed">
-<span class="font-bold text-on-surface">Revenue increased by 12.8%</span> compared to previous month.
-</p>
-</div>
-<div class="p-3 bg-surface-container-low rounded-xl flex gap-3">
-<div class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex-shrink-0 flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">monetization_on</span>
-</div>
-<p class="text-xs text-on-surface-variant leading-relaxed">
-<span class="font-bold text-on-surface">Marketing Expense increased by 18%</span> in this week.
-</p>
-</div>
-<div class="p-3 bg-surface-container-low rounded-xl flex gap-3">
-<div class="w-8 h-8 rounded-lg bg-warning/10 text-warning flex-shrink-0 flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">warning</span>
-</div>
-<p class="text-xs text-on-surface-variant leading-relaxed">
-<span class="font-bold text-on-surface">3 Anomalies</span> detected that require your attention.
-</p>
-</div>
-<div class="p-3 bg-surface-container-low rounded-xl flex gap-3">
-<div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">lightbulb</span>
-</div>
-<p class="text-xs text-on-surface-variant leading-relaxed">
-<span class="font-bold text-on-surface">AI Recommendation</span> generated to optimize costs.
-</p>
-</div>
-</div>
-<button class="w-full text-center text-primary text-xs font-semibold py-3 border-t border-outline-variant/20 mt-4 flex items-center justify-center gap-1 hover:underline">
-View All Insights <span class="material-symbols-outlined text-sm">arrow_forward</span>
-</button>
-</div>
-<!-- Anomaly Overview -->
-<div class="col-span-3 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20 flex flex-col">
-<div class="flex items-center justify-between mb-6">
-<h3 class="font-bold text-base">Anomaly Overview</h3>
-<a class="text-primary text-xs font-semibold flex items-center gap-1" href="#">View All <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
-</div>
-<div class="flex items-center justify-between mb-8">
-<div class="relative w-28 h-28">
-<svg class="w-full h-full" viewBox="0 0 36 36">
-<path class="text-danger" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="10, 100" stroke-width="4"></path>
-<path class="text-warning" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="25, 100" stroke-dashoffset="-10" stroke-width="4"></path>
-<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="40, 100" stroke-dashoffset="-35" stroke-width="4"></path>
-<path class="text-blue-300" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="25, 100" stroke-dashoffset="-75" stroke-width="4"></path>
-</svg>
-<div class="absolute inset-0 flex flex-col items-center justify-center">
-<span class="text-2xl font-bold">8</span>
-<span class="text-[10px] text-on-surface-variant uppercase">Total</span>
-</div>
-</div>
-<div class="flex-1 pl-6 space-y-2" id="anomaly-overview-container">
-<div class="flex items-center justify-between text-xs">
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 rounded-full bg-danger"></div>
-<span class="text-on-surface-variant">Critical</span>
-</div>
-<span class="font-bold">2</span>
-</div>
-<div class="flex items-center justify-between text-xs">
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 rounded-full bg-warning"></div>
-<span class="text-on-surface-variant">High</span>
-</div>
-<span class="font-bold">3</span>
-</div>
-<div class="flex items-center justify-between text-xs">
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 rounded-full bg-primary"></div>
-<span class="text-on-surface-variant">Medium</span>
-</div>
-<span class="font-bold">2</span>
-</div>
-<div class="flex items-center justify-between text-xs">
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 rounded-full bg-blue-300"></div>
-<span class="text-on-surface-variant">Low</span>
-</div>
-<span class="font-bold">1</span>
-</div>
-</div>
-</div>
-<div class="mt-auto p-4 bg-surface-container-low rounded-xl">
-<div class="flex items-center justify-between mb-2">
-<span class="text-xs font-bold">Top Anomaly</span>
-<span class="px-1.5 py-0.5 rounded bg-danger/10 text-danger text-[10px] font-bold">High</span>
-</div>
-<p class="text-[11px] font-semibold mb-1">Marketing Expense Spike</p>
-<div class="flex items-center justify-between">
-<p class="text-[10px] text-on-surface-variant">18% higher than usual pattern</p>
-<button class="text-primary text-[10px] font-bold flex items-center gap-1">Investigate <span class="material-symbols-outlined text-[10px]">arrow_forward</span></button>
-</div>
-</div>
-</div>
-</section>
-<!-- END: Middle Row -->
-<!-- BEGIN: Cash Flow & Budget Row -->
-<section class="grid grid-cols-12 gap-6 items-stretch">
-<!-- Cash Flow Trend -->
-<div class="col-span-6 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20">
-<div class="flex items-center justify-between mb-4">
-<div>
-<h3 class="font-bold text-base text-on-surface">Cash Flow Trend</h3>
-<p class="text-xs text-on-surface-variant" id="cf-subtitle">Actual / Estimated Cash Flow</p>
-</div>
-<div class="flex items-center gap-3">
-<select id="ctrl-cf-agg" class="bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-1 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
-<option value="monthly">Monthly</option>
-<option value="quarterly">Quarterly</option>
-<option value="yearly">Yearly</option>
-</select>
-</div>
-</div>
-<div class="h-64 w-full relative" id="chart-cash-flow-container">
-<div id="chart-cash-flow" style="width: 100%; height: 256px;"></div>
-</div>
-</div>
-<!-- Budget vs Actual -->
-<div class="col-span-6 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20">
-<div class="flex items-center justify-between mb-4">
-<div>
-<h3 class="font-bold text-base text-on-surface">Budget vs Actual</h3>
-<p class="text-xs text-on-surface-variant" id="budget-ai-summary">Variance analysis & cost control</p>
-</div>
-<div class="flex items-center gap-3">
-<select id="ctrl-bdg-agg" class="bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-1 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
-<option value="monthly">Monthly</option>
-<option value="quarterly">Quarterly</option>
-<option value="yearly">Yearly</option>
-</select>
-<button id="btn-set-budget" class="bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-opacity-90 transition-all shadow-sm">
-<span class="material-symbols-outlined text-sm">edit_square</span> Set Budget
-</button>
-</div>
-</div>
-<div class="h-64 w-full relative" id="chart-budget-container">
-<div id="chart-budget-actual" style="width: 100%; height: 256px;"></div>
-</div>
-</div>
-</section>
-<!-- END: Cash Flow & Budget Row -->
-<!-- BEGIN: Bottom Row -->
-<section class="grid grid-cols-12 gap-6 pb-8 items-stretch">
-<!-- Department Performance -->
-<div class="col-span-5 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20">
-<div class="flex items-center justify-between mb-6">
-<div class="flex items-center gap-2">
-<h3 class="font-bold text-base">Department Performance</h3>
-<span class="material-symbols-outlined text-on-surface-variant text-sm">info</span>
-</div>
-<a class="text-primary text-xs font-semibold flex items-center gap-1" href="departments.html">View All Departments <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
-</div>
-<table class="w-full text-xs">
-<thead>
-<tr class="text-on-surface-variant border-b border-outline-variant/20">
-<th class="text-left py-3 font-medium">Department</th>
-<th class="text-left py-3 font-medium">Revenue (â¹)</th>
-<th class="text-left py-3 font-medium">Expense (â¹)</th>
-<th class="text-left py-3 font-medium">Profit (â¹)</th>
-<th class="text-left py-3 font-medium">Margin</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-outline-variant/10" id="dept-table-body">
-<tr data-row-template="true">
-<td class="py-4">
-<div class="flex items-center gap-3">
-<div class="w-6 h-6 rounded bg-primary/10 text-primary flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">account_balance</span>
-</div>
-<span class="font-semibold">Finance</span>
-</div>
-</td>
-<td class="py-4">1.52 Cr</td>
-<td class="py-4">0.78 Cr</td>
-<td class="py-4">0.74 Cr</td>
-<td class="py-4">
-<div class="flex items-center gap-2">
-<span class="">48.7%</span>
-<div class="w-12 h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-<div class="bg-success h-full" style="width: 48.7%"></div>
-</div>
-</div>
-</td>
-</tr>
-<tr>
-<td class="py-4">
-<div class="flex items-center gap-3">
-<div class="w-6 h-6 rounded bg-success/10 text-success flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">store</span>
-</div>
-<span class="font-semibold">Sales</span>
-</div>
-</td>
-<td class="py-4">1.28 Cr</td>
-<td class="py-4">0.65 Cr</td>
-<td class="py-4">0.63 Cr</td>
-<td class="py-4">
-<div class="flex items-center gap-2">
-<span class="">49.2%</span>
-<div class="w-12 h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-<div class="bg-success h-full" style="width: 49.2%"></div>
-</div>
-</div>
-</td>
-</tr>
-<tr>
-<td class="py-4">
-<div class="flex items-center gap-3">
-<div class="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">laptop</span>
-</div>
-<span class="font-semibold">IT</span>
-</div>
-</td>
-<td class="py-4">0.96 Cr</td>
-<td class="py-4">0.52 Cr</td>
-<td class="py-4">0.44 Cr</td>
-<td class="py-4">
-<div class="flex items-center gap-2">
-<span class="">45.8%</span>
-<div class="w-12 h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-<div class="bg-success h-full" style="width: 45.8%"></div>
-</div>
-</div>
-</td>
-</tr>
-<tr>
-<td class="py-4">
-<div class="flex items-center gap-3">
-<div class="w-6 h-6 rounded bg-pink-100 text-pink-600 flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">campaign</span>
-</div>
-<span class="font-semibold">Marketing</span>
-</div>
-</td>
-<td class="py-4">0.75 Cr</td>
-<td class="py-4">0.48 Cr</td>
-<td class="py-4">0.27 Cr</td>
-<td class="py-4">
-<div class="flex items-center gap-2">
-<span class="">36.0%</span>
-<div class="w-12 h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-<div class="bg-success h-full" style="width: 36%"></div>
-</div>
-</div>
-</td>
-</tr>
-<tr>
-<td class="py-4">
-<div class="flex items-center gap-3">
-<div class="w-6 h-6 rounded bg-yellow-100 text-yellow-600 flex items-center justify-center">
-<span class="material-symbols-outlined text-sm">groups</span>
-</div>
-<span class="font-semibold">HR</span>
-</div>
-</td>
-<td class="py-4">0.33 Cr</td>
-<td class="py-4">0.18 Cr</td>
-<td class="py-4">0.15 Cr</td>
-<td class="py-4">
-<div class="flex items-center gap-2">
-<span class="">45.5%</span>
-<div class="w-12 h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-<div class="bg-success h-full" style="width: 45.5%"></div>
-</div>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<!-- Recent Uploads -->
-<div class="col-span-3 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20">
-<div class="flex items-center justify-between mb-6">
-<h3 class="font-bold text-base">Recent Uploads</h3>
-<a class="text-primary text-xs font-semibold flex items-center gap-1" href="#">View All <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
-</div>
-<div class="space-y-4" id="recent-uploads-container">
-<!-- Upload Item 1 -->
-<div data-row-template="true" class="flex items-center justify-between p-3 border border-outline-variant/10 rounded-xl">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-success/10 text-success rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">table_chart</span>
-</div>
-<div>
-<p class="text-xs font-bold">P&amp;L_May_2025.csv</p>
-<p class="text-[10px] text-on-surface-variant">May 19, 2025 â¢ 2.4 MB</p>
-</div>
-</div>
-<span class="text-[10px] font-bold px-2 py-1 bg-success/10 text-success rounded uppercase tracking-tighter">Processed</span>
-</div>
-<!-- Upload Item 2 -->
-<div class="flex items-center justify-between p-3 border border-outline-variant/10 rounded-xl">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-success/10 text-success rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">table_chart</span>
-</div>
-<div>
-<p class="text-xs font-bold">Finance_Q2_2025.csv</p>
-<p class="text-[10px] text-on-surface-variant">May 18, 2025 â¢ 1.8 MB</p>
-</div>
-</div>
-<span class="text-[10px] font-bold px-2 py-1 bg-success/10 text-success rounded uppercase tracking-tighter">Processed</span>
-</div>
-<!-- Upload Item 3 -->
-<div class="flex items-center justify-between p-3 border border-outline-variant/10 rounded-xl">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-success/10 text-success rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">table_chart</span>
-</div>
-<div>
-<p class="text-xs font-bold">Departments_May.csv</p>
-<p class="text-[10px] text-on-surface-variant">May 17, 2025 â¢ 1.2 MB</p>
-</div>
-</div>
-<span class="text-[10px] font-bold px-2 py-1 bg-success/10 text-success rounded uppercase tracking-tighter">Processed</span>
-</div>
-<!-- Upload Item 4 -->
-<div class="flex items-center justify-between p-3 border border-outline-variant/10 rounded-xl">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-success/10 text-success rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">table_chart</span>
-</div>
-<div>
-<p class="text-xs font-bold">RawData_April.csv</p>
-<p class="text-[10px] text-on-surface-variant">May 16, 2025 â¢ 3.7 MB</p>
-</div>
-</div>
-<span class="text-[10px] font-bold px-2 py-1 bg-primary/10 text-primary rounded uppercase tracking-tighter">Mapped</span>
-</div>
-</div>
-</div>
-<!-- Workflow Status -->
-<div class="col-span-4 bg-white rounded-card p-6 shadow-sm border border-outline-variant/20">
-<div class="flex items-center justify-between mb-6">
-<h3 class="font-bold text-base">Workflow Status</h3>
-<a class="text-primary text-xs font-semibold flex items-center gap-1" href="#">View All <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
-</div>
-<div class="space-y-4" id="workflow-status-container">
-<!-- Workflow Item 1 -->
-<div data-row-template="true" class="group flex items-center justify-between p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer border border-transparent hover:border-outline-variant/20">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-warning/10 text-warning rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">verified_user</span>
-</div>
-<div>
-<p class="text-xs font-bold">Anomaly Approval</p>
-<p class="text-[10px] text-on-surface-variant">Pending approval from you</p>
-</div>
-</div>
-<div class="flex items-center gap-3">
-<span class="text-[10px] font-bold px-2 py-1 bg-warning/10 text-warning rounded uppercase">Pending</span>
-<span class="material-symbols-outlined text-on-surface-variant text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-</div>
-</div>
-<!-- Workflow Item 2 -->
-<div class="group flex items-center justify-between p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer border border-transparent hover:border-outline-variant/20">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-success/10 text-success rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">person_add</span>
-</div>
-<div>
-<p class="text-xs font-bold">Budget Reallocation</p>
-<p class="text-[10px] text-on-surface-variant">Approved by Finance Manager</p>
-</div>
-</div>
-<div class="flex items-center gap-3">
-<span class="text-[10px] font-bold px-2 py-1 bg-success/10 text-success rounded uppercase">Approved</span>
-<span class="material-symbols-outlined text-on-surface-variant text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-</div>
-</div>
-<!-- Workflow Item 3 -->
-<div class="group flex items-center justify-between p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer border border-transparent hover:border-outline-variant/20">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">description</span>
-</div>
-<div>
-<p class="text-xs font-bold">Report Generation</p>
-<p class="text-[10px] text-on-surface-variant">Completed successfully</p>
-</div>
-</div>
-<div class="flex items-center gap-3">
-<span class="text-[10px] font-bold px-2 py-1 bg-blue-100 text-blue-600 rounded uppercase">Completed</span>
-<span class="material-symbols-outlined text-on-surface-variant text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-</div>
-</div>
-<!-- Workflow Item 4 -->
-<div class="group flex items-center justify-between p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer border border-transparent hover:border-outline-variant/20">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined">sync</span>
-</div>
-<div>
-<p class="text-xs font-bold">GL Reconciliation</p>
-<p class="text-[10px] text-on-surface-variant">In progress by system</p>
-</div>
-</div>
-<div class="flex items-center gap-3">
-<span class="text-[10px] font-bold px-2 py-1 bg-purple-100 text-purple-600 rounded uppercase">In Progress</span>
-<span class="material-symbols-outlined text-on-surface-variant text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- END: Bottom Row -->
-</div>
-<!-- BEGIN: Footer Status Bar -->
-<footer class="fixed bottom-0 right-0 left-[280px] h-12 bg-white/90 backdrop-blur-md border-t border-outline-variant/30 px-8 flex items-center justify-between text-xs text-on-surface-variant z-40" data-purpose="footer">
-<div class="flex items-center gap-8">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">bar_chart</span>
-<span class="">Data Quality Score: <span class="text-success font-bold">98%</span></span>
-</div>
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">schedule</span>
-<span class="">Last Updated: <span class="text-on-surface font-semibold">2 mins ago</span></span>
-</div>
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">group</span>
-<span class="">Active Users: <span class="text-on-surface font-semibold">12</span></span>
-</div>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 bg-success rounded-full"></div>
-<span class="font-medium">System Status: All Systems Operational</span>
-</div>
-</footer>
-<!-- END: Footer Status Bar -->
-</main>
-<!-- END: Main Content Area -->
-<!-- BEGIN: Scripts -->
-<!-- Floating Action Button for Help/Support -->
-<div class="fixed bottom-16 right-6 z-50">
-<button class="w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95">
-<span class="material-symbols-outlined">magic_button</span>
-</button>
-</div>
-<!-- Set Budget Modal -->
-<div id="budget-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity duration-200 opacity-0">
-<div id="budget-modal-content" class="bg-white rounded-card shadow-2xl border border-outline-variant/20 w-full max-w-md p-6 transform scale-95 transition-transform duration-200">
-<div class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-3">
-<h3 class="font-bold text-lg text-on-surface">Set Department Budget</h3>
-<button id="btn-close-budget" class="text-on-surface-variant hover:text-on-surface">
-<span class="material-symbols-outlined">close</span>
-</button>
-</div>
-<form id="budget-form" class="space-y-4">
-<div>
-<label class="block text-xs font-semibold text-on-surface-variant mb-1">Department</label>
-<select id="budget-dept" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20"></select>
-</div>
-<div>
-<label class="block text-xs font-semibold text-on-surface-variant mb-1">Period Scope</label>
-<select id="budget-period" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20">
-<option value="monthly">Monthly Budget Allocation</option>
-<option value="quarterly">Quarterly Budget Allocation</option>
-<option value="yearly">Yearly Budget Allocation</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-semibold text-on-surface-variant mb-1">Monthly Budget Amount (₹)</label>
-<input type="number" id="budget-amount" min="0" step="10000" placeholder="e.g. 5000000" required class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20">
-</div>
-<div class="flex justify-end gap-3 pt-3 border-t border-outline-variant/20">
-<button type="button" id="btn-cancel-budget" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low rounded-lg">Cancel</button>
-<button type="submit" class="px-5 py-2 text-sm font-semibold bg-primary text-white hover:bg-opacity-90 rounded-lg shadow-sm">Save Budget</button>
-</div>
-</form>
-</div>
-</div>
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-<script type="module" src="js/pl_dashboard_wiring.js"></script>
-</body></html>
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] min-h-screen p-6 pb-12">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> REAL-TIME
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-0.5">Complete financial overview across all departments</p>
+      </div>
+    </header>
+
+    <!-- 7 KPI Cards Row -->
+    <section class="grid grid-cols-7 gap-3 mb-4">
+      <!-- 1. Total Revenue -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <span class="material-symbols-outlined text-base">savings</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Total Revenue</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-total-revenue">₹27.80 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +5.2%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-revenue" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 2. Total Expenses -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+            <span class="material-symbols-outlined text-base">credit_card</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Total Expenses</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-total-expenses">₹18.21 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-rose-500 font-semibold mt-1">
+            <span>↑ +3.8%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-expenses" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 3. Net Profit -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <span class="material-symbols-outlined text-base">trending_up</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Net Profit</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-net-profit">₹7.98 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +6.4%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-profit" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 4. Operating Margin -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+            <span class="material-symbols-outlined text-base">percent</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Operating Margin</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-operating-margin">28.8%</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +1.2%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-margin" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 5. Cash Flow -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <span class="material-symbols-outlined text-base">payments</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Cash Flow</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-cash-flow">₹5.42 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +4.6%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-cashflow" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 6. Forecast (QTD) -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
+            <span class="material-symbols-outlined text-base">show_chart</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Forecast (QTD)</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-forecast">₹31.25 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +8.1%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-forecast" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 7. Financial Health -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+            <span class="material-symbols-outlined text-base">favorite</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Financial Health</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-health">85/100</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +6 pts</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-health" class="sparkline-canvas"></div>
+      </div>
+    </section>
+
+    <!-- MAIN GRID -->
+    <div class="space-y-4">
+      <!-- ROW 1: Revenue vs Expenses vs Net Profit + Profitability Overview -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Left: Revenue vs Expenses vs Net Profit (~70% width) -->
+        <div class="col-span-8 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Revenue vs Expenses vs Net Profit</h3>
+            <div class="flex items-center gap-3">
+              <!-- Legend chips -->
+              <div class="flex items-center gap-2.5 text-[10px] font-medium text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3B82F6]"></span> Revenue</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#EF4444]"></span> Expenses</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#10B981]"></span> Net Profit</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-rev-dept" class="bg-white border border-slate-200 text-slate-700 text-[11px] rounded-md px-2 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="all">All Departments</option>
+                  <option value="Sales">Sales</option>
+                  <option value="IT">IT</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Operations">Operations</option>
+                </select>
+                <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="flex items-center gap-1 text-slate-400">
+                <button class="p-1 hover:text-slate-600"><span class="material-symbols-outlined text-sm">show_chart</span></button>
+                <button class="p-1 hover:text-slate-600" id="btn-refresh-rev-chart"><span class="material-symbols-outlined text-sm">refresh</span></button>
+                <button class="p-1 hover:text-slate-600"><span class="material-symbols-outlined text-sm">fullscreen</span></button>
+              </div>
+            </div>
+          </div>
+          <!-- Chart -->
+          <div id="chart-rev-exp-profit" class="w-full h-44"></div>
+        </div>
+
+        <!-- Right: Profitability Overview (~30% width) -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="font-bold text-xs text-slate-900">Profitability Overview</h3>
+            <div class="relative">
+              <select class="bg-white border border-slate-200 text-slate-700 text-[11px] rounded-md px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                <option>This Month</option>
+                <option>This Quarter</option>
+                <option>This Year</option>
+              </select>
+              <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+            </div>
+          </div>
+
+          <!-- Donut gauge -->
+          <div class="flex items-center justify-center my-auto">
+            <div id="chart-profitability-donut" class="w-40 h-32"></div>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex items-center justify-center gap-4 text-[10px] font-medium text-slate-600 pt-1 border-t border-slate-100">
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span> Profit</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#E2E8F0]"></span> Cost</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Department Performance + Expense Distribution + Insights -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Department Performance (Left ~40%) -->
+        <div class="col-span-5 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Department Performance</h3>
+            <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-md">
+              <button id="dept-perf-profit" class="px-2 py-0.5 text-[10px] font-semibold rounded bg-white text-slate-800 shadow-xs">Profit</button>
+              <button id="dept-perf-revenue" class="px-2 py-0.5 text-[10px] font-medium rounded text-slate-500 hover:text-slate-800">Revenue</button>
+            </div>
+          </div>
+          <div id="chart-dept-performance" class="w-full h-44"></div>
+        </div>
+
+        <!-- Expense Distribution (Center ~35%) -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col justify-between">
+          <h3 class="font-bold text-xs text-slate-900 mb-2">Expense Distribution</h3>
+          <div class="flex items-center justify-between h-44">
+            <div id="chart-expense-dist" class="w-36 h-full"></div>
+            <!-- Custom legend table on right -->
+            <div class="flex-1 pl-3 space-y-1 text-[10px]" id="expense-dist-legend">
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#6366F1]"></span> Salaries</span> <span class="font-semibold text-slate-700">28%</span></div>
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#3B82F6]"></span> Infrastructure</span> <span class="font-semibold text-slate-700">18%</span></div>
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#8B5CF6]"></span> Software</span> <span class="font-semibold text-slate-700">15%</span></div>
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#EC4899]"></span> Marketing</span> <span class="font-semibold text-slate-700">12%</span></div>
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#10B981]"></span> Operations</span> <span class="font-semibold text-slate-700">10%</span></div>
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#F59E0B]"></span> R&amp;D</span> <span class="font-semibold text-slate-700">8%</span></div>
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#06B6D4]"></span> Admin</span> <span class="font-semibold text-slate-700">6%</span></div>
+              <div class="flex items-center justify-between"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-xs bg-[#1E293B]"></span> Others</span> <span class="font-semibold text-slate-700">3%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights (Right ~25%) -->
+        <div class="col-span-3 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-amber-500 text-sm">lightbulb</span>
+              <h3 class="font-bold text-xs text-slate-900">Insights</h3>
+            </div>
+            <a href="reports.html" class="text-[10px] font-semibold text-indigo-600 hover:underline">View All</a>
+          </div>
+          <div class="space-y-2 flex-1 flex flex-col justify-between">
+            <!-- Row 1 -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-1.5">
+                <span class="material-symbols-outlined text-emerald-600 text-sm mt-0.5">trending_up</span>
+                <div>
+                  <p class="text-[10px] font-bold text-slate-800 leading-tight">Revenue Growth Detected</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Revenue has increased by 5.2% compared to last period.</p>
+                </div>
+              </div>
+              <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">INFO</span>
+            </div>
+            <!-- Row 2 -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-1.5">
+                <span class="material-symbols-outlined text-purple-600 text-sm mt-0.5">warning</span>
+                <div>
+                  <p class="text-[10px] font-bold text-slate-800 leading-tight">Expense Spike in Marketing</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Marketing expenses are 18% higher than usual.</p>
+                </div>
+              </div>
+              <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">INFO</span>
+            </div>
+            <!-- Row 3 -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-1.5">
+                <span class="material-symbols-outlined text-rose-500 text-sm mt-0.5">auto_awesome</span>
+                <div>
+                  <p class="text-[10px] font-bold text-slate-800 leading-tight">Q2 Forecast Available</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5">New forecast is ready based on current trends.</p>
+                </div>
+              </div>
+              <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-rose-50 text-rose-500 border border-rose-100 flex-shrink-0">NEW</span>
+            </div>
+            <!-- Row 4 -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-1.5">
+                <span class="material-symbols-outlined text-emerald-600 text-sm mt-0.5">favorite</span>
+                <div>
+                  <p class="text-[10px] font-bold text-slate-800 leading-tight">Financial Health Improving</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Overall financial health score increased by 6 points.</p>
+                </div>
+              </div>
+              <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">INFO</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Forecast vs Actual + Cash Flow Trend -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Forecast vs Actual (~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Forecast vs Actual</h3>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 text-[10px] text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3B82F6]"></span> Actual</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#8B5CF6]"></span> Forecast</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2 rounded bg-[#DDD6FE]"></span> Confidence Interval</span>
+              </div>
+              <div class="relative">
+                <select class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option>All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded">
+                <button class="px-2 py-0.5 text-[9px] font-semibold rounded bg-white text-slate-800 shadow-xs">Daily</button>
+                <button class="px-2 py-0.5 text-[9px] font-medium rounded text-slate-500 hover:text-slate-800">Weekly</button>
+              </div>
+            </div>
+          </div>
+          <div id="chart-forecast-actual" class="w-full h-40"></div>
+        </div>
+
+        <!-- Cash Flow Trend (~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Cash Flow Trend</h3>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 text-[10px] text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-[#10B981]"></span> Inflow</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-[#EF4444]"></span> Outflow</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3B82F6]"></span> Net Flow</span>
+              </div>
+              <div class="relative">
+                <select class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option>All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="relative">
+                <select class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option>Monthly</option>
+                  <option>Daily</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+            </div>
+          </div>
+          <div id="chart-cash-flow" class="w-full h-40"></div>
+        </div>
+      </div>
+
+      <!-- ROW 4: Budget vs Actual + Recommendations (AI) -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Budget vs Actual (Left ~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between min-h-[140px]">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Budget vs Actual</h3>
+            <div class="flex items-center gap-2">
+              <div class="relative">
+                <select class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option>Select Department</option>
+                  <option>Sales</option>
+                  <option>IT</option>
+                  <option>Marketing</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <button class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-semibold px-2.5 py-1 rounded border border-indigo-200 flex items-center gap-1 transition-colors">
+                <span class="material-symbols-outlined text-xs">sync</span> Load Data
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty / placeholder state matching reference screenshot -->
+          <div class="flex-1 flex flex-col items-center justify-center text-center p-4">
+            <span class="material-symbols-outlined text-slate-400 text-2xl mb-1">bar_chart</span>
+            <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wide">ANALYSIS DATA AVAILABLE</p>
+            <p class="text-[9px] text-slate-400 max-w-xs mt-0.5">Select a department and time period to view budget vs actual comparison.</p>
+          </div>
+        </div>
+
+        <!-- Recommendations (AI) (Right ~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-indigo-600 text-sm">smart_toy</span>
+              <h3 class="font-bold text-xs text-slate-900">Recommendations (AI)</h3>
+            </div>
+            <a href="reports.html" class="text-[10px] font-semibold text-indigo-600 hover:underline">View All</a>
+          </div>
+
+          <!-- 2x2 Grid -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- 1. Optimize Marketing Spend -->
+            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
+              <div class="flex items-start justify-between gap-1">
+                <div class="flex items-start gap-1.5">
+                  <span class="material-symbols-outlined text-purple-600 text-sm mt-0.5">campaign</span>
+                  <div>
+                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Optimize Marketing Spend</p>
+                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Consider reallocating 15% of marketing budget to high-performing channels.</p>
+                  </div>
+                </div>
+                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex-shrink-0">High Impact</span>
+              </div>
+            </div>
+
+            <!-- 2. Increase Investment in R&D -->
+            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
+              <div class="flex items-start justify-between gap-1">
+                <div class="flex items-start gap-1.5">
+                  <span class="material-symbols-outlined text-blue-600 text-sm mt-0.5">science</span>
+                  <div>
+                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Increase Investment in R&amp;D</p>
+                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">R&amp;D is showing strong ROI. Consider additional allocation.</p>
+                  </div>
+                </div>
+                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex-shrink-0">High Impact</span>
+              </div>
+            </div>
+
+            <!-- 3. Review Vendor Contracts -->
+            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
+              <div class="flex items-start justify-between gap-1">
+                <div class="flex items-start gap-1.5">
+                  <span class="material-symbols-outlined text-indigo-600 text-sm mt-0.5">contract</span>
+                  <div>
+                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Review Vendor Contracts</p>
+                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Potential 8-12% savings identified in software licenses.</p>
+                  </div>
+                </div>
+                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">Medium</span>
+              </div>
+            </div>
+
+            <!-- 4. Improve Collection Efficiency -->
+            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
+              <div class="flex items-start justify-between gap-1">
+                <div class="flex items-start gap-1.5">
+                  <span class="material-symbols-outlined text-amber-600 text-sm mt-0.5">account_balance_wallet</span>
+                  <div>
+                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Improve Collection Efficiency</p>
+                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Reduce outstanding receivables by 20%.</p>
+                  </div>
+                </div>
+                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">Medium</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/dashboard_wiring.js"></script>
+  <script type="module" src="js/shell.js"></script>
+</body>
+</html>

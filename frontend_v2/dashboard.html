@@ -1,281 +1,624 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-    <script>window.location.replace('pl_dashboard.html');</script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - P&L AI</title>
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/components.css">
-    
-    <!-- React and Recharts from CDN -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
-    <!-- Babel for in-browser JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-</head>
-<body>
-    <div class="sidebar" id="sidebar">
-        <div class="logo-container">
-            <span class="material-symbols-outlined" style="font-size: 28px;">analytics</span>
-            <span class="logo-text">P&L AI</span>
-        </div>
-        <a href="dashboard.html" class="nav-item active">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span class="nav-text">Dashboard</span>
-        </a>
-        <a href="upload.html" class="nav-item">
-            <span class="material-symbols-outlined">upload_file</span>
-            <span class="nav-text">Upload Data</span>
-        </a>
-        <a href="anomalies.html" class="nav-item">
-            <span class="material-symbols-outlined">warning</span>
-            <span class="nav-text">Anomalies</span>
-        </a>
-        <div style="flex-grow: 1;"></div>
-        <a href="#" class="nav-item" id="logout-btn">
-            <span class="material-symbols-outlined">logout</span>
-            <span class="nav-text">Logout</span>
-        </a>
-    </div>
-
-    <div class="main-content" id="main-content">
-        <div class="topbar">
-            <div style="display: flex; align-items: center; gap: var(--space-4);">
-                <button class="icon-btn" id="sidebar-toggle">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
-                <div style="position: relative;">
-                    <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 10px; color: var(--color-text-secondary); pointer-events: none;">search</span>
-                    <input type="text" placeholder="Search (Cmd+K)" style="background: var(--color-bg-glass); border: 1px solid var(--color-border); border-radius: var(--radius-full); padding: 8px 16px 8px 40px; color: var(--color-text-primary); width: 250px;">
-                </div>
-            </div>
-            
-            <div class="topbar-actions">
-                <button class="icon-btn" id="theme-toggle">
-                    <span class="material-symbols-outlined">light_mode</span>
-                </button>
-                <button class="icon-btn" style="position: relative;">
-                    <span class="material-symbols-outlined">notifications</span>
-                    <span style="position: absolute; top: 0; right: 0; width: 10px; height: 10px; background: var(--color-accent-red); border-radius: 50%; border: 2px solid var(--color-bg-primary);"></span>
-                </button>
-                <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
-                    AD
-                </div>
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-6);">
-            <div>
-                <h1 style="margin-bottom: var(--space-2);">Executive Summary</h1>
-                <p style="color: var(--color-text-secondary); margin: 0;">AI-driven insights across all departments.</p>
-            </div>
-            <button class="btn btn-secondary">
-                <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
-                Export Report
-            </button>
-        </div>
-        
-        <div class="kpi-row">
-            <div class="card kpi-card">
-                <div class="kpi-header">
-                    Total Revenue
-                    <span class="material-symbols-outlined" style="color: var(--color-accent-teal);">payments</span>
-                </div>
-                <div class="kpi-value" id="kpi-revenue">
-                    <div class="skeleton" style="height: 36px; width: 60%;"></div>
-                </div>
-                <div class="kpi-trend positive">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span>
-                    +12.5% vs last month
-                </div>
-            </div>
-            <div class="card kpi-card">
-                <div class="kpi-header">
-                    Active Anomalies
-                    <span class="material-symbols-outlined" style="color: var(--color-accent-amber);">warning</span>
-                </div>
-                <div class="kpi-value" id="kpi-anomalies">
-                    <div class="skeleton" style="height: 36px; width: 40%;"></div>
-                </div>
-                <div class="kpi-trend negative">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span>
-                    Needs attention
-                </div>
-            </div>
-            <div class="card kpi-card">
-                <div class="kpi-header">
-                    High Severity
-                    <span class="material-symbols-outlined" style="color: var(--color-accent-red);">error</span>
-                </div>
-                <div class="kpi-value" id="kpi-high-sev" style="color: var(--color-accent-red);">
-                    <div class="skeleton" style="height: 36px; width: 30%;"></div>
-                </div>
-                <div class="kpi-trend negative">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">arrow_drop_up</span>
-                    Immediate action required
-                </div>
-            </div>
-            <div class="card kpi-card card-gradient">
-                <div class="kpi-header" style="color: var(--color-text-primary);">
-                    Health Score
-                    <span class="material-symbols-outlined" style="color: var(--color-accent-green);">health_and_safety</span>
-                </div>
-                <div class="kpi-value" id="kpi-health" style="color: var(--color-accent-green);">
-                    <div class="skeleton" style="height: 36px; width: 50%;"></div>
-                </div>
-                <div class="kpi-trend positive">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
-                    Excellent status
-                </div>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
-            <div class="card" style="min-height: 400px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-                    <h3 style="margin: 0;">Domain Revenue Trends</h3>
-                    <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 4px 8px; border-radius: var(--radius-sm);">
-                        <option>Last 30 Days</option>
-                        <option>This Quarter</option>
-                        <option>This Year</option>
-                    </select>
-                </div>
-                <div id="chart-container" style="height: 320px; width: 100%;">
-                    <div class="skeleton" style="height: 100%; width: 100%;"></div>
-                </div>
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: var(--space-6);">
-                <div class="card" style="flex: 1;">
-                    <h3 style="margin-top: 0; margin-bottom: var(--space-4);">Recent Anomalies</h3>
-                    <div class="table-wrapper">
-                        <table id="recent-anomalies-table">
-                            <thead>
-                                <tr>
-                                    <th>Severity</th>
-                                    <th>Score</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="3"><div class="skeleton" style="height: 20px; width: 100%;"></div></td></tr>
-                                <tr><td colspan="3"><div class="skeleton" style="height: 20px; width: 100%;"></div></td></tr>
-                                <tr><td colspan="3"><div class="skeleton" style="height: 20px; width: 100%;"></div></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <a href="anomalies.html" style="display: block; text-align: center; margin-top: var(--space-4); font-size: var(--font-size-sm); font-weight: 500;">View All Anomalies &rarr;</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- AI Copilot -->
-    <div class="copilot-btn" id="copilot-toggle">
-        <span class="material-symbols-outlined" style="font-size: 28px;">smart_toy</span>
-    </div>
-    
-    <div class="copilot-panel" id="copilot-panel">
-        <div style="background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); padding: var(--space-4); display: flex; align-items: center; gap: var(--space-3);">
-            <span class="material-symbols-outlined" style="font-size: 24px; color: white;">smart_toy</span>
-            <div style="color: white;">
-                <div style="font-weight: 600;">AI Assistant</div>
-                <div style="font-size: var(--font-size-xs); opacity: 0.8;">Powered by Gemini</div>
-            </div>
-        </div>
-        <div id="chat-messages" style="height: 300px; overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);">
-            <div style="background: var(--color-bg-elevated); padding: var(--space-3); border-radius: var(--radius-md); border-bottom-left-radius: 0; align-self: flex-start; max-width: 85%;">
-                Hello! I can help you analyze your P&L data and explain any anomalies.
-            </div>
-        </div>
-        <div style="padding: var(--space-3); border-top: 1px solid var(--color-border); display: flex; gap: var(--space-2);">
-            <input type="text" id="chat-input" placeholder="Ask anything..." style="flex: 1; background: var(--color-bg-elevated); border: 1px solid var(--color-border); padding: 8px 12px; border-radius: var(--radius-full); color: var(--color-text-primary);">
-            <button class="icon-btn" style="background: var(--color-accent-primary); color: white; border: none; flex-shrink: 0;">
-                <span class="material-symbols-outlined" style="font-size: 18px;">send</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- JavaScript Scripts -->
-    <script src="js/api.js"></script>
-    <script>
-        // UI Interaction logic
-        const themeBtn = document.getElementById('theme-toggle');
-        themeBtn.addEventListener('click', () => {
-            const html = document.documentElement;
-            if (html.getAttribute('data-theme') === 'dark') {
-                html.setAttribute('data-theme', 'light');
-                themeBtn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                themeBtn.innerHTML = '<span class="material-symbols-outlined">light_mode</span>';
-            }
-        });
-
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('main-content');
-        
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-        });
-
-        const copilotToggle = document.getElementById('copilot-toggle');
-        const copilotPanel = document.getElementById('copilot-panel');
-        copilotToggle.addEventListener('click', () => {
-            copilotPanel.classList.toggle('active');
-        });
-
-        const chatInput = document.getElementById('chat-input');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatSendBtn = document.querySelector('.copilot-panel .icon-btn');
-
-        async function sendChatMessage() {
-            const question = chatInput.value.trim();
-            if (!question) return;
-
-            // Add user message
-            const userMsg = document.createElement('div');
-            userMsg.style.cssText = 'background: var(--color-accent-primary); color: white; padding: var(--space-3); border-radius: var(--radius-md); border-bottom-right-radius: 0; align-self: flex-end; max-width: 85%;';
-            userMsg.textContent = question;
-            chatMessages.appendChild(userMsg);
-            chatInput.value = '';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Add loading
-            const loadingMsg = document.createElement('div');
-            loadingMsg.style.cssText = 'background: var(--color-bg-elevated); padding: var(--space-3); border-radius: var(--radius-md); border-bottom-left-radius: 0; align-self: flex-start; max-width: 85%;';
-            loadingMsg.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div>';
-            chatMessages.appendChild(loadingMsg);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            try {
-                const response = await window.api.request('/explanations/copilot', {
-                    method: 'POST',
-                    body: JSON.stringify({ question })
-                });
-                loadingMsg.textContent = response.answer;
-            } catch (err) {
-                loadingMsg.textContent = 'Error: ' + err.message;
-                loadingMsg.style.color = 'var(--color-accent-red)';
-            }
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Executive Dashboard - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
         }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .dash-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .dash-kpi {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 12px;
+      padding: 12px 14px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sparkline-canvas {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 75px;
+      height: 38px;
+      pointer-events: none;
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
+</head>
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
 
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendChatMessage();
-        });
-        
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
-        });
-    </script>
-    <script type="text/babel" src="js/dashboard.js"></script>
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] min-h-screen p-6 pb-12">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> REAL-TIME
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-0.5">Complete financial overview across all departments</p>
+      </div>
+    </header>
+
+    <!-- 7 KPI Cards Row -->
+    <section class="grid grid-cols-7 gap-3 mb-4">
+      <!-- 1. Total Revenue -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <span class="material-symbols-outlined text-base">savings</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Total Revenue</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-total-revenue">₹27.80 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +5.2%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-revenue" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 2. Total Expenses -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+            <span class="material-symbols-outlined text-base">credit_card</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Total Expenses</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-total-expenses">₹18.21 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-rose-500 font-semibold mt-1">
+            <span>↑ +3.8%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-expenses" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 3. Net Profit -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <span class="material-symbols-outlined text-base">trending_up</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Net Profit</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-net-profit">₹7.98 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +6.4%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-profit" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 4. Operating Margin -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+            <span class="material-symbols-outlined text-base">percent</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Operating Margin</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-operating-margin">28.8%</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +1.2%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-margin" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 5. Cash Flow -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <span class="material-symbols-outlined text-base">payments</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Cash Flow</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-cash-flow">₹5.42 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +4.6%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-cashflow" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 6. Forecast (QTD) -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
+            <span class="material-symbols-outlined text-base">show_chart</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Forecast (QTD)</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-forecast">₹31.25 Cr</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +8.1%</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-forecast" class="sparkline-canvas"></div>
+      </div>
+
+      <!-- 7. Financial Health -->
+      <div class="dash-kpi custom-shadow">
+        <div class="flex items-center justify-between">
+          <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+            <span class="material-symbols-outlined text-base">favorite</span>
+          </div>
+        </div>
+        <div class="mt-2">
+          <p class="text-[10px] text-slate-500 font-medium leading-none">Financial Health</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-health">85/100</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+            <span>↑ +6 pts</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          </div>
+        </div>
+        <div id="sparkline-health" class="sparkline-canvas"></div>
+      </div>
+    </section>
+
+    <!-- MAIN GRID -->
+    <div class="space-y-4">
+      <!-- ROW 1: Revenue vs Expenses vs Net Profit + Anomaly Overview -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Left: Revenue vs Expenses vs Net Profit (~65% width) -->
+        <div class="col-span-8 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Revenue vs Expenses vs Net Profit</h3>
+            <div class="flex items-center gap-2">
+              <!-- Legend chips -->
+              <div class="flex items-center gap-2 text-[10px] font-medium text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3B82F6]"></span> Revenue</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#EF4444]"></span> Expenses</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#10B981]"></span> Net Profit</span>
+              </div>
+              <!-- Aggregation selector -->
+              <div class="relative">
+                <select id="ctrl-rev-agg" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="monthly" selected>Monthly</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="daily">Daily</option>
+                  <option value="half-yearly">Half Yearly</option>
+                  <option value="yearly">Yearly</option>
+                  <option value="overall">Overall</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Department selector -->
+              <div class="relative">
+                <select id="ctrl-rev-dept" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="all">All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Zoom / action controls -->
+              <div class="flex items-center gap-0.5 text-slate-400 border-l border-slate-200 pl-1">
+                <button id="zoom-in-rev" title="Zoom In" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
+                <button id="zoom-out-rev" title="Zoom Out" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
+                <button id="zoom-reset-rev" title="Reset Zoom" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
+                <button id="btn-refresh-rev-chart" title="Refresh" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">refresh</span></button>
+              </div>
+            </div>
+          </div>
+          <!-- Chart -->
+          <div id="chart-rev-exp-profit" class="w-full h-44"></div>
+        </div>
+
+        <!-- Right: Anomaly Overview (Replaced Profitability Overview, matches reference image) (~35% width) -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <h3 class="font-bold text-xs text-slate-900">Anomaly Overview</h3>
+            <div class="flex items-center gap-1.5">
+              <div class="relative">
+                <select id="ctrl-anom-period" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-1.5 py-0.5 pr-4 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="overall" selected>Overall</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="half-yearly">Half Yearly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+                <span class="material-symbols-outlined text-[10px] text-slate-400 absolute right-0.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-anom-dept" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-1.5 py-0.5 pr-4 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer max-w-[90px]">
+                  <option value="all">All Depts</option>
+                </select>
+                <span class="material-symbols-outlined text-[10px] text-slate-400 absolute right-0.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <a href="anomalies.html" class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5 ml-1">
+                View All <span class="material-symbols-outlined text-[11px]">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Body: Donut on Left + Counts on Right matching reference design -->
+          <div id="anom-content-wrapper" class="flex items-center justify-between my-auto py-1">
+            <!-- Donut Container -->
+            <div class="relative flex items-center justify-center flex-shrink-0">
+              <div id="chart-anomaly-overview" class="w-36 h-36"></div>
+            </div>
+
+            <!-- Severity Counts on Right matching reference image -->
+            <div class="flex-1 pl-4 space-y-2 text-xs font-medium text-slate-700">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>
+                  <span>Critical</span>
+                </span>
+                <span id="anom-crit-count" class="font-bold text-slate-900 text-sm">0</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#F97316]"></span>
+                  <span>High</span>
+                </span>
+                <span id="anom-high-count" class="font-bold text-slate-900 text-sm">0</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#FBBF24]"></span>
+                  <span>Medium</span>
+                </span>
+                <span id="anom-med-count" class="font-bold text-slate-900 text-sm">0</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#38BDF8]"></span>
+                  <span>Low</span>
+                </span>
+                <span id="anom-low-count" class="font-bold text-slate-900 text-sm">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state when total anomalies is 0 -->
+          <div id="anom-empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center p-4">
+            <span class="material-symbols-outlined text-emerald-500 text-2xl mb-1">verified</span>
+            <p class="text-[11px] font-bold text-slate-700">No anomalies detected for this selection.</p>
+            <p class="text-[9px] text-slate-400 mt-0.5">All transactions align within expected statistical bounds.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Department Performance + Expense Distribution + Insights (Balanced 3-Column Layout) -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Department Performance (Left 33.3%) -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col justify-between min-h-[265px]">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Department Performance</h3>
+            <div class="flex items-center gap-1.5">
+              <div class="relative">
+                <select id="ctrl-dept-metric" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="profit" selected>Profit</option>
+                  <option value="revenue">Revenue</option>
+                  <option value="expense">Expense</option>
+                  <option value="margin_pct">Net Margin %</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-dept-range" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="top5" selected>Top 5</option>
+                  <option value="top10">Top 10</option>
+                  <option value="all">All</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Zoom controls -->
+              <div class="flex items-center gap-0.5 text-slate-400 border-l border-slate-200 pl-1">
+                <button id="zoom-in-dept" title="Zoom In" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
+                <button id="zoom-out-dept" title="Zoom Out" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
+                <button id="zoom-reset-dept" title="Reset Zoom" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
+              </div>
+            </div>
+          </div>
+          <div id="chart-dept-performance" class="w-full h-52"></div>
+        </div>
+
+        <!-- Financial Distribution (Center 33.3%) -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col justify-between min-h-[265px]">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900" id="title-dist-card">Expense Distribution</h3>
+            <div class="flex items-center gap-1.5">
+              <div class="relative">
+                <select id="ctrl-exp-dist-metric" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="expense" selected>Expense</option>
+                  <option value="revenue">Revenue</option>
+                  <option value="profit">Profit</option>
+                  <option value="margin_pct">Net Margin %</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-exp-dist-dept" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="all">All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between h-52" id="expense-dist-body">
+            <div id="chart-expense-dist" class="w-32 h-full flex-shrink-0"></div>
+            <!-- Custom dynamic legend table on right -->
+            <div class="flex-1 pl-2.5 space-y-1 text-[10px] max-h-52 overflow-y-auto" id="expense-dist-legend">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          <div id="expense-empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center p-4">
+            <span class="material-symbols-outlined text-slate-400 text-xl mb-1">pie_chart</span>
+            <p class="text-[10px] font-semibold text-slate-500">Expense category data unavailable</p>
+          </div>
+        </div>
+
+        <!-- Insights (Right 33.3%) -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col justify-between min-h-[265px]">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-amber-500 text-sm">lightbulb</span>
+              <h3 class="font-bold text-xs text-slate-900">Insights</h3>
+            </div>
+            <button id="btn-view-all-insights" class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">View All</button>
+          </div>
+          <div class="space-y-2 flex-1 flex flex-col justify-around py-1" id="insights-container">
+            <!-- Dynamically populated from active dataset -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Forecast vs Actual + Cash Flow Trend -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Forecast vs Actual (~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Forecast vs Actual</h3>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 text-[10px] text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3B82F6]"></span> Actual</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#8B5CF6]"></span> Forecast</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2 rounded bg-[#DDD6FE]"></span> Confidence Interval</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-fcst-dept" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="all">All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-fcst-period" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="monthly" selected>Monthly</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="daily">Daily</option>
+                  <option value="half-yearly">Half Yearly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Zoom controls -->
+              <div class="flex items-center gap-0.5 text-slate-400 border-l border-slate-200 pl-1">
+                <button id="zoom-in-fcst" title="Zoom In" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
+                <button id="zoom-out-fcst" title="Zoom Out" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
+                <button id="zoom-reset-fcst" title="Reset Zoom" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
+              </div>
+            </div>
+          </div>
+          <div id="chart-forecast-actual" class="w-full h-44"></div>
+        </div>
+
+        <!-- Cash Flow Trend (~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Cash Flow Trend</h3>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 text-[10px] text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-[#10B981]"></span> Inflow</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-[#EF4444]"></span> Outflow</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3B82F6]"></span> Net Flow</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-cf-dept" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="all">All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-cf-period" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="monthly" selected>Monthly</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="daily">Daily</option>
+                  <option value="half-yearly">Half Yearly</option>
+                  <option value="yearly">Yearly</option>
+                  <option value="overall">Overall</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Zoom controls -->
+              <div class="flex items-center gap-0.5 text-slate-400 border-l border-slate-200 pl-1">
+                <button id="zoom-in-cf" title="Zoom In" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
+                <button id="zoom-out-cf" title="Zoom Out" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
+                <button id="zoom-reset-cf" title="Reset Zoom" class="p-0.5 hover:text-slate-700 transition-colors"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
+              </div>
+            </div>
+          </div>
+          <div id="chart-cash-flow" class="w-full h-44"></div>
+        </div>
+
+      </div>
+
+      <!-- ROW 4: Budget vs Actual + Recommendations (AI) -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Budget vs Actual (Left ~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between min-h-[255px]">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900">Budget vs Actual</h3>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 text-[10px] text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2 rounded-xs bg-[#6366F1]"></span> Actual Spend</span>
+                <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2 rounded-xs bg-[#94A3B8]"></span> Budget Target</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-budget-dept" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="all">All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <button id="btn-load-budget" title="Reload Budget Data" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-semibold px-2 py-0.5 rounded border border-indigo-200 flex items-center gap-0.5 transition-colors">
+                <span class="material-symbols-outlined text-xs">sync</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Budget vs Actual Chart -->
+          <div id="chart-budget-actual" class="w-full h-48"></div>
+
+          <!-- Empty state when budget data is unavailable -->
+          <div id="budget-empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center p-4">
+            <span class="material-symbols-outlined text-slate-400 text-xl mb-1">balance</span>
+            <p class="text-[10px] font-semibold text-slate-500">Budget data unavailable for selected dataset</p>
+            <p class="text-[9px] text-slate-400 mt-0.5">Upload a dataset with budget fields or configure departmental targets</p>
+          </div>
+        </div>
+
+        <!-- Recommendations (AI) (Right ~50% width) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between min-h-[255px]">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-indigo-600 text-sm">smart_toy</span>
+              <h3 class="font-bold text-xs text-slate-900">Recommendations (AI)</h3>
+            </div>
+            <button id="btn-view-all-recommendations" class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">View All</button>
+          </div>
+
+          <!-- Dynamic 2x2 Grid populated from active dataset -->
+          <div class="grid grid-cols-2 gap-2.5 flex-1" id="recommendations-container">
+            <!-- Dynamically populated from /api/v1/recommendations -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- EXTENDED INSIGHTS MODAL (VIEW ALL) -->
+  <div id="modal-insights" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <span class="material-symbols-outlined text-lg">lightbulb</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">Executive Financial Insights & Intelligence</h3>
+            <p class="text-[11px] text-slate-500">Data-driven analysis derived from currently active dataset</p>
+          </div>
+        </div>
+        <button id="close-modal-insights" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 overflow-y-auto space-y-3 flex-1" id="modal-insights-list">
+        <!-- Populated dynamically with full details -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500 font-medium">Derived continuously from active ledger metrics</span>
+        <button id="btn-close-insights-footer" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-xs transition-colors">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXTENDED RECOMMENDATIONS MODAL (VIEW ALL) -->
+  <div id="modal-recommendations" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+            <span class="material-symbols-outlined text-lg">smart_toy</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">AI Strategic Recommendations & Advisory</h3>
+            <p class="text-[11px] text-slate-500">Actionable financial guidance calculated from active ledger metrics</p>
+          </div>
+        </div>
+        <button id="close-modal-recommendations" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 overflow-y-auto space-y-3 flex-1" id="modal-recommendations-list">
+        <!-- Populated dynamically with full details -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500 font-medium">Real-time guidance synthesized from enterprise P&amp;L data</span>
+        <button id="btn-close-recommendations-footer" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-xs transition-colors">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/dashboard_wiring.js"></script>
+  <script type="module" src="js/shell.js"></script>
 </body>
 </html>

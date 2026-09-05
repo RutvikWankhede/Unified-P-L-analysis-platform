@@ -48,122 +48,10 @@ font-family: 'Inter', sans-serif;
 .active-tab { border-bottom: 2px solid #5b5ceb; color: #5b5ceb; font-weight: 600; }
 .upload-zone-border { border: 2px dashed #d1d5db; }
 </style>
+    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 <body class="flex min-h-screen">
-<!-- BEGIN: Sidebar -->
-<aside class="sidebar-width bg-white border-r border-border-light flex flex-col h-screen sticky
-top-0 overflow-y-auto">
-<!-- Logo Section -->
-<div class="p-6 flex items-center gap-3">
-<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<div>
-<h1 class="text-lg font-bold text-text-dark leading-tight">Unified P&amp;L</h1>
-<p class="text-[10px] text-text-muted uppercase tracking-wider">AI Governance System</p>
-</div>
-</div>
-<!-- Navigation Menu -->
-<nav class="flex-1 px-4 py-4 space-y-1">
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 12l2-
-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-
-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-<span class="text-sm font-medium">Dashboard</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
-4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0
-11-8 0 4 4 0 018 0z"></path></svg>
-<span class="text-sm font-medium">Departments</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-primary bg-blue-50 rounded-xl transition-
-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
-16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-<span class="text-sm font-medium">Upload / Datasets</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-
-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012
-2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-
-2a2 2 0 01-2-2z"></path></svg>
-<span class="text-sm font-medium">Forecast</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
-9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-
-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-<span class="text-sm font-medium">Anomalies</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13
-10V3L4 14h7v7l9-11h-7z"></path></svg>
-<span class="text-sm font-medium">AI Copilot</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
-1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-<span class="text-sm font-medium">Reports</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2
-4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0
-003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-
-3.016z"></path></svg>
-<span class="text-sm font-medium">Audit Trail</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 text-text-muted hover:bg-surface-main rounded-xl
-transition-colors" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325
-4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37
-2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066
-2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-
-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-
-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-
-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016
-0z"></path></svg>
-<span class="text-sm font-medium">Settings</span>
-</a>
-</nav>
-<!-- Bottom Profile Section -->
-<div class="mt-auto p-4 space-y-4">
-<div class="bg-surface-main rounded-2xl p-4 border border-border-light">
-<p class="text-[10px] text-text-muted uppercase font-semibold mb-1">Company</p>
-<div class="flex items-center justify-between">
-<span class="text-xs font-bold text-text-dark">TechNova Solutions Pvt. Ltd.</span>
-<svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewbox="0 0 24
-24"><path d="M19 9l-7 7-7-7"></path></svg>
-</div>
-</div>
-<div class="flex items-center gap-3 px-2">
-<img alt="Rutvik Wankhede" class="w-10 h-10 rounded-full object-cover border border-border-
-light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsrOmjkM5lIpfEjD8lQfNWr-
-b2VpnvxRtuePiXlp18FiU0THb_WRSnLS0DHL1Ei3r3qGPsXI6E3tMohzc0z2UpZSEhnDrXuFh9
-QntalF5GE_ltI6v4Z75oE8sbWMBOY3RgAxWBfDKQOCK7_WcvjphZxhRgmDWbYwtIKnCseDX
-lyj4bCGLH4l9QujOvdjQ6PadSnedoyeRMLiRB1nNHR1T60ywCzrLmz_f0TrlVk13awp9O7z9aNU
--1KFIl-jdQKEDBteVdaNxWWbsl"/>
-<div class="overflow-hidden">
-<p class="text-sm font-bold text-text-dark truncate">Rutvik Wankhede</p>
-<div class="flex items-center gap-1">
-<div class="w-2 h-2 bg-green-500 rounded-full"></div>
-<p class="text-[10px] text-text-muted">Online</p>
-</div>
-</div>
-</div>
-</div>
-</aside>
-<!-- END: Sidebar -->
+<div id="sidebar-container"></div>
 <!-- BEGIN: Main Content Area -->
 <main class="main-content flex flex-col">
 <!-- BEGIN: Header -->
@@ -368,4 +256,5 @@ d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
 <!-- END: Dashboard Content -->
 </main>
 <!-- END: Main Content Area -->
+    <script type="module" src="js/shell.js"></script>
 </body></html>

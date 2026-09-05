@@ -1,0 +1,100 @@
+{
+  "canonical_dataset_file": "C:\\Users\\HP\\.gemini\\antigravity-ide\\scratch\\P&L system\\unified-pl-system\\unified_pnl_enterprise_demo.csv",
+  "dataset_file_rows": 900,
+  "dataset_file_columns": [
+    "Transaction_ID",
+    "Date",
+    "Department",
+    "Revenue",
+    "Expense",
+    "Profit",
+    "Budget",
+    "Transaction_Count",
+    "Avg_Transaction_Value",
+    "Channel",
+    "Currency",
+    "Accounting_Basis",
+    "Budget_Variance",
+    "Budget_Variance_Pct",
+    "Profit_Margin_Pct"
+  ],
+  "date_range": {
+    "min": "2024-01-01",
+    "max": "2026-12-06"
+  },
+  "departments": {
+    "count": 12,
+    "list": [
+      "Administration",
+      "Customer Support",
+      "Finance",
+      "Human Resources",
+      "IT",
+      "Legal",
+      "Logistics",
+      "Marketing",
+      "Operations",
+      "Procurement",
+      "R&D",
+      "Sales"
+    ]
+  },
+  "database": {
+    "active_upload_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+    "total_pl_records": 1800,
+    "total_anomalies": 95,
+    "anomaly_severity_breakdown": {
+      "High": 5,
+      "Medium": 19,
+      "Low": 71
+    }
+  },
+  "kpi_baseline": {
+    "total_revenue": {
+      "exact": 277988276.87,
+      "formatted": "\u20b927.80 Cr",
+      "target": "\u20b927.80 Cr (\u20b9277,988,276.87)"
+    },
+    "total_expense": {
+      "exact": 198066136.85,
+      "formatted": "\u20b919.81 Cr",
+      "target": "\u20b919.81 Cr (\u20b9198,066,136.85)"
+    },
+    "net_profit": {
+      "exact": 79922140.02,
+      "formatted": "\u20b97.99 Cr",
+      "target": "\u20b97.99 Cr (\u20b979,922,140.02)",
+      "formula_check": "277988276.87 - 198066136.85 = 79922140.02"
+    },
+    "profit_margin_pct": 28.75,
+    "health_score": 95,
+    "risk_score": 5
+  },
+  "api_active_dataset": {
+    "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+    "filename": "unified_pnl_enterprise_demo.xlsx"
+  },
+  "departments_summary_sample": [
+    {
+      "department": "Administration",
+      "revenue": 16526230.25,
+      "expense": 12499997.98,
+      "profit": 4026232.28,
+      "margin": 24.36
+    },
+    {
+      "department": "Customer Support",
+      "revenue": 14680977.2,
+      "expense": 11120009.4,
+      "profit": 3560967.8,
+      "margin": 24.26
+    },
+    {
+      "department": "Finance",
+      "revenue": 14850157.79,
+      "expense": 8584933.26,
+      "profit": 6265224.53,
+      "margin": 42.19
+    }
+  ]
+}

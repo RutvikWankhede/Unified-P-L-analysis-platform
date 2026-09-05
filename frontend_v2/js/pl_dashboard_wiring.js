@@ -48,7 +48,7 @@ function drawRevenueExpenseChart(periods, revData, expData, profData) {
     if (!chartDiv) {
         chartDiv = document.createElement('div');
         chartDiv.id = 'chart-revenue-expense-ec';
-        chartDiv.style.cssText = 'width:100%;height:256px;';
+        chartDiv.style.cssText = 'position:absolute; inset:0; width:100%; height:100%;';
         parent.insertBefore(chartDiv, parent.firstChild);
     }
     
@@ -58,17 +58,17 @@ function drawRevenueExpenseChart(periods, revData, expData, profData) {
     revExpChartInstance = window.echarts.init(chartDiv);
     
     const series = [];
-    if (revData?.length) series.push({ name: 'Revenue', type: 'line', smooth: true, data: revData, itemStyle: { color: '#5b5ceb' }, areaStyle: { opacity: 0.05 } });
-    if (expData?.length) series.push({ name: 'Expense', type: 'line', smooth: true, data: expData, itemStyle: { color: '#ef4444' }, areaStyle: { opacity: 0.05 } });
-    if (profData?.length) series.push({ name: 'Net Profit', type: 'line', smooth: true, data: profData, itemStyle: { color: '#10b981' }, areaStyle: { opacity: 0.05 } });
+    if (revData?.length) series.push({ name: 'Revenue', type: 'line', smooth: true, lineStyle: { width: 3 }, data: revData, itemStyle: { color: '#5b5ceb' }, areaStyle: { opacity: 0.05 } });
+    if (expData?.length) series.push({ name: 'Expense', type: 'line', smooth: true, lineStyle: { width: 3 }, data: expData, itemStyle: { color: '#ef4444' }, areaStyle: { opacity: 0.05 } });
+    if (profData?.length) series.push({ name: 'Net Profit', type: 'line', smooth: true, lineStyle: { width: 3 }, data: profData, itemStyle: { color: '#10b981' }, areaStyle: { opacity: 0.05 } });
     
     if (!series.length) return;
     revExpChartInstance.setOption({
         tooltip: { trigger: 'axis' },
-        legend: { top: 0, icon: 'circle' },
-        grid: { left: '2%', right: '2%', bottom: '5%', top: '30px', containLabel: true },
-        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10 } },
-        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, scale: true },
+        legend: { top: 0, icon: 'circle', itemGap: 16 },
+        grid: { left: '2%', right: '2%', bottom: '5%', top: '25px', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10, rotate: 45, interval: 'auto' } },
+        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, scale: true, splitLine: { lineStyle: { type: 'dashed' } } },
         series
     });
 }
@@ -108,13 +108,13 @@ async function loadCashFlowTrend() {
             }
         },
         legend: { top: 0, icon: 'circle' },
-        grid: { left: '3%', right: '4%', bottom: '5%', containLabel: true },
-        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10 } },
-        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 } },
+        grid: { left: '2%', right: '4%', bottom: '5%', top: '15px', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10, rotate: 45, interval: 'auto' } },
+        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, splitLine: { lineStyle: { type: 'dashed' } } },
         series: [{
             name: mode === 'estimated' ? 'Estimated Cash Flow' : 'Net Cash Flow',
             type: 'line',
-            smooth: true,
+            smooth: true, lineStyle: { width: 4 },
             itemStyle: { color: '#0d9488' },
             areaStyle: { opacity: 0.1, color: '#0d9488' },
             data: trendData
@@ -196,10 +196,10 @@ async function loadBudgetvsActual() {
                 return `<div style="padding:4px 8px">${header}${body}</div>`;
             }
         },
-        legend: { top: 0, icon: 'circle' },
-        grid: { left: '3%', right: '4%', bottom: '5%', containLabel: true },
-        xAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 } },
-        yAxis: { type: 'category', data: depts, inverse: true, axisLabel: { fontSize: 10 } },
+        legend: { top: 0, icon: 'circle', itemGap: 16 },
+        grid: { left: '2%', right: '4%', bottom: '5%', top: '15px', containLabel: true },
+        xAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, splitLine: { lineStyle: { type: 'dashed' } } },
+        yAxis: { type: 'category', data: depts, inverse: true, axisLabel: { fontSize: 10, interval: 0, width: 80, overflow: 'truncate' } },
         series: [
             { name: 'Budget', type: 'bar', itemStyle: { color: '#94a3b8', borderRadius: [0, 4, 4, 0] }, data: budget },
             { name: 'Actual', type: 'bar', itemStyle: { color: '#6366f1', borderRadius: [0, 4, 4, 0] }, data: actual }
@@ -224,15 +224,6 @@ function setupBudgetModal() {
             const deptsRes = await api.get('/api/v1/pl/departments').catch(() => null);
             const depts = deptsRes?.departments || ['Finance', 'Sales', 'IT', 'Marketing', 'HR', 'Operations'];
             deptSelect.innerHTML = depts.map(d => `<option value="${d}">${d}</option>`).join('');
-        }
-        const periodSelect = document.getElementById('budget-period');
-        if (periodSelect) {
-            const chartsRes = await api.get('/api/v1/pl/charts?agg=monthly').catch(() => null);
-            const supported = chartsRes?.supported_aggregations || ['monthly', 'quarterly', 'yearly'];
-            periodSelect.innerHTML = supported.map(s => {
-                const label = s.charAt(0).toUpperCase() + s.slice(1);
-                return `<option value="${s}">${label} Budget Allocation</option>`;
-            }).join('');
         }
         budgetModal.classList.remove('hidden');
         budgetModal.classList.add('flex');
@@ -264,15 +255,9 @@ function setupBudgetModal() {
 
             if (!dept || isNaN(amount) || amount < 0) return;
 
-            await api.post('/api/v1/pl/budget', { 
-                department: dept, 
-                period: period, 
-                budget_amount: amount, 
-                amount: amount 
-            }).catch(() => null);
+            await api.post('/api/v1/pl/budget', { department: dept, period: period, monthly_amount: amount }).catch(() => null);
             closeModal();
             loadBudgetvsActual();
-            loadKPIs();
         });
     }
 }
@@ -356,22 +341,8 @@ function updateRecentUploads(datasets) {
     }).join('');
 }
 
-function populateAggregationSelect(selectId, supported) {
-    const el = document.getElementById(selectId);
-    if (!el || !supported || !supported.length) return;
-    const currentVal = el.value;
-    el.innerHTML = supported.map(s => {
-        const label = s.charAt(0).toUpperCase() + s.slice(1);
-        return `<option value="${s}">${label}</option>`;
-    }).join('');
-    if (supported.includes(currentVal)) {
-        el.value = currentVal;
-    } else {
-        el.value = supported[0];
-    }
-}
-
-async function loadKPIs() {
+// ── DOM Load & Event Bindings ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
     try {
         const summary = await api.get('/api/v1/pl/summary?agg=yearly');
         if (summary?.kpis) {
@@ -382,41 +353,22 @@ async function loadKPIs() {
             setHealthScore(k.health_score);
 
             const caps = summary.capabilities || {};
-            const cfMode = caps.cashFlow?.mode || 'unavailable';
-            let cfVal = null;
-            if (cfMode === 'actual') {
-                cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : null;
-            } else if (cfMode === 'estimated') {
-                cfVal = (k.revenue !== null && k.expense !== null) ? (k.revenue - k.expense) : null;
-            }
+            const cfMode = caps.cashFlow?.mode || 'estimated';
+            const cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : k.profit;
             const cfLabelEl = document.getElementById('kpi-cash-flow-label');
             const cfSubEl = document.getElementById('kpi-cash-flow-sub');
-            if (cfLabelEl) {
-                cfLabelEl.textContent = cfMode === 'actual' ? 'Cash Flow' : 'Estimated Cash Flow';
-            }
-            if (cfSubEl) {
-                cfSubEl.textContent = cfMode === 'actual' ? 'Actual cash inflow − outflow' : 
-                                      (cfMode === 'estimated' ? 'Derived from Revenue − Expense' : 'No cash flow data available');
-            }
+            if (cfLabelEl) cfLabelEl.textContent = cfMode === 'actual' ? 'Cash Flow' : 'Estimated Cash Flow';
+            if (cfSubEl) cfSubEl.textContent = cfMode === 'actual' ? 'Actual cash inflow − outflow' : 'Derived from Revenue − Expense';
             setKpi('kpi-cash-flow', cfVal, null);
-            const dateRangeEl = document.getElementById('dashboard-date-range');
-            if (dateRangeEl && (caps.date_min || caps.date_max)) {
-                dateRangeEl.textContent = `${caps.date_min || ''} — ${caps.date_max || ''}`;
-            }
         }
     } catch (e) { console.warn('[pl_dashboard_wiring] KPI load failed:', e); }
 
     try {
-        const forecastRes = await api.get('/api/v1/pl/forecast?metric=revenue&periods=3');
+        const forecastRes = await api.get('/api/v1/pl/forecast?metric=profit&periods=3');
         if (forecastRes?.expected_case !== undefined) {
             setKpi('kpi-forecasted-profit', forecastRes.expected_case, null);
         }
     } catch (e) { console.warn('[pl_dashboard_wiring] Forecast KPI load failed:', e); }
-}
-
-// ── DOM Load & Event Bindings ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-    loadKPIs();
 
     try {
         const charts = await api.get('/api/v1/pl/charts?agg=monthly');

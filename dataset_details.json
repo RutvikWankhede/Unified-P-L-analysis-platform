@@ -1,0 +1,144 @@
+{
+  "filename": "unified_pnl_enterprise_demo.csv",
+  "total_rows": 900,
+  "columns": [
+    "Transaction_ID",
+    "Date",
+    "Department",
+    "Revenue",
+    "Expense",
+    "Profit",
+    "Budget",
+    "Transaction_Count",
+    "Avg_Transaction_Value",
+    "Channel",
+    "Currency",
+    "Accounting_Basis",
+    "Budget_Variance",
+    "Budget_Variance_Pct",
+    "Profit_Margin_Pct"
+  ],
+  "date_range": {
+    "min": "2024-01-01",
+    "max": "2026-12-06"
+  },
+  "departments": [
+    "Administration",
+    "Customer Support",
+    "Finance",
+    "Human Resources",
+    "IT",
+    "Legal",
+    "Logistics",
+    "Marketing",
+    "Operations",
+    "Procurement",
+    "R&D",
+    "Sales"
+  ],
+  "totals": {
+    "revenue": 277988276.865408,
+    "expense": 198066136.849588,
+    "profit": 79922139.87,
+    "budget": 191630738.473251,
+    "net_margin_pct": 28.75
+  },
+  "dept_breakdown": {
+    "Administration": {
+      "records": 92,
+      "revenue": 16526230.253996,
+      "expense": 12499997.976357002,
+      "profit": 4026232.29,
+      "budget": 12379458.746735001,
+      "margin_pct": 24.36
+    },
+    "Customer Support": {
+      "records": 75,
+      "revenue": 14680977.195919998,
+      "expense": 11120009.397429,
+      "profit": 3560967.82,
+      "budget": 10874670.346479,
+      "margin_pct": 24.26
+    },
+    "Finance": {
+      "records": 70,
+      "revenue": 14850157.791926002,
+      "expense": 8584933.262725001,
+      "profit": 6265224.469999999,
+      "budget": 8597367.574342001,
+      "margin_pct": 42.19
+    },
+    "Human Resources": {
+      "records": 60,
+      "revenue": 8379915.444112,
+      "expense": 6232216.330483,
+      "profit": 2147699.11,
+      "budget": 6245905.4496989995,
+      "margin_pct": 25.63
+    },
+    "IT": {
+      "records": 76,
+      "revenue": 27967649.014921,
+      "expense": 17556698.791089002,
+      "profit": 10410950.200000001,
+      "budget": 17120960.348387003,
+      "margin_pct": 37.22
+    },
+    "Legal": {
+      "records": 72,
+      "revenue": 11187527.238280002,
+      "expense": 8423892.184434999,
+      "profit": 2763635.07,
+      "budget": 8105685.094577,
+      "margin_pct": 24.7
+    },
+    "Logistics": {
+      "records": 70,
+      "revenue": 23458362.899143007,
+      "expense": 18518738.950866,
+      "profit": 4939623.900000001,
+      "budget": 16828844.822597,
+      "margin_pct": 21.06
+    },
+    "Marketing": {
+      "records": 70,
+      "revenue": 21185712.949706998,
+      "expense": 18255505.547865,
+      "profit": 2930207.3899999997,
+      "budget": 17575037.618995,
+      "margin_pct": 13.83
+    },
+    "Operations": {
+      "records": 89,
+      "revenue": 46135173.89827,
+      "expense": 32180109.115910996,
+      "profit": 13955064.74,
+      "budget": 31158994.791832,
+      "margin_pct": 30.25
+    },
+    "Procurement": {
+      "records": 81,
+      "revenue": 20044418.290172003,
+      "expense": 14958012.500474,
+      "profit": 5086405.78,
+      "budget": 14453384.842002999,
+      "margin_pct": 25.38
+    },
+    "R&D": {
+      "records": 73,
+      "revenue": 30219761.330432996,
+      "expense": 23351497.421453,
+      "profit": 6868263.91,
+      "budget": 22377173.339322995,
+      "margin_pct": 22.73
+    },
+    "Sales": {
+      "records": 72,
+      "revenue": 43352390.558528,
+      "expense": 26384525.370501,
+      "profit": 16967865.19,
+      "budget": 25913255.498282,
+      "margin_pct": 39.14
+    }
+  }
+}

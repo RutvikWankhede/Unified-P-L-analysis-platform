@@ -1,0 +1,66 @@
+=== 1. VERIFYING DATABASE RECORDS ===
+Total PL Records: 1800 (Expected: 1800)
+Total Anomalies: 95 (Expected: 95)
+High Severity Anomalies: 5 (Expected: 5)
+
+=== 2. GENERATING AUTH TOKEN ===
+Auth token created.
+
+=== 3. TESTING /api/v1/pl/summary ===
+Status: 200
+Summary KPIs: {
+  "revenue": 277988276.87,
+  "revenue_growth": 52.32,
+  "expense": 198066136.85,
+  "expense_growth": 89.91,
+  "profit": 79922140.02,
+  "profit_growth": -57.41,
+  "profit_margin": 28.75,
+  "margin_growth": -18.38,
+  "cash_flow": 79922140.02,
+  "budget_total": null,
+  "health_score": 95,
+  "health_growth": 0.5,
+  "risk_score": 5,
+  "active_anomalies": 95,
+  "high_severity": 5,
+  "pending_workflows": 4,
+  "forecasted_profit": null,
+  "forecast_growth": null
+}
+
+Calculated KPI Values:
+Total Revenue: ₹277,988,276.87  -->  ₹27.80 Cr (Target: ₹27.80 Cr / ₹277,988,276.87)
+Total Expense: ₹198,066,136.85  -->  ₹19.81 Cr (Target: ₹19.81 Cr / ₹198,066,136.85)
+Net Profit:    ₹79,922,140.02  -->  ₹7.99 Cr (Target: ₹7.99 Cr / ₹79,922,140.02)
+
+=== 4. TESTING /api/v1/pl/departments/summary ===
+Status: 200
+Departments Count: 12 (Expected: 12)
+  Administration: Rev=₹16,526,230.25, Exp=₹12,499,997.98, Profit=₹4,026,232.28, Margin=24.36%
+  Customer Support: Rev=₹14,680,977.20, Exp=₹11,120,009.40, Profit=₹3,560,967.80, Margin=24.26%
+  Finance: Rev=₹14,850,157.79, Exp=₹8,584,933.26, Profit=₹6,265,224.53, Margin=42.19%
+  Human Resources: Rev=₹8,379,915.44, Exp=₹6,232,216.33, Profit=₹2,147,699.11, Margin=25.63%
+  IT: Rev=₹27,967,649.01, Exp=₹17,556,698.79, Profit=₹10,410,950.22, Margin=37.22%
+  Legal: Rev=₹11,187,527.24, Exp=₹8,423,892.18, Profit=₹2,763,635.05, Margin=24.7%
+  Logistics: Rev=₹23,458,362.90, Exp=₹18,518,738.95, Profit=₹4,939,623.95, Margin=21.06%
+  Marketing: Rev=₹21,185,712.95, Exp=₹18,255,505.55, Profit=₹2,930,207.40, Margin=13.83%
+  Operations: Rev=₹46,135,173.90, Exp=₹32,180,109.12, Profit=₹13,955,064.78, Margin=30.25%
+  Procurement: Rev=₹20,044,418.29, Exp=₹14,958,012.50, Profit=₹5,086,405.79, Margin=25.38%
+  R&D: Rev=₹30,219,761.33, Exp=₹23,351,497.42, Profit=₹6,868,263.91, Margin=22.73%
+  Sales: Rev=₹43,352,390.56, Exp=₹26,384,525.37, Profit=₹16,967,865.19, Margin=39.14%
+
+=== 5. TESTING /api/v1/pl/charts ===
+Status: 200
+Chart keys: ['revenue_trend', 'expense_trend', 'profit_trend', 'cashflow_trend', 'budget_trend', 'cash_flow_mode', 'department_breakdown', 'waterfall', 'scatter', 'heatmap', 'dept_profit_trend', 'periods', 'departments']
+
+=== 6. TESTING /api/v1/anomalies ===
+Status: 200
+Anomalies returned: 95
+
+=== 7. TESTING /api/v1/datasets/active ===
+Status: 200
+Active Dataset: {
+  "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+  "filename": "unified_pnl_enterprise_demo.xlsx"
+}

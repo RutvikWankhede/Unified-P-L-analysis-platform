@@ -1,25 +1,20 @@
 /**
- * shell.js - Application Chrome (Sidebar + Navigation)
- * =====================================================
+ * shell.js - Application Chrome (Unified P&L Canonical Sidebar + Navigation)
+ * ==========================================================================
  * Single source of truth for the sidebar.
  * Injected into every authenticated page via <div id="sidebar-container">.
  *
  * Responsibilities:
  * - Route guard (redirect to login if no token)
- * - Inject sidebar HTML
- * - Populate real user info from JWT
- * - Auto-highlight active nav item
- * - Wire notification bell popover
- * - Wire logout button
- * - Global search keyboard shortcut
+ * - Dynamically inject canonical sidebar HTML matching visual reference
+ * - Auto-highlight active nav item based on current route
+ * - Support responsive collapse/expand with localStorage persistence
+ * - Wire logout, search shortcuts, and notifications
  */
 
 import { api } from './api.js';
 
 // ─── Route Guard (runs synchronously before render) ──────────────────────────
-// Secondary check: the inline <script> in each page already does a fast check.
-// This module-level guard handles the case where sessionStorage is cleared
-// between the inline check and module execution.
 (function guardRoute() {
     const PUBLIC = ['login.html', 'forgot-password.html', 'index.html'];
     const page = window.location.pathname.split('/').pop() || 'login.html';
@@ -29,41 +24,78 @@ import { api } from './api.js';
     }
 })();
 
-// ─── Navigation Map ──────────────────────────────────────────────────────────
+// ─── Canonical Navigation Map (EXACT 10 items in exact order) ────────────────
 const NAV_ITEMS = [
-    { href: 'dashboard.html',  icon: 'grid_view',    label: 'Dashboard' },
-    { href: 'departments.html',icon: 'domain',        label: 'Departments' },
-    { href: 'datasets.html',   icon: 'upload_file',   label: 'Upload / Datasets' },
-    { href: 'forecast.html',   icon: 'trending_up',   label: 'Forecast' },
-    { href: 'anomalies.html',  icon: 'warning',       label: 'Anomaly Detection' },
-    { href: 'copilot.html',    icon: 'smart_toy',     label: 'AI Copilot' },
-    { href: 'workflow.html',   icon: 'account_tree',  label: 'Workflow' },
-    { href: 'reports.html',    icon: 'description',   label: 'Reports' },
-    { href: 'audit.html',      icon: 'history',       label: 'Audit Trail' },
-    { href: 'settings.html',   icon: 'settings',      label: 'Settings' },
+    { href: 'dashboard.html',   icon: 'grid_view',     label: 'Dashboard' },
+    { href: 'departments.html', icon: 'domain',        label: 'Departments' },
+    { href: 'datasets.html',    icon: 'upload_file',   label: 'Upload / Datasets' },
+    { href: 'forecast.html',    icon: 'trending_up',   label: 'Forecast' },
+    { href: 'anomalies.html',   icon: 'warning',       label: 'Anomaly Detection' },
+    { href: 'copilot.html',     icon: 'smart_toy',     label: 'AI Copilot' },
+    { href: 'workflow.html',    icon: 'account_tree',  label: 'Workflow' },
+    { href: 'reports.html',     icon: 'description',   label: 'Reports' },
+    { href: 'audit.html',       icon: 'history',       label: 'Audit Trail' },
+    { href: 'settings.html',    icon: 'settings',      label: 'Settings' },
 ];
 
-// Pages that share a nav item (so they highlight correctly)
+// Pages that map to a canonical parent nav item
 const PAGE_ALIASES = {
-    // Old filenames that might be bookmarked / linked from backend
-    'upload.html':     'datasets.html',
-    'anomaly.html':    'anomalies.html',
-    'ai-copilot.html': 'copilot.html',
-    // Sub-pages that roll up to a parent nav item
-    'department.html':    'departments.html',
-    'schema-mapping.html':'datasets.html',
-    'validation.html':    'datasets.html',
-    'executive.html':     'reports.html',
-    'export.html':        'reports.html',
-    'pivot.html':         'reports.html',
+    // 1. Dashboard
+    '':                    'dashboard.html',
+    'index.html':          'dashboard.html',
+    'dashboard.html':      'dashboard.html',
+    'pl_dashboard.html':   'dashboard.html',
+
+    // 2. Departments
+    'departments.html':    'departments.html',
+    'department.html':     'departments.html',
+
+    // 3. Upload / Datasets
+    'datasets.html':       'datasets.html',
+    'upload.html':         'datasets.html',
+    'dataset-quality.html':'datasets.html',
+    'schema-mapping.html': 'datasets.html',
+    'validation.html':     'datasets.html',
+
+    // 4. Forecast
+    'forecast.html':       'forecast.html',
+    'pl_forecast.html':    'forecast.html',
+
+    // 5. Anomaly Detection
+    'anomalies.html':      'anomalies.html',
+    'anomaly.html':        'anomalies.html',
+
+    // 6. AI Copilot
+    'copilot.html':        'copilot.html',
+    'ai-copilot.html':     'copilot.html',
+
+    // 7. Workflow
+    'workflow.html':       'workflow.html',
+
+    // 8. Reports
+    'reports.html':        'reports.html',
+    'executive.html':      'reports.html',
+    'export.html':         'reports.html',
+    'pivot.html':          'reports.html',
     'recommendations.html':'reports.html',
+    'financial-health.html':'reports.html',
+    'analytics.html':      'reports.html',
+
+    // 9. Audit Trail
+    'audit.html':          'audit.html',
+    'audit-trail.html':    'audit.html',
+
+    // 10. Settings
+    'settings.html':       'settings.html',
+    'users.html':          'settings.html',
+    'profile.html':        'settings.html',
 };
 
 // ─── User info from JWT ──────────────────────────────────────────────────────
 function getUserInfo() {
     try {
         const token = api.getAccessToken();
-        if (!token) return { name: 'Admin', initials: 'A', role: 'Administrator' };
+        if (!token) return { name: 'Admin', initials: 'A', role: 'Administrator', username: 'admin' };
         const payload = JSON.parse(atob(token.split('.')[1]));
         const sub = payload.sub || 'Admin';
         const roleName = payload.role === 'admin' ? 'Administrator' : 'Financial Analyst';
@@ -75,112 +107,66 @@ function getUserInfo() {
     }
 }
 
-// ─── Sidebar HTML Builder ─────────────────────────────────────────────────────
-function buildSidebar(user, activePage) {
+// ─── Canonical Sidebar HTML Builder ──────────────────────────────────────────
+function buildSidebar(activePage) {
     const navHTML = NAV_ITEMS.map(item => {
         const isActive = item.href === activePage;
-        const activeClass = isActive
-            ? 'nav-item group relative flex items-center gap-3 px-4 py-3 mb-1 text-sm rounded-xl bg-indigo-50 text-indigo-600 font-semibold transition-all duration-300'
-            : 'nav-item group relative flex items-center gap-3 px-4 py-3 mb-1 text-sm rounded-xl text-slate-500 font-medium hover:bg-slate-50 hover:text-slate-900 transition-all duration-300';
-        const iconClass = isActive 
-            ? 'material-symbols-outlined text-[20px] text-indigo-600 transition-transform duration-300' 
-            : 'material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-700 transition-transform duration-300 group-hover:scale-110';
+        const itemClass = isActive ? 'sidebar-item active' : 'sidebar-item';
         
-        return `<a class="${activeClass}" href="${item.href}" data-path="${item.href}">
-            <span class="${iconClass}" style="font-family: 'Material Symbols Outlined', sans-serif !important;">${item.icon}</span> 
-            <span class="nav-label flex-1 truncate">${item.label}</span>
-            ${isActive ? '<div class="absolute right-2 w-1.5 h-1.5 rounded-full bg-indigo-600"></div>' : ''}
+        return `<a class="${itemClass}" href="${item.href}" data-path="${item.href}" id="nav-${item.href.replace('.html', '')}">
+            <span class="material-symbols-outlined sidebar-item-icon">${item.icon}</span>
+            <span class="sidebar-item-text">${item.label}</span>
+            ${isActive ? '<span class="sidebar-active-dot"></span>' : ''}
         </a>`;
     }).join('');
 
-    const isLight = localStorage.getItem('theme') !== 'dark';
-    const themeBtnClass = isLight ? 'bg-indigo-500' : 'bg-slate-300';
-    const themeKnobClass = isLight ? 'translate-x-4' : 'translate-x-0';
-
-    return `<!-- Sidebar -->
-<aside id="main-sidebar" class="w-[260px] h-screen fixed left-0 top-0 bg-white border-r border-slate-200 flex flex-col z-50 transition-all duration-300">
-    
-    <!-- Logo Section -->
-    <div class="h-20 px-6 flex items-center justify-between cursor-pointer border-b border-slate-100" onclick="window.location.href='dashboard.html'">
-        <div class="flex items-center gap-3 sidebar-brand overflow-hidden">
-            <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white flex-shrink-0 shadow-sm shadow-indigo-200">
-                <span class="material-symbols-outlined text-xl" style="font-family: 'Material Symbols Outlined' !important;">analytics</span>
+    return `<!-- Unified P&L Canonical Sidebar -->
+<aside id="main-sidebar">
+    <!-- Header / Brand Section -->
+    <div class="sidebar-header">
+        <a class="sidebar-brand" href="dashboard.html">
+            <div class="sidebar-logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                    <path d="M8 17v-3"></path>
+                    <path d="M12 17v-6"></path>
+                    <path d="M16 17v-8"></path>
+                </svg>
             </div>
-            <div class="flex-1 min-w-0 sidebar-text transition-opacity duration-300">
-                <h1 class="text-[15px] font-bold leading-tight text-slate-900 truncate">Unified P&L</h1>
-                <p class="text-[11px] font-medium text-slate-500 truncate mt-0.5">Enterprise Platform</p>
+            <div class="sidebar-brand-text">
+                <h1 class="sidebar-title">Unified P&amp;L</h1>
+                <p class="sidebar-subtitle">Enterprise Platform</p>
             </div>
-        </div>
-        <button id="sidebar-toggle" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-all">
-            <span class="material-symbols-outlined text-[20px]" style="font-family: 'Material Symbols Outlined' !important;">menu_open</span>
+        </a>
+        <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Navigation" aria-label="Toggle navigation">
+            <span class="material-symbols-outlined">menu_open</span>
         </button>
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="flex-1 px-4 py-6 overflow-y-auto hide-scrollbar flex flex-col">
-        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-2 sidebar-text">Menu</div>
-        ${navHTML}
+    <nav class="sidebar-nav">
+        <span class="sidebar-section-label">MENU</span>
+        <div class="sidebar-menu">
+            ${navHTML}
+        </div>
     </nav>
+</aside>`;
+}
 
-    <!-- Bottom Section -->
-    <div class="px-4 pb-6 pt-4 sidebar-bottom border-t border-slate-100 bg-slate-50/50">
-        
-        <!-- Company Selector -->
-        <button class="w-full flex flex-col text-left px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-sm mb-4 hover:border-indigo-300 hover:shadow-md transition-all duration-300 group relative">
-            <div class="flex items-center justify-between w-full mb-1">
-                <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Company</span>
-                <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-indigo-600 transition-colors" style="font-family: 'Material Symbols Outlined' !important;">expand_more</span>
-            </div>
-            <span class="text-sm font-bold text-slate-800 truncate block w-full">TechNova Solutions</span>
-        </button>
-
-        <!-- User Card -->
-        <div class="flex items-center justify-between px-3 py-3 mb-4 rounded-xl bg-white border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all group cursor-pointer relative" id="user-card">
-            <div class="relative flex-shrink-0">
-                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm">
-                    ${user.initials}
-                </div>
-                <div class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></div>
-            </div>
-            <div class="flex-1 min-w-0 px-3 sidebar-text">
-                <p class="text-sm font-bold text-slate-800 truncate">${user.name}</p>
-                <p class="text-[11px] font-medium text-slate-500 truncate mt-0.5">${user.role}</p>
-            </div>
-            <button id="logout-btn" title="Sign out" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 sidebar-text">
-                <span class="material-symbols-outlined text-[18px]" style="font-family: 'Material Symbols Outlined' !important;">logout</span>
-            </button>
-        </div>
-
-        <!-- Theme Toggle -->
-        <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-white border border-slate-200">
-            <div class="flex items-center gap-2.5 text-slate-600 sidebar-text">
-                <span class="material-symbols-outlined text-[18px]" style="font-family: 'Material Symbols Outlined' !important;">light_mode</span>
-                <span class="text-[13px] font-semibold" id="theme-toggle-label">Light Theme</span>
-            </div>
-            <button id="theme-toggle-btn" class="w-10 h-6 ${themeBtnClass} rounded-full relative transition-colors duration-300 focus:outline-none shrink-0">
-                <div id="theme-toggle-knob" class="w-4 h-4 bg-white rounded-full absolute top-[4px] left-[4px] transform ${themeKnobClass} transition-transform duration-300 shadow-sm"></div>
-            </button>
-        </div>
-    </div>
-</aside>
-<style>
-    /* Global Material Icons Fix */
-    .material-symbols-outlined {
-        font-family: 'Material Symbols Outlined', sans-serif !important;
-        font-feature-settings: 'liga' !important;
-        -webkit-font-feature-settings: 'liga' !important;
+// ─── Ensure Essential Stylesheets ───────────────────────────────────────────
+function ensureStylesheets() {
+    if (!document.querySelector('link[href*="sidebar.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'css/sidebar.css';
+        document.head.appendChild(link);
     }
-    
-    /* Sidebar Collapsed State */
-    .sidebar-collapsed { width: 88px !important; }
-    .sidebar-collapsed .sidebar-text { display: none !important; opacity: 0; }
-    .sidebar-collapsed .nav-item { justify-content: center; padding: 0.75rem !important; }
-    .sidebar-collapsed .nav-label { display: none; }
-    .sidebar-collapsed #sidebar-toggle { transform: rotate(180deg); margin: 0 auto; }
-    .sidebar-collapsed .sidebar-brand { display: none; }
-    .sidebar-collapsed .sidebar-bottom { padding: 1rem 0.75rem !important; }
-    .sidebar-collapsed #user-card { justify-content: center; padding: 0.5rem; background: transparent; border: none; box-shadow: none; }
-</style>`;
+    if (!document.querySelector('link[href*="Material+Symbols"]')) {
+        const fontLink = document.createElement('link');
+        fontLink.rel = 'stylesheet';
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200';
+        document.head.appendChild(fontLink);
+    }
 }
 
 // ─── Notification Popover ─────────────────────────────────────────────────────
@@ -195,7 +181,7 @@ async function initNotifications() {
     popover.innerHTML = `
         <div class="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
             <span class="font-bold text-slate-800">Notifications</span>
-            <button id="noti-clear-btn" class="text-primary hover:text-indigo-700 font-semibold bg-transparent border-none cursor-pointer">Mark all read</button>
+            <button id="noti-clear-btn" class="text-indigo-600 hover:text-indigo-700 font-semibold bg-transparent border-none cursor-pointer">Mark all read</button>
         </div>
         <div id="noti-list" class="max-h-64 overflow-y-auto divide-y divide-slate-100">
             <div class="px-4 py-3 text-center text-slate-400">Loading...</div>
@@ -258,7 +244,7 @@ async function loadNotificationList() {
             forecast: { icon: 'trending_up', color: 'text-yellow-600 bg-yellow-50' },
             info: { icon: 'info', color: 'text-slate-500 bg-slate-50' },
         };
-        const targets = { anomaly: 'anomaly.html', workflow: 'workflow.html', report: 'reports.html', forecast: 'forecast.html' };
+        const targets = { anomaly: 'anomalies.html', workflow: 'workflow.html', report: 'reports.html', forecast: 'forecast.html' };
         listEl.innerHTML = list.map(n => {
             const cfg = typeIcons[n.type] || typeIcons.info;
             const time = new Date(n.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -282,22 +268,22 @@ async function loadNotificationList() {
 
 // ─── Global Search ────────────────────────────────────────────────────────────
 function initSearch() {
-    const searchInput = document.querySelector('input[*="Search"]');
+    const searchInput = document.querySelector('input[placeholder*="Search"]');
     if (!searchInput) return;
 
     const ROUTES = [
         ['report', 'reports.html'],
-        ['anomal', 'anomaly.html'],
-        ['alert', 'anomaly.html'],
+        ['anomal', 'anomalies.html'],
+        ['alert', 'anomalies.html'],
         ['forecast', 'forecast.html'],
         ['predict', 'forecast.html'],
         ['workflow', 'workflow.html'],
-        ['upload', 'upload.html'],
-        ['dataset', 'upload.html'],
-        ['csv', 'upload.html'],
-        ['copilot', 'ai-copilot.html'],
+        ['upload', 'datasets.html'],
+        ['dataset', 'datasets.html'],
+        ['copilot', 'copilot.html'],
         ['setting', 'settings.html'],
-        ['config', 'settings.html'],
+        ['audit', 'audit.html'],
+        ['dept', 'departments.html'],
     ];
 
     searchInput.addEventListener('keydown', e => {
@@ -328,77 +314,45 @@ function initLogout() {
 }
 
 // ─── Main Init ───────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('sidebar-container');
-    if (!container) return; // Not an app page
+function initSidebar() {
+    ensureStylesheets();
+
+    let container = document.getElementById('sidebar-container');
+    if (!container) {
+        // If container doesn't exist, create it at the top of body
+        container = document.createElement('div');
+        container.id = 'sidebar-container';
+        document.body.prepend(container);
+    }
 
     // Determine active page
-    const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
-    const activePage = PAGE_ALIASES[currentPage] || currentPage;
+    let rawPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+    rawPage = rawPage.split('?')[0].split('#')[0];
+    if (!rawPage) rawPage = 'dashboard.html';
 
-    // Build and inject sidebar
-    const user = getUserInfo();
-    container.innerHTML = buildSidebar(user, activePage);
+    const activePage = PAGE_ALIASES[rawPage] || rawPage;
+
+    // Inject canonical sidebar
+    container.innerHTML = buildSidebar(activePage);
+
+    // Remove any legacy duplicate sidebars on the page
+    document.querySelectorAll('aside:not(#main-sidebar), div.sidebar:not(#main-sidebar)').forEach(el => {
+        el.remove();
+    });
 
     // Wire interactions
     initLogout();
     initSearch();
     initNotifications();
 
-    // Theme toggle setup
-    const themeBtn = document.getElementById('theme-toggle-btn');
-    const themeKnob = document.getElementById('theme-toggle-knob');
-    const themeLabel = document.getElementById('theme-toggle-label');
-    
-    if (themeBtn && themeKnob) {
-        themeBtn.addEventListener('click', () => {
-            let isLight = localStorage.getItem('theme') !== 'dark';
-            isLight = !isLight;
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            
-            if (isLight) {
-                themeBtn.classList.add('bg-[#6366F1]');
-                themeBtn.classList.remove('bg-gray-300');
-                themeKnob.classList.add('left-5');
-                themeKnob.classList.remove('left-1');
-                if(themeLabel) themeLabel.innerText = 'Light Theme';
-            } else {
-                themeBtn.classList.remove('bg-[#6366F1]');
-                themeBtn.classList.add('bg-gray-300');
-                themeKnob.classList.remove('left-5');
-                themeKnob.classList.add('left-1');
-                if(themeLabel) themeLabel.innerText = 'Dark Theme';
-            }
-            window.dispatchEvent(new Event('themeChanged'));
-        });
-    }
-
-    // Adjust main content margin since sidebar width is now 260px
-    const mainContent = document.querySelector('main');
-    if (mainContent) {
-        mainContent.classList.remove('ml-[280px]', 'ml-[240px]', 'ml-[80px]');
-        mainContent.classList.add('ml-[260px]');
-    }
-
-    // Update topbar greeting if present
-    const greetingEl = document.getElementById('greeting-text');
-    if (greetingEl) {
-        const hour = new Date().getHours();
-        const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
-        greetingEl.textContent = `Good ${part}, ${user.name}! 👋`;
-    }
-
-    // Sidebar Toggle
+    // Wire Sidebar Toggle & restore collapsed state
     const sidebar = document.getElementById('main-sidebar');
     const toggleBtn = document.getElementById('sidebar-toggle');
     const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
 
     if (isCollapsed && sidebar) {
         sidebar.classList.add('sidebar-collapsed');
-        if (mainContent) {
-            mainContent.classList.remove('ml-[260px]');
-            mainContent.classList.add('ml-[88px]');
-        }
+        document.body.classList.add('sidebar-is-collapsed');
     }
 
     if (toggleBtn && sidebar) {
@@ -406,20 +360,30 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             sidebar.classList.toggle('sidebar-collapsed');
             const collapsed = sidebar.classList.contains('sidebar-collapsed');
-            localStorage.setItem('sidebar_collapsed', collapsed);
-            
-            if (mainContent) {
-                if (collapsed) {
-                    mainContent.classList.remove('ml-[260px]');
-                    mainContent.classList.add('ml-[88px]');
-                } else {
-                    mainContent.classList.remove('ml-[88px]');
-                    mainContent.classList.add('ml-[260px]');
-                }
+            if (collapsed) {
+                document.body.classList.add('sidebar-is-collapsed');
+            } else {
+                document.body.classList.remove('sidebar-is-collapsed');
             }
+            localStorage.setItem('sidebar_collapsed', collapsed);
         });
     }
-});
+
+    // Update greeting if present on topbar
+    const user = getUserInfo();
+    const greetingEl = document.getElementById('greeting-text');
+    if (greetingEl) {
+        const hour = new Date().getHours();
+        const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+        greetingEl.textContent = `Good ${part}, ${user.name}! 👋`;
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebar);
+} else {
+    initSidebar();
+}
 
 // Expose logout globally for any inline onclick handlers
 window.appLogout = async () => {
@@ -475,5 +439,4 @@ export function showModal(title, columns, data) {
     modal.classList.remove('hidden');
 }
 
-// Make globally available for inline onclick handlers if needed
 window.showModal = showModal;

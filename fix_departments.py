@@ -1,126 +1,72 @@
+import os
 import re
 
-with open('frontend_v2/js/departments.js', 'r', encoding='utf-8') as f:
-    txt = f.read()
+file_path = r"c:\Users\HP\.gemini\antigravity-ide\scratch\P&L system\unified-pl-system\frontend_v2\departments.html"
 
-# Replace the treemap block
-pattern = r"(?s)// 1\. Department Contribution \(Treemap/Donut\) from /charts.*?</div>`;\n }"
-replacement = """// 1. Department Contribution (Horizontal Bar Chart)
- const summaryData = await api.get('/departments/summary');
- window.deptSummaryData = summaryData; // store for re-rendering
- renderDeptContributionChart();
- 
- const metricSelect = document.getElementById('dept-contrib-metric');
- const scopeSelect = document.getElementById('dept-contrib-scope');
- if (metricSelect) metricSelect.addEventListener('change', renderDeptContributionChart);
- if (scopeSelect) scopeSelect.addEventListener('change', renderDeptContributionChart);"""
-txt = re.sub(pattern, replacement, txt)
+with open(file_path, 'r', encoding='utf-8') as f:
+    content = f.read()
 
-# Remove the appended functions if they exist (to append cleanly)
-txt = re.sub(r'(?s)\n+function updateDeptTrendBadges.*?$', '', txt)
-txt = re.sub(r'(?s)\n+function renderDeptContributionChart.*?$', '', txt)
+# 1. Global Spacing & Layout
+content = content.replace('class="ml-[260px] flex-1 p-8"', 'class="ml-[260px] flex-1 px-6 py-4"')
+content = content.replace('mb-8', 'mb-4')
+content = content.replace('gap-6', 'gap-4')
 
-# Append the functions properly
-txt += """
+# 2. Page Header
+header_old_regex = r'<header class="flex items-center justify-between mb-4">\s*<div>\s*<h1 class="text-2xl font-bold text-slate-900">Department Analysis</h1>\s*<p class="text-sm text-slate-500">Analyze department-wise performance</p>\s*</div>\s*</header>'
 
-function updateDeptTrendBadges(allSeries) {
-    // Generate trend badges based on trend data
-    const badgesContainer = document.getElementById('dept-trend-badges');
-    if (!badgesContainer) return;
-    badgesContainer.innerHTML = '';
-}
+header_new = """<header class="flex items-center justify-between mb-4">
+<div>
+<h1 class="text-2xl font-bold text-slate-900">Department Analysis</h1>
+<p class="text-sm text-slate-500">Analyze financial performance by department</p>
+</div>
+<div class="flex items-center gap-3">
+    <div class="bg-white border border-slate-200 rounded px-2 py-1 flex items-center text-xs font-medium shadow-sm">
+        <select class="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-700 outline-none">
+            <option>All Departments</option>
+            <option>Finance</option>
+            <option>Sales</option>
+            <option>IT</option>
+            <option>Marketing</option>
+            <option>HR</option>
+        </select>
+    </div>
+    <div class="bg-white border border-slate-200 rounded px-3 py-1 flex items-center text-xs font-medium shadow-sm text-slate-700 cursor-pointer">
+        May 13 - May 19, 2025
+        <svg class="w-3 h-3 ml-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+    </div>
+</div>
+</header>"""
+content = re.sub(header_old_regex, header_new, content, flags=re.DOTALL)
 
-function renderDeptContributionChart() {
-    const chartDom = document.getElementById('chart-dept-contribution');
-    if (!chartDom) return;
-    
-    let data = window.deptSummaryData || [];
-    if (!data.length) {
-        chartDom.innerHTML = `<div class="flex h-full items-center justify-center text-slate-400">No Data Available</div>`;
-        return;
-    }
-    
-    const metric = document.getElementById('dept-contrib-metric')?.value || 'profit';
-    let scope = document.getElementById('dept-contrib-scope')?.value || 'all';
-    
-    // Sort descending by metric
-    data = [...data].sort((a, b) => b[metric] - a[metric]);
-    
-    // Filter scope
-    if (scope !== 'all') {
-        data = data.slice(0, parseInt(scope));
-    }
-    
-    // Reverse for ECharts horizontal bar (draws from bottom up)
-    data.reverse();
-    
-    const departments = data.map(d => d.department);
-    const values = data.map(d => d[metric]);
-    
-    const colors = {
-        profit: '#10b981', // emerald
-        revenue: '#3b82f6', // blue
-        expense: '#ef4444', // red
-        margin: '#8b5cf6'  // violet
-    };
-    
-    const myChart = initEchart(chartDom);
-    const option = {
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: { type: 'shadow' },
-            formatter: function (params) {
-                const val = params[0].value;
-                const fmt = metric === 'margin' ? val.toFixed(1) + '%' : window.formatCurrency(val);
-                return `<b>${params[0].name}</b><br/>${params[0].marker} ${metric.charAt(0).toUpperCase() + metric.slice(1)}: ${fmt}`;
-            }
-        },
-        grid: { left: '3%', right: '4%', bottom: '3%', top: '5%', containLabel: true },
-        xAxis: { 
-            type: 'value',
-            splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } },
-            axisLabel: { 
-                formatter: metric === 'margin' ? '{value}%' : (v) => formatCurrencyShort(v),
-                color: '#64748b'
-            }
-        },
-        yAxis: { 
-            type: 'category', 
-            data: departments,
-            axisLabel: { color: '#475569', fontWeight: '500' },
-            axisLine: { show: false },
-            axisTick: { show: false }
-        },
-        series: [{
-            type: 'bar',
-            data: values,
-            itemStyle: { 
-                color: colors[metric] || '#3b82f6',
-                borderRadius: [0, 4, 4, 0]
-            },
-            label: {
-                show: true,
-                position: 'right',
-                formatter: (p) => metric === 'margin' ? p.value.toFixed(1) + '%' : formatCurrencyShort(p.value),
-                color: '#64748b',
-                fontSize: 10
-            }
-        }]
-    };
-    
-    safeSetOption(myChart, option, true);
-    
-    // Update insight text
-    const insightText = document.getElementById('dept-contrib-insight-text');
-    if (insightText && data.length > 0) {
-        const topDept = data[data.length - 1]; // last one is the highest because we reversed
-        const metricName = metric === 'margin' ? 'Margin' : metric.charAt(0).toUpperCase() + metric.slice(1);
-        const fmt = metric === 'margin' ? topDept[metric].toFixed(1) + '%' : formatCurrencyShort(topDept[metric]);
-        insightText.innerHTML = `<strong>${topDept.department}</strong> leads in ${metricName} with <strong>${fmt}</strong>.`;
-    }
-}
-"""
+# 3. KPI Cards padding and icon sizes
+content = content.replace('p-6 rounded-card', 'p-4 rounded-card')
+content = content.replace('w-10 h-10', 'w-8 h-8')
+content = content.replace('w-6 h-6', 'w-4 h-4')
+content = content.replace('text-xl font-bold', 'text-lg font-bold')
 
-with open('frontend_v2/js/departments.js', 'w', encoding='utf-8') as f:
-    f.write(txt)
-print("Done")
+# 4. Main Analytics Row: Add "Profit / Rev" to Left Panel (Profit by Department)
+left_panel_header_old_regex = r'<div class="flex items-center justify-between mb-4">\s*<h4 class="font-bold text-slate-800">Profit by Department</h4>\s*<svg.*?</svg>\s*</div>'
+left_panel_header_new = """<div class="flex items-center justify-between mb-4">
+<h4 class="font-bold text-slate-800 text-sm">Profit by Department</h4>
+<div class="flex items-center border border-slate-200 rounded text-[10px] font-medium overflow-hidden">
+    <button class="px-2 py-0.5 bg-slate-100 text-slate-800 border-r border-slate-200">Profit</button>
+    <button class="px-2 py-0.5 text-slate-500 hover:bg-slate-50">Rev</button>
+</div>
+</div>"""
+content = re.sub(left_panel_header_old_regex, left_panel_header_new, content, flags=re.DOTALL)
+
+# Right Panel (Department Trend) header font size
+content = content.replace('<h4 class="font-bold text-slate-800">Department Trend (Profit)</h4>', '<h4 class="font-bold text-slate-800 text-sm">Department Trend (Profit)</h4>')
+
+# 5. Bottom Section
+content = content.replace('py-4', 'py-2')
+content = content.replace('pb-4', 'pb-2')
+content = content.replace('<h4 class="font-bold text-slate-800">Department Summary Table</h4>', '<h4 class="font-bold text-slate-800 text-sm">Department Summary Table</h4>')
+content = content.replace('<h4 class="font-bold text-slate-800 mb-4">Top Performers</h4>', '<h4 class="font-bold text-slate-800 text-sm mb-4">Top Performers</h4>')
+content = content.replace('<h4 class="font-bold text-slate-800 mb-6">Top Performers</h4>', '<h4 class="font-bold text-slate-800 text-sm mb-4">Top Performers</h4>')
+
+# Write back
+with open(file_path, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("Modifications applied successfully.")

@@ -7,14 +7,14 @@ from models.anomaly import Anomaly
 from models.pl_record import PLRecord
 from models.recommendation import Recommendation
 
-logger = logging.getLogger(__name__)
-
-try:
-    import google.generativeai as genai
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-except ImportError:
-    genai = None
-    logger.warning("google.generativeai is not installed. AI recommendations will fallback to manual review.")
+def _get_genai_model():
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        return genai.GenerativeModel("gemini-2.5-flash")
+    except Exception as e:
+        logger.warning(f"AI model initialization failed or not installed: {e}")
+        return None
 
 def generate_recommendations(db: Session, anomaly_id: int):
     anomaly = db.query(Anomaly).filter(Anomaly.id == anomaly_id).first()
@@ -71,21 +71,22 @@ def generate_recommendations(db: Session, anomaly_id: int):
     recommendations_data = []
     
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content(prompt)
-        text = response.text.strip()
-        # Clean up markdown if present
-        if text.startswith("```json"):
-            text = text[7:]
-        if text.startswith("```"):
-            text = text[3:]
-        if text.endswith("```"):
-            text = text[:-3]
-        
-        recommendations_data = json.loads(text.strip())
-        
-        if not isinstance(recommendations_data, list):
-            recommendations_data = [recommendations_data]
+        model = _get_genai_model()
+        if model:
+            response = model.generate_content(prompt)
+            text = response.text.strip()
+            # Clean up markdown if present
+            if text.startswith("```json"):
+                text = text[7:]
+            if text.startswith("```"):
+                text = text[3:]
+            if text.endswith("```"):
+                text = text[:-3]
+            
+            recommendations_data = json.loads(text.strip())
+            
+            if not isinstance(recommendations_data, list):
+                recommendations_data = [recommendations_data]
             
     except Exception as e:
         logger.error(f"Error generating AI recommendations: {e}")

@@ -1,0 +1,34 @@
+=== 1. VERIFYING DATABASE RECORDS ===
+Total PL Records: 1800 (Expected: 1800)
+Total Anomalies: 95 (Expected: 95)
+High Severity Anomalies: 5 (Expected: 5)
+
+=== 2. GENERATING AUTH TOKEN ===
+Auth token created.
+
+=== 3. TESTING /api/v1/pl/kpis ===
+Status: 404
+KPI Response: {
+  "detail": "Not Found"
+}
+
+Calculated KPI Values:
+Total Revenue: ₹0.00  -->  ₹0.00 Cr (Target: ₹27.80 Cr / ₹277,988,276.87)
+Total Expense: ₹0.00  -->  ₹0.00 Cr (Target: ₹19.81 Cr / ₹198,066,136.85)
+Net Profit:    ₹0.00  -->  ₹0.00 Cr (Target: ₹7.99 Cr / ₹79,922,140.02)
+
+=== 4. TESTING /api/v1/pl/departments ===
+Status: 200
+Departments Count: 1 (Expected: 12)
+Department names: {'departments': ['Administration', 'Customer Support', 'Finance', 'Human Resources', 'IT', 'Legal', 'Logistics', 'Marketing', 'Operations', 'Procurement', 'R&D', 'Sales']}
+
+=== 5. TESTING /api/v1/anomalies ===
+Status: 200
+Anomalies returned: 95
+
+=== 6. TESTING /api/v1/datasets/active ===
+Status: 200
+Active Dataset: {
+  "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+  "filename": "unified_pnl_enterprise_demo.xlsx"
+}

@@ -106,94 +106,10 @@ animation: grow 1.5s ease-out forwards;
 to { width: 65%; }
 }
 </style>
+    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 <body class="bg-page-bg">
-<!-- BEGIN: Sidebar -->
-<aside class="sidebar bg-white border-r border-border-light flex flex-col p-4">
-<div class="mb-8 px-2">
-<h1 class="text-sm font-bold flex items-center gap-2">
-<span class="w-6 h-6 bg-primary-blue rounded flex items-center justify-center text-white"><i
-class="w-4 h-4" data-lucide="layers"></i></span>
-Unified P&amp;L
-</h1>
-<p class="text-[10px] text-text-secondary mt-1">AI Governance System</p>
-</div>
-<nav class="flex-1 space-y-1">
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="layout-dashboard"></i> Dashboard
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="building-2"></i> Departments
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="upload-cloud"></i> Upload / Datasets
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="trending-up"></i> Forecast
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="alert-triangle"></i> Anomaly Detection
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="sparkles"></i> AI Copilot
-</a>
-<a class="flex items-center gap-3 px-3 py-2 bg-indigo-50 text-primary-blue font-semibold
-rounded-lg text-xs" href="#">
-<i class="w-4 h-4" data-lucide="git-branch"></i> Workflow
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="file-text"></i> Reports
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="history"></i> Audit Trail
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-text-secondary hover:bg-gray-50 rounded-lg
-text-xs" href="#">
-<i class="w-4 h-4" data-lucide="settings"></i> Settings
-</a>
-</nav>
-<div class="mt-auto space-y-4 pt-4 border-t border-border-light">
-<div class="px-2">
-<p class="text-[10px] text-text-secondary uppercase mb-2">Company</p>
-<div class="flex items-center justify-between p-2 border border-border-light rounded-lg text-
-[11px] font-medium">
-TechNova Solutions Pvt. Ltd.
-<i class="w-3 h-3" data-lucide="chevron-down"></i>
-</div>
-</div>
-<div class="flex items-center gap-3 px-2">
-<img alt="Avatar" class="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/aida-
-public/AB6AXuDeivCIZyisK9tf8yQWH2EYr1zg44V-20fq1qjCKf4yTTn0V73U1r-
-87a67bIngQ2YcRWMYBCdykFlDWduSeo3dA5_m9QMf_PDGAQGbfpcG1efjBB8MH7Idtumsda
-mNzX4oyITO28w4oF2hywct_c5qnZ13CHiyUc7JHFTfJYs2oTu62_I1paHRutMGP0LBpd1Sxlv_P
-GMo8mS2-
-5oHnUdThrdSJdSGqG3npEJbvnoyLOMTHnmlsqaanX2Nwjk3UMkDBaDP5Zfdomfs"/>
-<div>
-<p class="text-[11px] font-bold">Rutvik Wankhede</p>
-<p class="text-[10px] text-text-secondary">Finance Manager</p>
-<div class="flex items-center gap-1 text-[9px] text-success-green">
-<span class="w-1.5 h-1.5 bg-success-green rounded-full"></span> Online
-</div>
-</div>
-</div>
-<div class="px-2 flex items-center justify-between text-[11px] text-text-secondary">
-<div class="flex items-center gap-2"><i class="w-4 h-4" data-lucide="sun"></i> Light
-Theme</div>
-<div class="w-8 h-4 bg-primary-blue rounded-full relative">
-<div class="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-</div>
-</div>
-</div>
-</aside>
-<!-- END: Sidebar -->
+<div id="sidebar-container"></div>
 <main class="main-content min-h-screen">
 <!-- BEGIN: Top Bar -->
 <header class="sticky-header bg-white/80 backdrop-blur-md border-b border-border-light px-8
@@ -854,4 +770,5 @@ document.addEventListener('DOMContentLoaded', () => {
 lucide.createIcons();
 });
 </script>
+    <script type="module" src="js/shell.js"></script>
 </body></html>

@@ -49,11 +49,11 @@ def get_active_dataset(db: Session = Depends(get_db)):
                     uf = db.query(UploadedFile).filter(UploadedFile.upload_id == latest.upload_id).first()
                     _active_dataset["filename"] = uf.filename if uf else "Uploaded Financial Dataset"
                 else:
-                    _active_dataset["dataset_id"] = "DEMO-DATASET"
-                    _active_dataset["filename"] = "unified_pnl_enterprise_demo.csv"
+                    _active_dataset["dataset_id"] = "899540e5-fa49-49e8-b87a-6965b44fd71f"
+                    _active_dataset["filename"] = "unified_pnl_enterprise_demo.xlsx"
         except Exception:
-            _active_dataset["dataset_id"] = "DEMO-DATASET"
-            _active_dataset["filename"] = "unified_pnl_enterprise_demo.csv"
+            _active_dataset["dataset_id"] = "899540e5-fa49-49e8-b87a-6965b44fd71f"
+            _active_dataset["filename"] = "unified_pnl_enterprise_demo.xlsx"
     return _active_dataset
 
 

@@ -60,43 +60,31 @@ async def lifespan(app: FastAPI):
             except Exception as tbl_err:
                 logger.error(f"[Startup] Step 1/3 — DB table creation failed: {tbl_err}. Continuing anyway.")
 
-            # ── Step 2: Warm P&L summary cache ────────────────────────────
-            logger.info("[Startup] Step 2/3 — Warming P&L summary cache...")
-            try:
-                db = SessionLocal()
-                from routers.pl_router import get_pl_summary
-                await get_pl_summary(db=db, current_user=None)
-                logger.info("[Startup] Step 2/3 — P&L summary cache warmed.")
-            except Exception as cache_err:
-                logger.warning(f"[Startup] Step 2/3 — P&L summary warmup failed: {cache_err}. Skipping.")
-            finally:
+            # Warm caches in a non-blocking background task so Uvicorn can immediately bind port 8000 and serve requests
+            async def _warmup_background():
+                logger.info("[Startup] Background — Warming P&L summary & forecast cache...")
                 try:
-                    db.close()
-                except Exception:
-                    pass
+                    db = SessionLocal()
+                    from routers.pl_router import get_pl_summary, get_domain_forecast
+                    try:
+                        await get_pl_summary(db=db, current_user=None)
+                        logger.info("[Startup] P&L summary cache warmed.")
+                    except Exception as e:
+                        logger.warning(f"[Startup] P&L summary warmup non-fatal: {e}")
+                    try:
+                        await asyncio.to_thread(get_domain_forecast, domain="Overall", db=db, current_user=None)
+                        logger.info("[Startup] Forecast cache warmed.")
+                    except Exception as e:
+                        logger.warning(f"[Startup] Forecast warmup non-fatal: {e}")
+                except Exception as e:
+                    logger.warning(f"[Startup] Warmup background task error: {e}")
+                finally:
+                    try:
+                        db.close()
+                    except Exception:
+                        pass
 
-            # ── Step 3: Warm forecast cache ────────────────────────────────
-            logger.info("[Startup] Step 3/3 — Warming forecast cache...")
-            try:
-                db = SessionLocal()
-                from routers.pl_router import get_domain_forecast
-                await asyncio.to_thread(get_domain_forecast, domain="Overall", db=db, current_user=None)
-                logger.info("[Startup] Step 3/3 — Forecast cache warmed.")
-            except Exception as fc_err:
-                logger.warning(f"[Startup] Step 3/3 — Forecast warmup failed: {fc_err}. Skipping.")
-            finally:
-                try:
-                    db.close()
-                except Exception:
-                    pass
-
-            # Release all startup DB connections before serving traffic
-            try:
-                engine.dispose()
-            except Exception:
-                pass
-
-            logger.info("Successfully warmed P&L summary and forecast caches.")
+            asyncio.create_task(_warmup_background())
 
     except Exception as e:
         logger.error(f"Startup initialization failed: {e}")

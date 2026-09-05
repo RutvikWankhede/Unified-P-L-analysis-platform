@@ -1,474 +1,319 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Department Analysis - Unified P&amp;L</title>
-<!-- Tailwind CSS CDN with plugins -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google Fonts for typography -->
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swa
-p" rel="stylesheet"/>
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-primary: '#5B5CEB',
-'bg-light': '#F8FAFC',
-'card-border': '#E2E8F0',
-'success': '#10B981',
-'danger': '#EF4444',
-'sidebar-text': '#64748B'
-},
-fontFamily: {
-sans: ['Inter', 'sans-serif'],
-},
-borderRadius: {
-'card': '20px',
-}
-}
-}
-}
-</script>
-<style data-purpose="custom-layout">
-body {
-background-color: #F3F4F6;
-}
-.sidebar-width {
-width: 260px;
-}
-.custom-shadow {
-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-}
-/* Custom Scrollbar for the table */
-.table-container::-webkit-scrollbar {
-height: 4px;
-}
-.table-container::-webkit-scrollbar-thumb {
-background: #CBD5E1;
-border-radius: 10px;
-}
-</style>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Department Analysis - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#E2E8F0',
+            success: '#10B981',
+            danger: '#EF4444',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'card': '16px',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 16px;
+      padding: 16px 20px;
+    }
+    .content-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 16px;
+      padding: 20px;
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body class="font-sans text-slate-800">
-<div class="flex min-h-screen">
-<!-- BEGIN: Sidebar -->
-<aside class="sidebar-width bg-white border-r border-slate-200 flex flex-col fixed h-full z-10">
-<div class="p-6 flex items-center gap-3">
-<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-<svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20"
-xmlns="http://www.w3.org/2000/svg">
-<path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008
-8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" fill-rule="evenodd"></path>
-</svg>
-</div>
-<div>
-<h1 class="text-sm font-bold leading-tight">Unified P&amp;L</h1>
-<p class="text-[10px] text-slate-400">AI Ecommerce System</p>
-</div>
-</div>
-<nav class="flex-1 px-4 py-2 space-y-1">
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
-6h16M4 12h16m-7 6h7" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-Dashboard
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-primary font-semibold bg-indigo-50
-rounded-lg" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19
-11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-
-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path></svg>
-Departments
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
-16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path></svg>
-Upload / Datasets
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M7 12l3-
-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" stroke-
-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-Forecast
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
-9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-
-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"
-stroke-width="2"></path></svg>
-Anomalies
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9.663
-17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828
-9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-
-1.754-.988-2.386l-.548-.547z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-AI Copilot
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
-4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-
-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-Workflow
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
-1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-Reports
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2
-4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0
-003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-
-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-Audit
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-text rounded-lg hover:bg-slate-
-50" href="#">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325
-4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37
-2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066
-2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-
-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-
-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-
-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg>
-Settings
-</a>
-</nav>
-<div class="p-4 border-t border-slate-100">
-<!-- Company Selector -->
-<div class="mb-4 p-2 bg-slate-50 rounded-lg border border-slate-200">
-<div class="flex items-center justify-between">
-<div>
-<p class="text-[10px] text-slate-400">Company</p>
-<p class="text-[11px] font-semibold truncate">TechWave Solutions Pvt. Ltd.</p>
-</div>
-<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7
-7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-</div>
-<!-- User Profile Card -->
-<div class="flex items-center gap-3 p-2">
-<img alt="Rutvik Wankhede" class="w-10 h-10 rounded-full bg-slate-200"
-src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-nTep-M3IaoqwGeq4svdjsO37Go-
-XQGE1h9SgaOS18hDX9XJs3GkJpjR5v27sPsnyWogkZkD460ezdhqmTcddwQa35jChIIhoome4
-CCj2Y3TnQTp5UydYJN7Or_PK61XiypFpFhLN1QTMu9WS88niN8XtyhTU9qlu_0El5c7v0E4Fm
-9MjC8MWvHGdQKl_nuj9X3dmIorg-iCVHRVMybBx0JsW7Q9dJMUITREPQNKFAt1Z8oSejPad-
-iW7jEYuKHuWhxN2b6k0Jktj"/>
-<div class="overflow-hidden">
-<h4 class="text-xs font-bold truncate">Rutvik Wankhede</h4>
-<p class="text-[10px] text-slate-400 truncate">Finance Manager</p>
-<span class="flex items-center gap-1 text-[8px] text-success font-bold mt-0.5">
-<span class="w-1 h-1 bg-success rounded-full"></span> Online
-</span>
-</div>
-</div>
-</div>
-</aside>
-<!-- END: Sidebar -->
-<!-- Main Content Wrapper -->
-<main class="ml-[260px] flex-1 p-8">
-<!-- BEGIN: Top Navigation & Header -->
-<header class="flex items-center justify-between mb-8">
-<div>
-<h1 class="text-2xl font-bold text-slate-900">Department Analysis</h1>
-<p class="text-sm text-slate-500">Analyze department-wise performance</p>
-</div>
-</header>
-<!-- END: Top Navigation & Header -->
-<!-- BEGIN: KPI Cards Row -->
-<section class="grid grid-cols-4 gap-6 mb-8">
-<!-- Revenue Card -->
-<div class="bg-white p-6 rounded-card border border-card-border custom-shadow">
-<div class="flex items-center gap-4 mb-4">
-<div class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-<svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599
-1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs text-slate-400">Total Revenue</p>
-<h3 class="text-xl font-bold">₹5.32 Cr</h3>
-</div>
-</div>
-<div class="flex items-center text-xs text-success font-semibold">
-<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5
-10l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span>12.8%</span>
-</div>
-</div>
-<!-- Expense Card -->
-<div class="bg-white p-6 rounded-card border border-card-border custom-shadow">
-<div class="flex items-center gap-4 mb-4">
-<div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs text-slate-400">Total Expense</p>
-<h3 class="text-xl font-bold">₹3.11 Cr</h3>
-</div>
-</div>
-<div class="flex items-center text-xs text-danger font-semibold">
-<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19
-14l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span>8.3%</span>
-</div>
-</div>
-<!-- Net Profit Card -->
-<div class="bg-white p-6 rounded-card border border-card-border custom-shadow">
-<div class="flex items-center gap-4 mb-4">
-<div class="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
-<svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs text-slate-400">Net Profit</p>
-<h3 class="text-xl font-bold">₹2.21 Cr</h3>
-</div>
-</div>
-<div class="flex items-center text-xs text-success font-semibold">
-<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5
-10l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span>16.7%</span>
-</div>
-</div>
-<!-- Margin Card -->
-<div class="bg-white p-6 rounded-card border border-card-border custom-shadow">
-<div class="flex items-center gap-4 mb-4">
-<div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-
-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2
-2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs text-slate-400">Avg. Profit Margin</p>
-<h3 class="text-xl font-bold">41.5%</h3>
-</div>
-</div>
-<div class="flex items-center text-xs text-success font-semibold">
-<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5
-10l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span>4.2%</span>
-</div>
-</div>
-</section>
-<!-- END: KPI Cards Row -->
-<!-- BEGIN: Middle Section Charts -->
-<section class="grid grid-cols-12 gap-6 mb-8">
-<!-- Profit by Department Bar Chart -->
-<div class="col-span-5 bg-white p-6 rounded-card border border-card-border custom-shadow">
-<div class="flex items-center justify-between mb-6">
-<h4 class="font-bold text-slate-800">Profit by Department</h4>
-<svg class="w-4 h-4 text-slate-400 cursor-pointer" fill="none" stroke="currentColor" viewbox="0
-0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1
-0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<div class="space-y-4">
-<!-- Finance -->
-<div>
-<div class="flex justify-between text-[11px] font-medium mb-1.5">
-<span class="text-slate-600">Finance</span>
-<div>
-<span class="text-slate-900 mr-2">₹1.52 Cr</span>
-<span class="text-slate-400">48.7%</span>
-</div>
-</div>
-<div class="w-full bg-slate-100 rounded-full h-2">
-<div class="bg-blue-500 h-2 rounded-full" style="width: 75%"></div>
-</div>
-</div>
-<!-- Sales -->
-<div>
-<div class="flex justify-between text-[11px] font-medium mb-1.5">
-<span class="text-slate-600">Sales</span>
-<div>
-<span class="text-slate-900 mr-2">₹1.28 Cr</span>
-<span class="text-slate-400">49.2%</span>
-</div>
-</div>
-<div class="w-full bg-slate-100 rounded-full h-2">
-<div class="bg-emerald-400 h-2 rounded-full" style="width: 65%"></div>
-</div>
-</div>
-<!-- IT -->
-<div>
-<div class="flex justify-between text-[11px] font-medium mb-1.5">
-<span class="text-slate-600">IT</span>
-<div>
-<span class="text-slate-900 mr-2">₹0.96 Cr</span>
-<span class="text-slate-400">35.8%</span>
-</div>
-</div>
-<div class="w-full bg-slate-100 rounded-full h-2">
-<div class="bg-orange-400 h-2 rounded-full" style="width: 50%"></div>
-</div>
-</div>
-<!-- Marketing -->
-<div>
-<div class="flex justify-between text-[11px] font-medium mb-1.5">
-<span class="text-slate-600">Marketing</span>
-<div>
-<span class="text-slate-900 mr-2">₹1.75 Cr</span>
-<span class="text-slate-400">38.5%</span>
-</div>
-</div>
-<div class="w-full bg-slate-100 rounded-full h-2">
-<div class="bg-pink-500 h-2 rounded-full" style="width: 85%"></div>
-</div>
-</div>
-<!-- HR -->
-<div>
-<div class="flex justify-between text-[11px] font-medium mb-1.5">
-<span class="text-slate-600">HR</span>
-<div>
-<span class="text-slate-900 mr-2">₹0.28 Cr</span>
-<span class="text-slate-400">45.3%</span>
-</div>
-</div>
-<div class="w-full bg-slate-100 rounded-full h-2">
-<div class="bg-violet-500 h-2 rounded-full" style="width: 30%"></div>
-</div>
-</div>
-</div>
-<button class="w-full mt-6 text-xs text-primary font-bold flex items-center justify-center gap-1">
-View Details <svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24
-24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round"
-stroke-width="2"></path></svg>
-</button>
-</div>
-<!-- Department Trend Multi-Series Spline Chart -->
-<div class="col-span-7 bg-white p-6 rounded-card border border-card-border custom-shadow">
-<div class="flex items-center justify-between mb-4">
-<h4 class="font-bold text-slate-800">Department Trend (Profit)</h4>
-<div class="flex items-center gap-3">
-<div id="dept-trend-badges" class="flex flex-wrap gap-2 text-[10px] font-semibold"></div>
-<select id="dept-trend-agg" class="bg-slate-50 border border-slate-200 rounded px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-primary">
-<option value="monthly">Monthly</option>
-<option value="quarterly">Quarterly</option>
-<option value="yearly">Yearly</option>
-</select>
-</div>
-</div>
-<div class="relative h-[240px] w-full">
-<div id="dept-trend-chart" style="width:100%;height:240px;"></div>
-</div>
-</div>
-</section>
-<!-- END: Middle Section Charts -->
-<!-- BEGIN: Bottom Section - Table and Rankings -->
-<section class="grid grid-cols-12 gap-6">
-<!-- Department Summary Table -->
-<div class="col-span-9 bg-white p-6 rounded-card border border-card-border custom-shadow
-overflow-hidden">
-<div class="flex items-center justify-between mb-6">
-<h4 class="font-bold text-slate-800">Department Summary Table</h4>
-</div>
-<div class="table-container overflow-x-auto">
-<table class="w-full text-left">
-<thead>
-<tr class="border-b border-slate-100 text-[11px] text-slate-400 uppercase tracking-wider font-
-semibold">
-<th class="pb-4">Department</th>
-<th class="pb-4">Revenue</th>
-<th class="pb-4">Expense</th>
-<th class="pb-4">Profit</th>
-<th class="pb-4">Margin</th>
-<th class="pb-4">Δ vs Last Month</th>
-</tr>
-</thead>
-<tbody class="text-sm font-medium">
-<tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
-<td class="py-4 flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-blue-500"></span> Finance
-</td>
-<td class="py-4">₹1.52 Cr</td>
-<td class="py-4">₹0.78 Cr</td>
-<td class="py-4">₹0.74 Cr</td>
-<td class="py-4 text-slate-500">48.7%</td>
-<td class="py-4">
-<span class="flex items-center gap-1 text-success text-xs font-bold">
-<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 10l7-
-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-12.8%
-</span>
-</td>
-</tr>
-<tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
-<td class="py-4 flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Sales
-</td>
-<td class="py-4">₹1.28 Cr</td>
-<td class="py-4">₹0.65 Cr</td>
-<td class="py-4">₹0.63 Cr</td>
-<td class="py-4 text-slate-500">49.2%</td>
-<td class="py-4">
-<span class="flex items-center gap-1 text-success text-xs font-bold">
-<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 10l7-
-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-8.2%
-</span>
-</td>
-</tr>
-<tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
-<td class="py-4 flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-orange-400"></span> IT
-</td>
-<td class="py-4">₹0.96 Cr</td>
-<td class="py-4">₹0.52 Cr</td>
-<td class="py-4">₹0.44 Cr</td>
-<td class="py-4 text-slate-500">45.8%</td>
-<td class="py-4">
-<span class="flex items-center gap-1 text-success text-xs font-bold">
-<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 10l7-
-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-6.1%
-</span>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<!-- Top Performers Ranking -->
-<div class="col-span-3 bg-white p-6 rounded-card border border-card-border custom-shadow">
-<h4 class="font-bold text-slate-800 mb-6">Top Performers</h4>
-<div id="top-performers-list" class="space-y-6">
-    <!-- Populated dynamically by departments_wiring.js -->
-    <div class="flex items-center justify-center h-20">
-        <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-    </div>
-</div>
-</div>
-</section>
-<!-- END: Bottom Section -->
-</main>
-</div>
-<!-- ECharts and Wiring -->
-<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-<script type="module" src="js/departments_wiring.js"></script>
-</body></html>
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
+
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] min-h-screen p-8">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Department Analysis</h1>
+        <p class="text-xs text-slate-500 mt-0.5">Analyze department-wise performance</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <select id="dept-filter-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer shadow-sm">
+            <option value="all">All Departments</option>
+            <option value="Sales">Sales</option>
+            <option value="Operations">Operations</option>
+            <option value="Finance">Finance</option>
+            <option value="HR">HR</option>
+            <option value="IT">IT</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
+          <span class="material-symbols-outlined text-sm text-slate-400">calendar_today</span>
+          <span id="date-range-display">May 13 - May 18, 2025</span>
+          <span class="material-symbols-outlined text-sm text-slate-400">expand_more</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI Row (4 Cards) -->
+    <section class="grid grid-cols-4 gap-5 mb-6">
+      <!-- Total Revenue -->
+      <div class="kpi-card custom-shadow flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+            ₹
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Total Revenue</p>
+            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-revenue">₹27,80,Cr</h3>
+            <div class="flex items-center gap-1 text-xs text-emerald-600 font-semibold mt-0.5" id="kpi-revenue-trend">
+              <span>▲</span>
+              <span>+15.2%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Expense -->
+      <div class="kpi-card custom-shadow flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 font-bold text-lg">
+            ₹
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Total Expense</p>
+            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-expense">₹8,81,Cr</h3>
+            <div class="flex items-center gap-1 text-xs text-rose-500 font-semibold mt-0.5" id="kpi-expense-trend">
+              <span>▲</span>
+              <span>+8.9%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Net Profit -->
+      <div class="kpi-card custom-shadow flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <span class="material-symbols-outlined text-xl">bar_chart</span>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Net Profit</p>
+            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-profit">₹7,98,Cr</h3>
+            <div class="flex items-center gap-1 text-xs text-emerald-600 font-semibold mt-0.5" id="kpi-profit-trend">
+              <span>▲</span>
+              <span>+6.2%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Employees -->
+      <div class="kpi-card custom-shadow flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+            <span class="material-symbols-outlined text-xl">group</span>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Active Employees</p>
+            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-employees">2.2 K+</h3>
+            <div class="flex items-center gap-1 text-xs text-emerald-600 font-semibold mt-0.5" id="kpi-employees-trend">
+              <span>▲</span>
+              <span>+4.3%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Charts Row (2 Columns) -->
+    <section class="grid grid-cols-2 gap-5 mb-6">
+      <!-- Profit by Department -->
+      <div class="content-card custom-shadow flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-bold text-slate-900 text-sm">Profit by Department</h4>
+            <button class="text-slate-400 hover:text-slate-600">
+              <span class="material-symbols-outlined text-base">more_vert</span>
+            </button>
+          </div>
+
+          <!-- Profit / Cost Toggle -->
+          <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg w-fit mb-2">
+            <button id="toggle-metric-profit" class="px-3 py-1 text-xs font-semibold rounded-md bg-white text-slate-800 shadow-sm transition-all">Profit</button>
+            <button id="toggle-metric-cost" class="px-3 py-1 text-xs font-medium rounded-md text-slate-500 hover:text-slate-800 transition-all">Cost</button>
+          </div>
+
+          <!-- Horizontal Bar Chart -->
+          <div id="chart-profit-by-dept" class="w-full h-56"></div>
+        </div>
+
+        <!-- Insight Footer -->
+        <div class="flex items-center gap-2 pt-3 border-t border-slate-100 text-xs text-slate-700">
+          <span class="material-symbols-outlined text-amber-500 text-base">lightbulb</span>
+          <span id="dept-profit-insight">Sales has the highest profit (128.3 Cr) while HR shows lowest profit (45.2 Cr).</span>
+        </div>
+      </div>
+
+      <!-- Department Trend (Profit) -->
+      <div class="content-card custom-shadow flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-1.5">
+            <h4 class="font-bold text-slate-900 text-sm">Department Trend</h4>
+            <span class="text-xs text-slate-400 font-normal">(Profit)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Filter Chips / Legend -->
+            <div class="flex items-center gap-1.5" id="trend-legend-chips">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Sales
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Operations
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-600 border border-amber-100">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Finance
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-500 border border-rose-100">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> HR
+              </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-600 border border-purple-100">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span> IT
+              </span>
+            </div>
+            <button class="text-slate-400 hover:text-slate-600 ml-1">
+              <span class="material-symbols-outlined text-base">more_vert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Multi-line Trend Chart -->
+        <div id="chart-dept-trend" class="w-full h-64 mt-1"></div>
+      </div>
+    </section>
+
+    <!-- Bottom Row (Summary Table & Top Performers) -->
+    <section class="grid grid-cols-12 gap-5">
+      <!-- Department Summary Table (Large Left ~75%) -->
+      <div class="col-span-9 content-card custom-shadow">
+        <h4 class="font-bold text-slate-900 text-sm mb-4">Department Summary Table</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="py-3 px-4 font-semibold">DEPARTMENT</th>
+                <th class="py-3 px-4 font-semibold">REVENUE</th>
+                <th class="py-3 px-4 font-semibold">EXPENSE</th>
+                <th class="py-3 px-4 font-semibold">PROFIT</th>
+                <th class="py-3 px-4 font-semibold">MARGIN</th>
+                <th class="py-3 px-4 font-semibold">VS LAST WEEK</th>
+              </tr>
+            </thead>
+            <tbody id="dept-summary-tbody" class="divide-y divide-slate-50 text-xs">
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-3.5 px-4 font-medium text-slate-800 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Finance
+                </td>
+                <td class="py-3.5 px-4 font-semibold text-slate-700">₹12,4 Cr</td>
+                <td class="py-3.5 px-4 text-slate-600">₹7,8 Cr</td>
+                <td class="py-3.5 px-4 font-semibold text-slate-800">₹4,6 Cr</td>
+                <td class="py-3.5 px-4 text-slate-600">48.2%</td>
+                <td class="py-3.5 px-4 font-semibold text-emerald-600">+6.4%</td>
+              </tr>
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-3.5 px-4 font-medium text-slate-800 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-500"></span> Sales
+                </td>
+                <td class="py-3.5 px-4 font-semibold text-slate-700">₹18,6 Cr</td>
+                <td class="py-3.5 px-4 text-slate-600">₹9,2 Cr</td>
+                <td class="py-3.5 px-4 font-semibold text-slate-800">₹9,4 Cr</td>
+                <td class="py-3.5 px-4 text-slate-600">50.1%</td>
+                <td class="py-3.5 px-4 font-semibold text-emerald-600">+8.1%</td>
+              </tr>
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="py-3.5 px-4 font-medium text-slate-800 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span> IT
+                </td>
+                <td class="py-3.5 px-4 font-semibold text-slate-700">₹8,2 Cr</td>
+                <td class="py-3.5 px-4 text-slate-600">₹4,9 Cr</td>
+                <td class="py-3.5 px-4 font-semibold text-slate-800">₹3,3 Cr</td>
+                <td class="py-3.5 px-4 text-slate-600">40.1%</td>
+                <td class="py-3.5 px-4 font-semibold text-emerald-600">+5.7%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Performers (Right ~25%) -->
+      <div class="col-span-3 content-card custom-shadow flex flex-col justify-between">
+        <h4 class="font-bold text-slate-900 text-sm mb-4">Top Performers</h4>
+        <div class="space-y-4 flex-1 flex flex-col justify-around" id="top-performers-container">
+          <!-- Rank 1 -->
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
+              1
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">Sales</p>
+              <p class="text-[11px] text-slate-500 font-medium">₹9,4 Cr</p>
+            </div>
+          </div>
+
+          <!-- Rank 2 -->
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
+              2
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">Operations</p>
+              <p class="text-[11px] text-slate-500 font-medium">₹7,8 Cr</p>
+            </div>
+          </div>
+
+          <!-- Rank 3 -->
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm">
+              3
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">Finance</p>
+              <p class="text-[11px] text-slate-500 font-medium">₹4,6 Cr</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/departments_wiring.js"></script>
+  <script type="module" src="js/shell.js"></script>
+</body>
+</html>

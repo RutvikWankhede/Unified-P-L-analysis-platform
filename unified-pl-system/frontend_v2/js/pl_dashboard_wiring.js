@@ -48,7 +48,7 @@ function drawRevenueExpenseChart(periods, revData, expData, profData) {
     if (!chartDiv) {
         chartDiv = document.createElement('div');
         chartDiv.id = 'chart-revenue-expense-ec';
-        chartDiv.style.cssText = 'width:100%;height:256px;';
+        chartDiv.style.cssText = 'position:absolute; inset:0; width:100%; height:100%;';
         parent.insertBefore(chartDiv, parent.firstChild);
     }
     
@@ -58,17 +58,17 @@ function drawRevenueExpenseChart(periods, revData, expData, profData) {
     revExpChartInstance = window.echarts.init(chartDiv);
     
     const series = [];
-    if (revData?.length) series.push({ name: 'Revenue', type: 'line', smooth: true, data: revData, itemStyle: { color: '#5b5ceb' }, areaStyle: { opacity: 0.05 } });
-    if (expData?.length) series.push({ name: 'Expense', type: 'line', smooth: true, data: expData, itemStyle: { color: '#ef4444' }, areaStyle: { opacity: 0.05 } });
-    if (profData?.length) series.push({ name: 'Net Profit', type: 'line', smooth: true, data: profData, itemStyle: { color: '#10b981' }, areaStyle: { opacity: 0.05 } });
+    if (revData?.length) series.push({ name: 'Revenue', type: 'line', smooth: true, lineStyle: { width: 3 }, data: revData, itemStyle: { color: '#5b5ceb' }, areaStyle: { opacity: 0.05 } });
+    if (expData?.length) series.push({ name: 'Expense', type: 'line', smooth: true, lineStyle: { width: 3 }, data: expData, itemStyle: { color: '#ef4444' }, areaStyle: { opacity: 0.05 } });
+    if (profData?.length) series.push({ name: 'Net Profit', type: 'line', smooth: true, lineStyle: { width: 3 }, data: profData, itemStyle: { color: '#10b981' }, areaStyle: { opacity: 0.05 } });
     
     if (!series.length) return;
     revExpChartInstance.setOption({
         tooltip: { trigger: 'axis' },
-        legend: { top: 0, icon: 'circle' },
-        grid: { left: '2%', right: '2%', bottom: '5%', top: '30px', containLabel: true },
-        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10 } },
-        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, scale: true },
+        legend: { top: 0, icon: 'circle', itemGap: 16 },
+        grid: { left: '2%', right: '2%', bottom: '5%', top: '25px', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10, rotate: 45, interval: 'auto' } },
+        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, scale: true, splitLine: { lineStyle: { type: 'dashed' } } },
         series
     });
 }
@@ -108,13 +108,13 @@ async function loadCashFlowTrend() {
             }
         },
         legend: { top: 0, icon: 'circle' },
-        grid: { left: '3%', right: '4%', bottom: '5%', containLabel: true },
-        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10 } },
-        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 } },
+        grid: { left: '2%', right: '4%', bottom: '5%', top: '15px', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: periods, axisLabel: { fontSize: 10, rotate: 45, interval: 'auto' } },
+        yAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, splitLine: { lineStyle: { type: 'dashed' } } },
         series: [{
             name: mode === 'estimated' ? 'Estimated Cash Flow' : 'Net Cash Flow',
             type: 'line',
-            smooth: true,
+            smooth: true, lineStyle: { width: 4 },
             itemStyle: { color: '#0d9488' },
             areaStyle: { opacity: 0.1, color: '#0d9488' },
             data: trendData
@@ -196,10 +196,10 @@ async function loadBudgetvsActual() {
                 return `<div style="padding:4px 8px">${header}${body}</div>`;
             }
         },
-        legend: { top: 0, icon: 'circle' },
-        grid: { left: '3%', right: '4%', bottom: '5%', containLabel: true },
-        xAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 } },
-        yAxis: { type: 'category', data: depts, inverse: true, axisLabel: { fontSize: 10 } },
+        legend: { top: 0, icon: 'circle', itemGap: 16 },
+        grid: { left: '2%', right: '4%', bottom: '5%', top: '15px', containLabel: true },
+        xAxis: { type: 'value', axisLabel: { formatter: v => formatCurrency(v), fontSize: 10 }, splitLine: { lineStyle: { type: 'dashed' } } },
+        yAxis: { type: 'category', data: depts, inverse: true, axisLabel: { fontSize: 10, interval: 0, width: 80, overflow: 'truncate' } },
         series: [
             { name: 'Budget', type: 'bar', itemStyle: { color: '#94a3b8', borderRadius: [0, 4, 4, 0] }, data: budget },
             { name: 'Actual', type: 'bar', itemStyle: { color: '#6366f1', borderRadius: [0, 4, 4, 0] }, data: actual }

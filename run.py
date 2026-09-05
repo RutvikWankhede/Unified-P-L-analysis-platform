@@ -361,22 +361,20 @@ def kill_port(port: int):
             f"netstat -ano | findstr :{port}", shell=True, stderr=subprocess.DEVNULL
         ).decode(errors="replace")
         pids: set[str] = set()
+        my_pid = str(os.getpid())
         for line in out.splitlines():
-            parts = line.strip().split()
-            if (
-                len(parts) >= 5
-                and parts[3] == "LISTENING"
-                and f":{port}" in parts[1]
-            ):
-                pids.add(parts[-1])
+            parts = [p for p in line.strip().split() if p]
+            if len(parts) >= 5 and (f":{port}" in parts[1] or f":{port}" in parts[2]):
+                pid = parts[-1]
+                if pid and pid.isdigit() and pid != "0" and pid != my_pid:
+                    pids.add(pid)
         for pid in pids:
-            if pid and pid != "0":
-                info(f"Killing stale process PID {pid} on port {port}")
-                subprocess.run(
-                    f"taskkill /F /PID {pid}",
-                    shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                )
-                time.sleep(0.5)
+            info(f"Killing stale process PID {pid} on port {port}")
+            subprocess.run(
+                f"taskkill /F /T /PID {pid}",
+                shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        time.sleep(0.5)
     except Exception:
         pass
 
@@ -387,6 +385,7 @@ def wait_for_port_free(port: int, timeout: int = 15) -> bool:
     while time.time() < deadline:
         if is_port_free(port):
             return True
+        kill_port(port)
         time.sleep(1)
     warn(f"Port {port} still in use after {timeout}s — proceeding anyway")
     return False
@@ -421,7 +420,7 @@ def wait_for_url(
 ) -> bool:
     start = time.time()
     idx = 0
-    backoff = 1.0
+    backoff = 0.5
     while time.time() - start < timeout:
         if proc and proc.poll() is not None:
             print(f"\n{RED}[STARTUP_EXCEPTION] {label} process exited early (code {proc.returncode}){RESET}")
@@ -432,7 +431,7 @@ def wait_for_url(
         sys.stdout.flush()
         idx += 1
         time.sleep(backoff)
-        backoff = min(3.0, backoff * 1.2)
+        backoff = min(2.0, backoff * 1.2)
     print(f"\n{RED}[READINESS_TIMEOUT] Timeout waiting for {url}{RESET}")
     return False
 

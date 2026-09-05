@@ -43,10 +43,16 @@ export const formatCurrency = (val) => {
 };
 
 // Generate an adaptive, non-repeating color palette using HSL distribution
-export function initEchart(container) {
+export function initEchart(container, opts = {}) {
     let chart = echarts.getInstanceByDom(container);
     if (!chart) {
-        chart = echarts.init(container);
+        const dpr = Math.max(window.devicePixelRatio || 1, 2);
+        const initOpts = {
+            renderer: 'svg',
+            devicePixelRatio: dpr,
+            ...opts
+        };
+        chart = echarts.init(container, null, initOpts);
 
         // If the container was zero-sized at init time (happens when the page
         // hasn't finished laying out yet), schedule an immediate resize so that
@@ -70,6 +76,7 @@ export function initEchart(container) {
     }
     return chart;
 }
+
 
 /**
  * safeSetOption — call this instead of chart.setOption() everywhere.

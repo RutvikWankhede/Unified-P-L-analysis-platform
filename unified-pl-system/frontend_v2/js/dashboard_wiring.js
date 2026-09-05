@@ -1,714 +1,1321 @@
-import { generatePalette, initEchart, safeSetOption } from './chart-engine.js';
 import { api } from './api.js';
+import { initEchart, safeSetOption } from './chart-engine.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Currency Formatter
-    const formatCurrency = (val) => {
-        const currency = document.getElementById('global-currency') ? document.getElementById('global-currency').value : 'INR';
-        const isUSD = currency === 'USD';
-        const isEUR = currency === 'EUR';
-        
-        let rate = 1;
-        if (isUSD) rate = 83;
-        if (isEUR) rate = 90;
-        
-        const sym = isUSD ? '$' : isEUR ? '€' : '₹';
-        if (!val && val !== 0) return `${sym}0`;
-        
-        val = val / rate;
-        
-        if (isUSD || isEUR) {
-            if (val >= 1000000) return `${sym}${(val / 1000000).toFixed(2)}M`;
-            if (val >= 1000) return `${sym}${(val / 1000).toFixed(1)}K`;
-            return `${sym}${val.toLocaleString(isUSD ? 'en-US' : 'de-DE', {maximumFractionDigits: 0})}`;
-        } else {
-            if (val >= 10000000) return `${sym}${(val / 10000000).toFixed(2)} Cr`;
-            if (val >= 100000) return `${sym}${(val / 100000).toFixed(2)} L`;
-            return `${sym}${val.toLocaleString('en-IN', {maximumFractionDigits: 0})}`;
-        }
-    };
+document.addEventListener('DOMContentLoaded', async () => {
+  // Global Currency & Number Formatter
+  const formatCurrency = (val) => {
+    if (val === null || val === undefined || isNaN(val)) return '₹0';
+    const abs = Math.abs(val);
+    const sign = val < 0 ? '-' : '';
+    if (abs >= 1000000000) return `${sign}₹${(abs / 1000000000).toFixed(2)} B`;
+    if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(2)} Cr`;
+    if (abs >= 100000) return `${sign}₹${(abs / 100000).toFixed(2)} L`;
+    if (abs >= 1000) return `${sign}₹${(abs / 1000).toFixed(1)} K`;
+    return `${sign}₹${abs.toLocaleString('en-IN')}`;
+  };
 
-    // 2. Animated Counter
-    function animateValue(obj, start, end, duration, formatFn = (v) => v) {
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            // easeOutQuart
-            const easeProgress = 1 - Math.pow(1 - progress, 4);
-            obj.innerHTML = formatFn(start + easeProgress * (end - start));
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            } else {
-                obj.innerHTML = formatFn(end);
-            }
-        };
-        window.requestAnimationFrame(step);
+  const formatShort = (val) => {
+    if (val === null || val === undefined || isNaN(val)) return '0';
+    const abs = Math.abs(val);
+    const sign = val < 0 ? '-' : '';
+    if (abs >= 10000000) return `${sign}${(abs / 10000000).toFixed(1)} Cr`;
+    if (abs >= 100000) return `${sign}${(abs / 100000).toFixed(1)} L`;
+    if (abs >= 1000) return `${sign}${(abs / 1000).toFixed(0)} K`;
+    return `${sign}${abs}`;
+  };
+
+  // Department color map for distinct, consistent coloring across the platform
+  const DEPARTMENT_COLORS = {
+    'Sales': '#3B82F6',
+    'Operations': '#10B981',
+    'Finance': '#F59E0B',
+    'Human Resources': '#EC4899',
+    'HR': '#EC4899',
+    'Engineering': '#8B5CF6',
+    'IT': '#8B5CF6',
+    'Technology': '#8B5CF6',
+    'Information Technology': '#8B5CF6',
+    'Marketing': '#06B6D4',
+    'R&D': '#6366F1',
+    'Research & Development': '#6366F1',
+    'Legal': '#64748B',
+    'Logistics': '#14B8A6',
+    'Supply Chain': '#14B8A6',
+    'Support': '#F97316',
+    'Customer Support': '#F97316',
+    'Commercial': '#0284C7',
+    'Procurement': '#84CC16',
+    'Executive': '#4F46E5',
+    'Administration': '#475569',
+  };
+
+  const FALLBACK_PALETTE = [
+    '#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6',
+    '#06B6D4', '#6366F1', '#F97316', '#14B8A6', '#0284C7',
+    '#84CC16', '#A855F7', '#E11D48', '#64748B', '#D97706'
+  ];
+
+  function getDepartmentColor(deptName) {
+    if (!deptName) return '#6366F1';
+    if (DEPARTMENT_COLORS[deptName]) return DEPARTMENT_COLORS[deptName];
+    const match = Object.keys(DEPARTMENT_COLORS).find(k => k.toLowerCase() === deptName.toLowerCase());
+    if (match) return DEPARTMENT_COLORS[match];
+    let hash = 0;
+    for (let i = 0; i < deptName.length; i++) {
+      hash = deptName.charCodeAt(i) + ((hash << 5) - hash);
     }
+    const idx = Math.abs(hash) % FALLBACK_PALETTE.length;
+    return FALLBACK_PALETTE[idx];
+  }
 
-    // 3. ECharts Common Toolbox
-    const getStandardToolbox = () => ({
-        show: true,
-        feature: {
-            dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom', back: 'Reset Zoom' } },
-            restore: { title: 'Reset' },
-            saveAsImage: { type: 'png', title: 'Save PNG' }
-        },
-        right: 0,
-        top: 0
+  // Setup generic inside-chart zoom in/out/reset helper for any ECharts instance
+  function setupZoomControls(chart, inBtnId, outBtnId, resetBtnId) {
+    if (!chart) return;
+    let zoomSpan = 100;
+    const inBtn = document.getElementById(inBtnId);
+    const outBtn = document.getElementById(outBtnId);
+    const resetBtn = document.getElementById(resetBtnId);
+
+    if (inBtn) {
+      inBtn.addEventListener('click', () => {
+        zoomSpan = Math.max(20, zoomSpan - 25);
+        const start = Math.max(0, 50 - zoomSpan / 2);
+        const end = Math.min(100, 50 + zoomSpan / 2);
+        chart.dispatchAction({ type: 'dataZoom', start, end });
+      });
+    }
+    if (outBtn) {
+      outBtn.addEventListener('click', () => {
+        zoomSpan = Math.min(100, zoomSpan + 25);
+        const start = Math.max(0, 50 - zoomSpan / 2);
+        const end = Math.min(100, 50 + zoomSpan / 2);
+        chart.dispatchAction({ type: 'dataZoom', start, end });
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        zoomSpan = 100;
+        chart.dispatchAction({ type: 'dataZoom', start: 0, end: 100 });
+        chart.dispatchAction({ type: 'restore' });
+      });
+    }
+  }
+
+  // Sparkline helper
+  function initSparkline(id, color, data) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const chart = initEchart(el);
+    const minVal = Math.min(...data);
+    safeSetOption(chart, {
+      grid: { left: 0, right: 0, top: 2, bottom: 0 },
+      xAxis: { type: 'category', show: false, boundaryGap: false },
+      yAxis: { type: 'value', show: false, min: minVal * 0.8 },
+      series: [{
+        type: 'line',
+        data: data,
+        smooth: 0.4,
+        showSymbol: false,
+        lineStyle: { color: color, width: 1.5 },
+        areaStyle: {
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: color + '55' },
+              { offset: 1, color: color + '00' }
+            ]
+          }
+        }
+      }]
     });
-    const standardDataZoom = [
-        { type: 'inside', xAxisIndex: [0] },
-        { type: 'slider', xAxisIndex: [0], bottom: 0, height: 15 }
-    ];
+    return chart;
+  }
 
-    let dashboardCharts = {};
+  // Default Sparklines
+  initSparkline('sparkline-revenue', '#3B82F6', [18, 20, 22, 21, 24, 26, 27.8]);
+  initSparkline('sparkline-expenses', '#EF4444', [14, 15, 16, 15.5, 17, 17.5, 18.2]);
+  initSparkline('sparkline-profit', '#10B981', [4, 5, 6, 5.5, 7, 7.2, 7.98]);
+  initSparkline('sparkline-margin', '#8B5CF6', [24, 25, 26, 25.5, 27, 28, 28.8]);
+  initSparkline('sparkline-cashflow', '#F59E0B', [3.8, 4.2, 4.5, 4.3, 4.8, 5.1, 5.42]);
+  initSparkline('sparkline-forecast', '#0284C7', [22, 24, 26, 28, 29.5, 30.5, 31.25]);
+  initSparkline('sparkline-health', '#F43F5E', [74, 76, 78, 80, 82, 83, 85]);
 
-    function initCharts() {
-        const ids = [
-            'chart-rev-exp-profit', 'chart-anomaly-overview', 'chart-dept-performance',
-            'chart-expense-dist', 'chart-forecast-actual', 'chart-cash-flow', 'chart-budget-actual',
-            'sparkline-revenue', 'sparkline-expense', 'sparkline-profit', 'sparkline-margin',
-            'sparkline-cash-flow', 'sparkline-forecast', 'sparkline-health'
-        ];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) dashboardCharts[id] = initEchart(el);
-        });
+  // Track global departments list
+  let allDepartments = [];
+
+  // =========================================================================
+  // 1. POPULATE ACTIVE DATASET & SUMMARY KPIS
+  // =========================================================================
+  try {
+    const active = await api.get('/api/v1/datasets/active').catch(() => null);
+    if (active && active.filename) {
+      const pill = document.getElementById('active-dataset-name');
+      if (pill) pill.textContent = active.filename.replace('.csv', '').replace('.xlsx', '');
     }
 
-    // 4. Chart Loaders
-    async function loadKPIs() {
-        const currency = document.getElementById('global-currency').value;
-        const res = await api.get(`/api/v1/pl/summary?currency=${currency}&agg=yearly`).catch(() => null);
-        if (!res || !res.kpis) return;
-        const k = res.kpis;
-        const caps = res.capabilities || {};
+    const summary = await api.get('/api/v1/pl/summary').catch(() => null);
+    if (summary && summary.kpis) {
+      const k = summary.kpis;
+      const rEl = document.getElementById('kpi-total-revenue');
+      const eEl = document.getElementById('kpi-total-expenses');
+      const pEl = document.getElementById('kpi-net-profit');
+      const mEl = document.getElementById('kpi-operating-margin');
+      const cEl = document.getElementById('kpi-cash-flow');
+      const hEl = document.getElementById('kpi-health');
 
-        const updateKpi = (id, value, trend, isCurrency = true, available = true) => {
-            const container = document.getElementById(`kpi-${id}`);
-            if (!container) return;
-            const valEl = container.querySelector('.kpi-value');
-            const trendEl = container.querySelector('.kpi-trend');
-            
-            if (valEl) {
-                if (!available || value === null || value === undefined) {
-                    valEl.innerText = 'Not available';
-                    valEl.style.fontSize = '16px';
-                    valEl.style.color = '#94a3b8';
-                    if (trendEl) trendEl.style.display = 'none';
-                    return;
-                }
-                valEl.style.fontSize = '';
-                valEl.style.color = '';
-                if (trendEl) trendEl.style.display = '';
+      if (rEl && k.revenue !== undefined) rEl.textContent = formatCurrency(k.revenue);
+      if (eEl && k.expense !== undefined) eEl.textContent = formatCurrency(k.expense);
+      if (pEl && k.profit !== undefined) pEl.textContent = formatCurrency(k.profit);
+      if (mEl && k.profit_margin !== undefined) mEl.textContent = `${k.profit_margin.toFixed(1)}%`;
+      if (cEl && k.cash_flow !== undefined) cEl.textContent = formatCurrency(k.cash_flow);
+      if (hEl && k.health_score !== undefined) hEl.textContent = `${Math.round(k.health_score)}/100`;
 
-                const formatFn = isCurrency ? formatCurrency : (v) => id === 'health' ? Math.round(v) + '/100' : v.toFixed(1) + '%';
-                const currentVal = parseFloat(valEl.dataset.target) || 0;
-                valEl.dataset.target = value;
-                animateValue(valEl, currentVal, value, 1000, formatFn);
+      // Trends
+      const rGr = document.getElementById('kpi-growth-revenue');
+      const eGr = document.getElementById('kpi-growth-expenses');
+      const pGr = document.getElementById('kpi-growth-profit');
+      const mGr = document.getElementById('kpi-growth-margin');
+
+      if (rGr && k.revenue_growth !== undefined) {
+        const sign = k.revenue_growth >= 0 ? '↑ +' : '↓ ';
+        rGr.innerHTML = `<span class="${k.revenue_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.revenue_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+      }
+      if (eGr && k.expense_growth !== undefined) {
+        const sign = k.expense_growth >= 0 ? '↑ +' : '↓ ';
+        eGr.innerHTML = `<span class="${k.expense_growth <= 5 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.expense_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+      }
+      if (pGr && k.profit_growth !== undefined) {
+        const sign = k.profit_growth >= 0 ? '↑ +' : '↓ ';
+        pGr.innerHTML = `<span class="${k.profit_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.profit_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+      }
+      if (mGr && k.margin_growth !== undefined) {
+        const sign = k.margin_growth >= 0 ? '↑ +' : '↓ ';
+        mGr.innerHTML = `<span class="${k.margin_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.margin_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+      }
+    }
+
+    // Populate department dropdowns
+    const deptsRes = await api.get('/api/v1/pl/departments').catch(() => null);
+    if (deptsRes && deptsRes.departments && deptsRes.departments.length > 0) {
+      allDepartments = deptsRes.departments.filter(d => d && d !== 'All Departments' && d !== 'Unknown');
+      const populateDropdown = (selectId) => {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="all">All Departments</option>';
+        allDepartments.forEach(dept => {
+          const opt = document.createElement('option');
+          opt.value = dept;
+          opt.textContent = dept;
+          sel.appendChild(opt);
+        });
+        if (currentVal && allDepartments.includes(currentVal)) {
+          sel.value = currentVal;
+        }
+      };
+
+      populateDropdown('ctrl-rev-dept');
+      populateDropdown('ctrl-anom-dept');
+      populateDropdown('ctrl-exp-dist-dept');
+      populateDropdown('ctrl-fcst-dept');
+      populateDropdown('ctrl-cf-dept');
+      populateDropdown('ctrl-budget-dept');
+    }
+  } catch (err) {
+    console.warn('Dashboard KPI fetch error:', err);
+  }
+
+  // =========================================================================
+  // 2. ROW 1 LEFT: REVENUE VS EXPENSES VS NET PROFIT (WITH AGG + DEPT + ZOOM)
+  // =========================================================================
+  const revExpChartEl = document.getElementById('chart-rev-exp-profit');
+  const revExpChart = revExpChartEl ? initEchart(revExpChartEl) : null;
+  setupZoomControls(revExpChart, 'zoom-in-rev', 'zoom-out-rev', 'zoom-reset-rev');
+
+  async function loadRevExpChart(dept = 'all', agg = 'monthly') {
+    if (!revExpChart) return;
+    try {
+      const data = await api.get(`/api/v1/pl/charts?dept=${dept}&agg=${agg}`);
+      if (data && data.periods && data.periods.length > 0) {
+        const periods = data.periods;
+        const revVals = (data.revenue_trend || []).map(r => r.value);
+        const expVals = (data.expense_trend || []).map(r => r.value);
+        const profVals = (data.profit_trend || []).map(r => r.value);
+
+        safeSetOption(revExpChart, {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'cross' },
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); border-radius: 8px;',
+            textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+            formatter: (params) => {
+              let html = `<div style="padding:4px 8px;font-size:11px;color:#0f172a"><div style="font-weight:600;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">${params[0]?.axisValue}</div>`;
+              params.forEach(p => {
+                html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0">
+                  <span style="display:flex;align-items:center;gap:4px">
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${p.color}"></span>
+                    <span>${p.seriesName}:</span>
+                  </span>
+                  <b>${formatCurrency(p.value)}</b>
+                </div>`;
+              });
+              html += '</div>';
+              return html;
             }
-            if (trendEl && trend !== undefined) {
-                const icon = trend >= 0 ? 'arrow_upward' : 'arrow_downward';
-                const colorClass = id === 'expense' ? (trend > 0 ? 'text-danger' : 'text-success') : (trend >= 0 ? 'text-success' : 'text-danger');
-                trendEl.className = `text-[10px] ${colorClass} font-bold flex items-center z-10 kpi-trend`;
-                trendEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">${icon}</span> <span>${Math.abs(trend).toFixed(1)}%</span> <span class="text-slate-400 font-normal ml-1">vs prior</span>`;
-            }
-        };
-
-        const hasRev = caps.revenue?.available !== false;
-        const hasExp = caps.expense?.available !== false;
-        const hasProf = caps.profit?.available !== false;
-        const hasMargin = caps.margin?.available !== false;
-        const hasCF = caps.cashFlow?.available !== false;
-        const hasBudget = caps.budget?.available !== false;
-
-        const cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : (hasRev && hasExp ? k.profit : null);
-        const cfMode = caps.cashFlow?.mode || (hasRev && hasExp ? 'estimated' : 'unavailable');
-        const cfContainer = document.getElementById('kpi-cash-flow');
-        if (cfContainer) {
-            const cfHeaderEl = cfContainer.querySelector('.kpi-header');
-            if (cfHeaderEl) {
-                cfHeaderEl.innerHTML = (cfMode === 'estimated' ? 'Estimated Cash Flow' : 'Cash Flow') + ' <span class="material-symbols-outlined" style="color: var(--color-accent-teal);">account_balance_wallet</span>';
-            }
-        }
-        updateKpi('cash-flow', cfVal, 2.1, true, cfMode !== 'unavailable');
-        
-        const fcstVal = k.forecasted_profit !== null && k.forecasted_profit !== undefined ? k.forecasted_profit : null;
-        updateKpi('forecast', fcstVal, 4.5, true, fcstVal !== null);
-        updateKpi('health', k.health_score || 85, 0.5, false, true);
-
-        if (document.querySelector('.header-health-score')) {
-            document.querySelector('.header-health-score').innerText = `Evaluating... ${Math.round(k.health_score || 85)}`;
-        }
-        
-        if (caps.has_departments === false) {
-            const deptDropdown = document.getElementById('ctrl-rev-dept');
-            if (deptDropdown) {
-                deptDropdown.value = 'all';
-                deptDropdown.disabled = true;
-                deptDropdown.title = 'Department breakdown is not available for this dataset.';
-            }
-        }
-        const drawSparkline = (id, data, color, available = true) => {
-            if (!dashboardCharts[`sparkline-${id}`]) return;
-            if (!available || !data || data.length === 0) {
-                setChartError(`sparkline-${id}`, 'N/A');
-                return;
-            }
-            clearChartError(`sparkline-${id}`);
-            safeSetOption(dashboardCharts[`sparkline-${id}`], {
-                grid: { top: 2, bottom: 2, left: 2, right: 2 },
-                xAxis: { type: 'category', show: false, data: data.map((_, i) => i) },
-                yAxis: { type: 'value', show: false, scale: true },
-                series: [{
-                    type: 'line', data: data, smooth: true, showSymbol: false,
-                    lineStyle: { color: color, width: 2 },
-                    areaStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: color }, { offset: 1, color: 'rgba(255,255,255,0)' }
-                        ])
-                    }
-                }]
-            });
-        };
-        const chartsRes = await api.get(`/api/v1/pl/charts?currency=${currency}&agg=yearly`).catch(() => null);
-        const revTrend = (hasRev && chartsRes?.revenue_trend) ? chartsRes.revenue_trend.map(d => d.value) : [];
-        const expTrend = (hasExp && chartsRes?.expense_trend) ? chartsRes.expense_trend.map(d => d.value) : [];
-        const profTrend = (hasProf && revTrend.length) ? revTrend.map((v, i) => v - (expTrend[i] || 0)) : [];
-        const cashFlowTrend = chartsRes?.cashflow_trend ? chartsRes.cashflow_trend.map(d => d.value) : [];
-        const budgetTrend = chartsRes?.budget_trend ? chartsRes.budget_trend.map(d => d.variance) : [];
-        drawSparkline('revenue', revTrend, '#3b82f6', hasRev);
-        drawSparkline('expense', expTrend, '#ef4444', hasExp);
-        drawSparkline('profit', profTrend, '#10b981', hasProf);
-        drawSparkline('margin', hasMargin ? profTrend.map((p, i) => revTrend[i] ? p/revTrend[i] : 0) : [], '#10b981', hasMargin);
-        drawSparkline('cash-flow', cashFlowTrend, '#06b6d4', cashFlowTrend.length > 0);
-        drawSparkline('forecast', [], '#a855f7', false); // removed fake forecast sparkline
-        drawSparkline('health', hasProf ? profTrend.map(p => p*0.5) : [], '#6366f1', true);
-    }
-
-    async function loadRevExpProfit() {
-        const dept = document.getElementById('ctrl-rev-dept').value;
-        const agg = document.getElementById('ctrl-rev-agg').value;
-        const currency = document.getElementById('global-currency').value;
-        
-        dashboardCharts['chart-rev-exp-profit'].showLoading();
-        const res = await api.get(`/api/v1/pl/charts?dept=${dept}&agg=${agg}&currency=${currency}`).catch(() => null);
-        dashboardCharts['chart-rev-exp-profit'].hideLoading();
-        
-        if (!res || !res.periods) return;
-        
-        const labels = res.periods;
-        const hasRev = res.revenue_trend && res.revenue_trend.length > 0;
-        const hasExp = res.expense_trend && res.expense_trend.length > 0;
-        const hasProf = res.profit_trend && res.profit_trend.length > 0;
-        
-        const rev = hasRev ? res.revenue_trend.map(d => d.value) : [];
-        const exp = hasExp ? res.expense_trend.map(d => d.value) : [];
-        const prof = hasProf ? res.profit_trend.map(d => d.value) : [];
-        
-        const series = [];
-        if (hasRev) {
-            series.push({
-                name: 'Revenue', type: 'line', smooth: true,
-                itemStyle: { color: '#3b82f6' },
-                areaStyle: { opacity: 0.05, color: '#3b82f6' },
-                data: rev
-            });
-        }
-        if (hasExp) {
-            series.push({
-                name: 'Expense', type: 'line', smooth: true,
-                itemStyle: { color: '#ef4444' },
-                areaStyle: { opacity: 0.05, color: '#ef4444' },
-                data: exp
-            });
-        }
-        if (hasProf) {
-            series.push({
-                name: 'Net Profit', type: 'line', smooth: true,
-                itemStyle: { color: '#10b981' },
-                areaStyle: { opacity: 0.05, color: '#10b981' },
-                data: prof
-            });
-        }
-        
-        if (series.length === 0) {
-            setChartError('chart-rev-exp-profit', 'Expense and Profit cannot be displayed because the uploaded dataset does not contain sufficient information.');
-            return;
-        }
-        clearChartError('chart-rev-exp-profit');
-        
-        safeSetOption(dashboardCharts['chart-rev-exp-profit'], {
-            tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
-            legend: { top: 0, icon: 'circle' },
-            grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
-            toolbox: getStandardToolbox(),
-            dataZoom: standardDataZoom,
-            xAxis: { type: 'category', boundaryGap: false, data: labels },
-            yAxis: { type: 'value', axisLabel: { formatter: (val) => formatCurrency(val) } },
-            series: series
-        });
-    }
-
-    async function loadAnomalyOverview() {
-        const agg = document.getElementById('ctrl-anom-agg').value;
-        const currency = document.getElementById('global-currency').value;
-        dashboardCharts['chart-anomaly-overview'].showLoading();
-        const res = await api.get(`/api/v1/anomalies/?agg=${agg}&currency=${currency}`).catch(() => []);
-        dashboardCharts['chart-anomaly-overview'].hideLoading();
-        
-        const counts = { Critical: 0, High: 0, Medium: 0, Low: 0 };
-        res.forEach(a => counts[a.severity]++);
-        const data = [
-            { value: counts.Critical, name: 'Critical', itemStyle: { color: '#ef4444' } },
-            { value: counts.High, name: 'High', itemStyle: { color: '#f97316' } },
-            { value: counts.Medium, name: 'Medium', itemStyle: { color: '#eab308' } },
-            { value: counts.Low, name: 'Low', itemStyle: { color: '#3b82f6' } }
-        ].filter(d => d.value > 0);
-        
-        const total = data.reduce((sum, d) => sum + d.value, 0);
-
-        safeSetOption(dashboardCharts['chart-anomaly-overview'], {
-            tooltip: { trigger: 'item' },
-            legend: { bottom: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 10 } },
-            toolbox: { show: true, feature: { saveAsImage: { title: 'Save' } } },
-            series: [
-                {
-                    type: 'pie',
-                    radius: ['50%', '70%'],
-                    center: ['50%', '45%'],
-                    avoidLabelOverlap: false,
-                    label: { show: false, position: 'center' },
-                    emphasis: {
-                        label: { show: true, fontSize: 14, fontWeight: 'bold' }
-                    },
-                    labelLine: { show: false },
-                    data: data.length ? data : [{value: 1, name: 'No Anomalies', itemStyle: {color: '#f1f5f9'}}]
-                }
-            ]
-        });
-    }
-
-    async function loadDeptPerformance() {
-        const metric = document.getElementById('ctrl-dept-metric').value; // profit, revenue, expense, margin
-        const limit = document.getElementById('ctrl-dept-limit').value;
-        const currency = document.getElementById('global-currency').value;
-        
-        let resData = await api.get(`/api/v1/pl/departments/summary?currency=${currency}`).catch(() => ({departments: []}));
-        let res = resData.departments || [];
-        dashboardCharts['chart-dept-performance'].hideLoading();
-        
-        if (metric === 'profit') res.sort((a,b) => b.profit - a.profit);
-        else if (metric === 'revenue') res.sort((a,b) => b.revenue - a.revenue);
-        else if (metric === 'expense') res.sort((a,b) => b.expense - a.expense);
-        else if (metric === 'margin') res.sort((a,b) => {
-            const marginA = a.revenue > 0 ? (a.profit / a.revenue) : 0;
-            const marginB = b.revenue > 0 ? (b.profit / b.revenue) : 0;
-            return marginB - marginA;
-        });
-
-        if (limit !== 'all') res = res.slice(0, parseInt(limit));
-        
-        const names = res.map(d => d.department);
-        const data = res.map(d => {
-            if (metric === 'profit') return d.profit;
-            if (metric === 'revenue') return d.revenue;
-            if (metric === 'expense') return d.expense;
-            if (metric === 'margin') return d.revenue > 0 ? (d.profit / d.revenue * 100).toFixed(1) : '0.0';
-        });
-
-        safeSetOption(dashboardCharts['chart-dept-performance'], {
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-            grid: { left: '3%', right: '4%', bottom: '5%', containLabel: true },
-            toolbox: getStandardToolbox(),
-            xAxis: { type: 'value', axisLabel: { formatter: (val) => metric === 'margin' ? val+'%' : formatCurrency(val) } },
-            yAxis: { type: 'category', data: names, inverse: true },
-            series: [
-                {
-                    name: metric.charAt(0).toUpperCase() + metric.slice(1),
-                    type: 'bar',
-                    barMaxWidth: 20,
-                    itemStyle: { color: '#6366f1', borderRadius: [0, 4, 4, 0] },
-                    data: data
-                }
-            ]
-        });
-    }
-
-    async function loadExpenseDist() {
-        const metric = document.getElementById('ctrl-dist-metric').value; // expense, revenue
-        const currency = document.getElementById('global-currency').value;
-        
-        const resData = await api.get(`/api/v1/pl/departments/summary?currency=${currency}`).catch(() => ({departments: []}));
-        const res = resData.departments || [];
-        dashboardCharts['chart-expense-dist'].hideLoading();
-        
-        const palette = generatePalette(res.length);
-        const data = res.map((d, i) => ({
-            name: d.department,
-            value: metric === 'expense' ? d.expense : d.revenue,
-            itemStyle: { color: palette[i] }
-        })).sort((a,b) => b.value - a.value);
-
-        safeSetOption(dashboardCharts['chart-expense-dist'], {
-            tooltip: { trigger: 'item', formatter: (p) => `${p.name}: ${formatCurrency(p.value)} (${p.percent}%)` },
-            legend: { type: 'scroll', orient: 'vertical', right: 0, top: 20, bottom: 20, textStyle: { fontSize: 10 } },
-            toolbox: { show: true, feature: { saveAsImage: { title: 'Save' } }, right: 0, top: 0 },
-            series: [
-                {
-                    name: metric === 'expense' ? 'Expense' : 'Revenue',
-                    type: 'pie',
-                    radius: ['40%', '70%'],
-                    center: ['40%', '50%'],
-                    itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
-                    label: { show: false },
-                    data: data
-                }
-            ]
-        });
-    }
-
-    async function loadForecast() {
-        const dept = document.getElementById('ctrl-fcst-dept').value;
-        const agg = document.getElementById('ctrl-fcst-agg').value;
-        const currency = document.getElementById('global-currency').value;
-        
-        dashboardCharts['chart-forecast-actual'].showLoading();
-        const res = await api.get(`/api/v1/pl/forecast?dept=${dept}&agg=${agg}&currency=${currency}&metric=profit`).catch(() => null);
-        dashboardCharts['chart-forecast-actual'].hideLoading();
-
-        if (!res) return;
-        if (res.has_enough_data === false || !res.historical || res.historical.length === 0) {
-            setChartError('chart-forecast-actual', 'Forecast unavailable: The dataset does not contain enough historical observations for reliable forecasting.');
-            return;
-        }
-        clearChartError('chart-forecast-actual');
-
-        const hist = res.historical;
-        const fcst = res.forecast;
-        
-        const labels = [...hist.map(d => d.period), ...fcst.map(d => d.period)];
-        const actual = [...hist.map(d => d.profit !== undefined ? d.profit : d.value), ...fcst.map(d => null)];
-        const forecast = [...hist.map(d => null), ...fcst.map(d => d.predicted_value || d.predicted_profit)];
-        const lower = [...hist.map(d => null), ...fcst.map(d => (d.predicted_value || d.predicted_profit || 0) * 0.85)];
-        const upper = [...hist.map(d => null), ...fcst.map(d => (d.predicted_value || d.predicted_profit || 0) * 1.15)];
-
-        const bandData = lower.map((l, i) => upper[i] - l);
-
-        safeSetOption(dashboardCharts['chart-forecast-actual'], {
-            tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
-            legend: { top: 0, icon: 'circle' },
-            grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
-            toolbox: getStandardToolbox(),
-            dataZoom: standardDataZoom,
-            xAxis: { type: 'category', boundaryGap: false, data: labels },
-            yAxis: { type: 'value', axisLabel: { formatter: (val) => formatCurrency(val) } },
-            series: [
-                {
-                    name: 'Actual Profit', type: 'line', smooth: true,
-                    itemStyle: { color: '#3b82f6' }, data: actual
-                },
-                {
-                    name: 'Forecast Profit', type: 'line', smooth: true,
-                    lineStyle: { type: 'dashed' }, itemStyle: { color: '#8b5cf6' }, data: forecast
-                },
-                {
-                    name: 'Lower Band', type: 'line', data: lower,
-                    lineStyle: { opacity: 0 }, stack: 'confidence', symbol: 'none'
-                },
-                {
-                    name: 'Confidence Band', type: 'line', data: bandData,
-                    lineStyle: { opacity: 0 }, stack: 'confidence', symbol: 'none',
-                    areaStyle: { color: '#8b5cf6', opacity: 0.1 }
-                }
-            ]
-        });
-    }
-
-    async function loadCashFlow() {
-        const dept = document.getElementById('ctrl-cf-dept').value;
-        const agg = document.getElementById('ctrl-cf-agg').value;
-        const currency = document.getElementById('global-currency').value;
-        
-        dashboardCharts['chart-cash-flow'].showLoading();
-        const res = await api.get(`/api/v1/pl/charts?dept=${dept}&agg=${agg}&currency=${currency}`).catch(() => null);
-        dashboardCharts['chart-cash-flow'].hideLoading();
-
-        if (!res || !res.periods || res.cash_flow_mode === 'unavailable') {
-            setChartError('chart-cash-flow', 'Cash Flow Unavailable: The uploaded dataset does not contain sufficient information.');
-            return;
-        }
-        clearChartError('chart-cash-flow');
-
-        const labels = res.periods;
-        const hasRev = res.revenue_trend && res.revenue_trend.length > 0;
-        const hasExp = res.expense_trend && res.expense_trend.length > 0;
-        
-        const cashIn = hasRev ? (res.revenue_trend || []).map(d => d.value) : labels.map(() => 0);
-        const cashOut = hasExp ? (res.expense_trend || []).map(d => d.value) : labels.map(() => 0);
-        const netCash = (res.cashflow_trend || []).map(d => d.value);
-
-        const subTitle = res.cash_flow_mode === 'estimated' ? 'Estimated (Revenue - Expense)' : 'Actual values';
-
-        safeSetOption(dashboardCharts['chart-cash-flow'], {
-            title: { text: subTitle, textStyle: { fontSize: 12, color: '#94a3b8', fontWeight: 'normal' }, left: 'center', top: 0 },
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-            legend: { top: 0, icon: 'circle' },
-            grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
-            toolbox: getStandardToolbox(),
-            dataZoom: standardDataZoom,
-            xAxis: { type: 'category', data: labels },
-            yAxis: { type: 'value', axisLabel: { formatter: (val) => formatCurrency(val) } },
-            series: [
-                { name: 'Cash In', type: 'bar', stack: 'Total', itemStyle: { color: '#10b981' }, data: cashIn },
-                { name: 'Cash Out', type: 'bar', stack: 'Total', itemStyle: { color: '#ef4444' }, data: cashOut.map(v => -v) },
-                { name: 'Net Cash', type: 'line', smooth: true, itemStyle: { color: '#3b82f6', width: 3 }, data: netCash }
-            ]
-        });
-    }
-
-    async function loadBudget() {
-        const agg = document.getElementById('ctrl-bdg-agg')?.value || 'monthly';
-        const currency = document.getElementById('global-currency')?.value || 'INR';
-        
-        if (dashboardCharts['chart-budget-actual']) dashboardCharts['chart-budget-actual'].showLoading();
-        
-        const chartsRes = await api.get(`/api/v1/pl/charts?agg=${agg}&currency=${currency}`).catch(() => null);
-        const resData = await api.get(`/api/v1/pl/departments/summary?currency=${currency}`).catch(() => ({departments: []}));
-        if (dashboardCharts['chart-budget-actual']) dashboardCharts['chart-budget-actual'].hideLoading();
-
-        const deptSummaries = resData.departments || [];
-        const budgetTrend = chartsRes?.budget_trend || [];
-        
-        const hasBudget = (chartsRes && (chartsRes.has_budget_data || (budgetTrend && budgetTrend.some(b => b.budget > 0)))) || (deptSummaries.length > 0 && deptSummaries.some(d => d.budget !== undefined && d.budget !== null && d.budget > 0));
-        
-        if (!hasBudget && (!budgetTrend || !budgetTrend.length)) {
-            setChartError('chart-budget-actual', 'Budget Variance Analysis: Click "Set Budget" to define budgets for active dataset departments.');
-            return;
-        }
-        clearChartError('chart-budget-actual');
-
-        let depts = [];
-        let actual = [];
-        let budget = [];
-        
-        if (deptSummaries.length > 0 && deptSummaries.some(d => d.budget > 0)) {
-            depts = deptSummaries.map(d => d.department);
-            actual = deptSummaries.map(d => d.expense || 0);
-            budget = deptSummaries.map(d => d.budget || 0);
-        } else if (budgetTrend.length > 0) {
-            depts = budgetTrend.map(b => b.period);
-            actual = budgetTrend.map(b => b.actual || 0);
-            budget = budgetTrend.map(b => b.budget || 0);
-        } else {
-            depts = deptSummaries.map(d => d.department);
-            actual = deptSummaries.map(d => d.expense || 0);
-            budget = deptSummaries.map(() => 0);
-        }
-
-        const sumActual = actual.reduce((a,b)=>a+b, 0);
-        const sumBudget = budget.reduce((a,b)=>a+b, 0);
-        const diff = sumActual - sumBudget;
-        
-        const summaryEl = document.getElementById('budget-ai-summary');
-        if (summaryEl) {
-            summaryEl.innerHTML = `<span class="material-symbols-outlined text-[14px] text-brand mr-1 align-text-bottom">smart_toy</span> Total actual spend is ${diff > 0 ? 'over' : 'under'} budget by ${formatCurrency(Math.abs(diff))}. ${diff > 0 ? 'Review highest variance departments.' : 'Excellent cost control.'}`;
-        }
-
-        safeSetOption(dashboardCharts['chart-budget-actual'], {
-            tooltip: { 
-                trigger: 'axis', 
-                axisPointer: { type: 'shadow' },
-                formatter: (params) => {
-                    if (!params || !params.length) return '';
-                    const header = `<div style="font-weight:600;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:4px;">${params[0].axisValue}</div>`;
-                    let body = params.map(p => `<div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:6px;"></span>${p.seriesName}: <b>${formatCurrency(p.value)}</b></div>`).join('');
-                    const act = params.find(p => p.seriesName === 'Actual')?.value || 0;
-                    const bdg = params.find(p => p.seriesName === 'Budget')?.value || 0;
-                    const varVal = act - bdg;
-                    const varPct = bdg > 0 ? ((varVal / bdg) * 100).toFixed(1) : '0.0';
-                    body += `<div style="margin-top:4px;font-size:11px;color:${varVal > 0 ? '#ef4444' : '#10b981'};font-weight:bold;">Variance: ${formatCurrency(varVal)} (${varPct}%)</div>`;
-                    return `<div style="padding:4px 8px">${header}${body}</div>`;
-                }
+          },
+          grid: { left: '8%', right: '3%', top: '10%', bottom: '15%', containLabel: true },
+          dataZoom: [{ type: 'inside' }],
+          xAxis: {
+            type: 'category',
+            data: periods,
+            boundaryGap: false,
+            axisLine: { lineStyle: { color: '#E2E8F0' } },
+            axisTick: { show: false },
+            axisLabel: { color: '#64748B', fontSize: 10 }
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: {
+              formatter: (v) => formatShort(v),
+              color: '#94A3B8',
+              fontSize: 10
             },
-            legend: { top: 0, icon: 'circle' },
-            grid: { left: '3%', right: '4%', bottom: '5%', containLabel: true },
-            toolbox: getStandardToolbox(),
-            xAxis: { type: 'value', axisLabel: { formatter: (val) => formatCurrency(val) } },
-            yAxis: { type: 'category', data: depts, inverse: true },
-            series: [
-                { name: 'Budget', type: 'bar', itemStyle: { color: '#94a3b8', borderRadius: [0, 4, 4, 0] }, data: budget },
-                { name: 'Actual', type: 'bar', itemStyle: { color: '#6366f1', borderRadius: [0, 4, 4, 0] }, data: actual }
-            ]
+            splitLine: { lineStyle: { color: '#F1F5F9' } }
+          },
+          series: [
+            {
+              name: 'Revenue',
+              type: 'line',
+              smooth: 0.35,
+              symbol: 'circle',
+              symbolSize: 5,
+              data: revVals,
+              itemStyle: { color: '#3B82F6' },
+              lineStyle: { width: 2.5, color: '#3B82F6' },
+              areaStyle: {
+                color: {
+                  type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                  colorStops: [{ offset: 0, color: '#3B82F622' }, { offset: 1, color: '#3B82F600' }]
+                }
+              }
+            },
+            {
+              name: 'Expenses',
+              type: 'line',
+              smooth: 0.35,
+              symbol: 'circle',
+              symbolSize: 5,
+              data: expVals,
+              itemStyle: { color: '#EF4444' },
+              lineStyle: { width: 2.5, color: '#EF4444' },
+              areaStyle: {
+                color: {
+                  type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                  colorStops: [{ offset: 0, color: '#EF444422' }, { offset: 1, color: '#EF444400' }]
+                }
+              }
+            },
+            {
+              name: 'Net Profit',
+              type: 'line',
+              smooth: 0.35,
+              symbol: 'circle',
+              symbolSize: 5,
+              data: profVals,
+              itemStyle: { color: '#10B981' },
+              lineStyle: { width: 2.5, color: '#10B981' },
+              areaStyle: {
+                color: {
+                  type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                  colorStops: [{ offset: 0, color: '#10B98122' }, { offset: 1, color: '#10B98100' }]
+                }
+              }
+            }
+          ]
         });
+      }
+    } catch (err) {
+      console.warn('RevExp chart error:', err);
     }
+  }
 
-    async function loadInsights() {
-        const container = document.getElementById('ai-insights-list');
-        const loader = document.getElementById('insights-loading');
-        if (!container) return;
-        
-        if (loader) loader.style.display = 'flex';
-        const res = await api.get(`/api/v1/recommendations`).catch(() => []);
-        if (loader) loader.style.display = 'none';
+  const ctrlRevDept = document.getElementById('ctrl-rev-dept');
+  const ctrlRevAgg = document.getElementById('ctrl-rev-agg');
+  const btnRefreshRev = document.getElementById('btn-refresh-rev-chart');
 
-        if (!res.length) {
-            container.innerHTML = '<div class="text-xs text-slate-500 italic p-4 text-center">No insights available.</div>';
-            return;
-        }
+  const triggerRevExp = () => {
+    loadRevExpChart(
+      ctrlRevDept ? ctrlRevDept.value : 'all',
+      ctrlRevAgg ? ctrlRevAgg.value : 'monthly'
+    );
+  };
 
-        let html = '';
-        res.slice(0, 4).forEach(ins => {
-            const priorityClass = ins.priority === 'High' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600';
-            html += `
-            <div class="p-3 bg-slate-50 border border-slate-100 rounded-lg hover:border-primary/30 transition-colors">
-                <div class="flex justify-between items-start mb-1">
-                    <h4 class="font-bold text-xs text-slate-800">${ins.title}</h4>
-                    <span class="${priorityClass} text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">${ins.priority}</span>
-                </div>
-                <p class="text-[11px] text-slate-600 line-clamp-2">${ins.reason || ins.description || ''}</p>
-            </div>
-            `;
+  if (ctrlRevDept) ctrlRevDept.addEventListener('change', triggerRevExp);
+  if (ctrlRevAgg) ctrlRevAgg.addEventListener('change', triggerRevExp);
+  if (btnRefreshRev) btnRefreshRev.addEventListener('click', triggerRevExp);
+
+  loadRevExpChart('all', 'monthly');
+
+  // =========================================================================
+  // 3. ROW 1 RIGHT: ANOMALY OVERVIEW (PIE/DONUT MATCHING REFERENCE DESIGN)
+  // =========================================================================
+  const anomOverviewEl = document.getElementById('chart-anomaly-overview');
+  const anomOverviewChart = anomOverviewEl ? initEchart(anomOverviewEl) : null;
+
+  async function loadAnomalyOverview(period = 'overall', dept = 'all') {
+    const wrapper = document.getElementById('anom-content-wrapper');
+    const emptyState = document.getElementById('anom-empty-state');
+
+    try {
+      const res = await api.get(`/api/v1/pl/anomaly-overview?period=${period}&dept=${dept}`).catch(() => null);
+      if (!res) return;
+
+      const critEl = document.getElementById('anom-crit-count');
+      const highEl = document.getElementById('anom-high-count');
+      const medEl = document.getElementById('anom-med-count');
+      const lowEl = document.getElementById('anom-low-count');
+
+      if (critEl) critEl.textContent = res.critical_count ?? 0;
+      if (highEl) highEl.textContent = res.high_count ?? 0;
+      if (medEl) medEl.textContent = res.medium_count ?? 0;
+      if (lowEl) lowEl.textContent = res.low_count ?? 0;
+
+      if (res.total_anomalies === 0) {
+        if (wrapper) wrapper.classList.add('hidden');
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+      } else {
+        if (wrapper) wrapper.classList.remove('hidden');
+        if (emptyState) emptyState.classList.add('hidden');
+      }
+
+      if (anomOverviewChart) {
+        const data = (res.severities || []).map(s => ({
+          value: s.count,
+          name: s.name,
+          itemStyle: { color: s.color }
+        })).filter(d => d.value > 0);
+
+        safeSetOption(anomOverviewChart, {
+          title: {
+            text: `{val|${res.total_anomalies}}\n{label|Total}`,
+            left: 'center',
+            top: '32%',
+            textStyle: {
+              rich: {
+                val: {
+                  fontSize: 22,
+                  fontWeight: 'bold',
+                  color: '#0F172A',
+                  lineHeight: 26,
+                  align: 'center'
+                },
+                label: {
+                  fontSize: 11,
+                  color: '#64748B',
+                  fontWeight: '500',
+                  lineHeight: 14,
+                  align: 'center'
+                }
+              }
+            }
+          },
+          tooltip: {
+            trigger: 'item',
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); border-radius: 8px;',
+            textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+            formatter: (params) => {
+              return `<div style="padding:4px 6px;font-size:11px;color:#0f172a"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${params.color};margin-right:4px"></span><b>${params.name}</b>: <b>${params.value}</b> (${params.percent}%)</div>`;
+            }
+          },
+          series: [{
+            type: 'pie',
+            radius: ['64%', '84%'],
+            center: ['50%', '50%'],
+            avoidLabelOverlap: false,
+            label: { show: false },
+            itemStyle: {
+              borderColor: '#ffffff',
+              borderWidth: 2
+            },
+            data: data
+          }]
         });
-        container.innerHTML = html;
+      }
+    } catch (err) {
+      console.warn('Anomaly overview error:', err);
     }
+  }
 
-    async function loadRecommendations() {
-        const container = document.getElementById('ai-decision-center');
-        const loader = document.getElementById('recs-loading');
-        if (!container) return;
-        
-        if (loader) loader.style.display = 'flex';
-        const res = await api.get(`/api/v1/recommendations`).catch(() => []);
-        if (loader) loader.style.display = 'none';
+  const ctrlAnomPeriod = document.getElementById('ctrl-anom-period');
+  const ctrlAnomDept = document.getElementById('ctrl-anom-dept');
 
-        if (!res.length) {
-            container.innerHTML = '<div class="text-xs text-slate-500 italic p-4 text-center">No recommendations available.</div>';
-            return;
-        }
+  const triggerAnom = () => {
+    loadAnomalyOverview(
+      ctrlAnomPeriod ? ctrlAnomPeriod.value : 'overall',
+      ctrlAnomDept ? ctrlAnomDept.value : 'all'
+    );
+  };
 
-        let html = '';
-        res.slice(0, 5).forEach(ins => {
-            if (!ins.suggested_action) return;
-            const priorityClass = ins.priority === 'High' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600';
-            html += `
-            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary text-[16px]">psychology</span> ${ins.title}
-                    </h4>
-                    <span class="${priorityClass} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">${ins.priority}</span>
-                </div>
-                <p class="text-xs text-slate-600 mb-3">${ins.reason}</p>
-                <div class="bg-white border border-slate-100 p-3 rounded-lg">
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Recommended Action</div>
-                    <p class="text-sm font-semibold text-slate-700">${ins.suggested_action}</p>
-                </div>
-                ${ins.financial_impact ? `
-                <div class="mt-3 flex items-center justify-between">
-                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Impact</div>
-                    <div class="text-sm font-bold text-emerald-600">+${formatCurrency(ins.financial_impact)}</div>
-                </div>
-                ` : ''}
-            </div>
-            `;
+  if (ctrlAnomPeriod) ctrlAnomPeriod.addEventListener('change', triggerAnom);
+  if (ctrlAnomDept) ctrlAnomDept.addEventListener('change', triggerAnom);
+
+  loadAnomalyOverview('overall', 'all');
+
+  // =========================================================================
+  // 4. ROW 2 LEFT: DEPARTMENT PERFORMANCE (METRIC + RANGE + ZOOM)
+  // =========================================================================
+  const deptPerfEl = document.getElementById('chart-dept-performance');
+  const deptPerfChart = deptPerfEl ? initEchart(deptPerfEl) : null;
+  setupZoomControls(deptPerfChart, 'zoom-in-dept', 'zoom-out-dept', 'zoom-reset-dept');
+
+  async function loadDeptPerformance(metric = 'profit', limit = 'top5') {
+    if (!deptPerfChart) return;
+    try {
+      const res = await api.get(`/api/v1/pl/department-performance?metric=${metric}&limit=${limit}`);
+      if (res && res.departments && res.departments.length > 0) {
+        // Reverse for horizontal bar chart (top ranked at top)
+        const depts = [...res.departments].reverse();
+        const vals = [...res.values].reverse();
+        const isPct = metric === 'margin_pct';
+
+        safeSetOption(deptPerfChart, {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); border-radius: 8px; z-index: 99;',
+            textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+            formatter: (params) => {
+              const deptName = params[0]?.name;
+              const item = res.items ? res.items.find(it => it.department === deptName) : null;
+              const valFormatted = isPct ? `${params[0]?.value}%` : formatCurrency(params[0]?.value);
+              const deptColor = getDepartmentColor(deptName);
+              let html = `<div style="padding:4px 8px;font-size:11px;color:#0f172a">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">
+                  <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${deptColor}"></span>
+                  <b style="color:#0f172a;font-size:11px">${deptName}</b>
+                </div>`;
+              html += `<div style="margin:2px 0">${metric.toUpperCase().replace('_', ' ')}: <b>${valFormatted}</b></div>`;
+              if (item) {
+                html += `<div style="color:#64748B;font-size:10px;margin-top:2px">Rev: ${formatCurrency(item.revenue)} | Exp: ${formatCurrency(item.expense)}</div>`;
+                html += `<div style="color:#64748B;font-size:10px">Net Margin: <b>${item.margin_pct}%</b></div>`;
+              }
+              html += '</div>';
+              return html;
+            }
+          },
+          grid: { left: 4, right: 52, top: 10, bottom: 8, containLabel: true },
+          dataZoom: [{ type: 'inside', yAxisIndex: 0 }],
+          xAxis: {
+            type: 'value',
+            axisLabel: {
+              formatter: (v) => isPct ? `${v}%` : formatShort(v),
+              color: '#94A3B8',
+              fontSize: 10,
+              fontFamily: 'Inter, sans-serif'
+            },
+            splitLine: { lineStyle: { color: '#F1F5F9' } }
+          },
+          yAxis: {
+            type: 'category',
+            data: depts,
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: {
+              color: '#1e293b',
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: 'Inter, sans-serif',
+              width: 95,
+              overflow: 'truncate',
+              ellipsis: '...'
+            }
+          },
+          series: [{
+            type: 'bar',
+            barWidth: depts.length > 8 ? 9 : (depts.length > 5 ? 13 : 16),
+            label: {
+              show: true,
+              position: 'right',
+              distance: 8,
+              formatter: (params) => isPct ? `${params.value}%` : formatShort(params.value),
+              fontSize: 10,
+              color: '#475569',
+              fontWeight: 600,
+              fontFamily: 'Inter, sans-serif'
+            },
+            data: depts.map((dName, idx) => {
+              const c = getDepartmentColor(dName);
+              return {
+                value: vals[idx],
+                itemStyle: {
+                  color: c,
+                  borderRadius: [0, 4, 4, 0]
+                }
+              };
+            })
+          }]
         });
-        container.innerHTML = html;
+      }
+    } catch (err) {
+      console.warn('Dept perf error:', err);
     }
+  }
 
-    // 5. Initialize All
-    function fetchAll() {
-        loadKPIs();
-        loadRevExpProfit();
-        loadAnomalyOverview();
-        loadDeptPerformance();
-        loadExpenseDist();
-        loadForecast();
-        loadCashFlow();
-        loadBudget();
-        loadInsights();
-        loadRecommendations();
-    }
+  const ctrlDeptMetric = document.getElementById('ctrl-dept-metric');
+  const ctrlDeptRange = document.getElementById('ctrl-dept-range');
 
-    // 6. Bind Event Listeners
-    initCharts();
-    fetchAll();
+  const triggerDeptPerf = () => {
+    loadDeptPerformance(
+      ctrlDeptMetric ? ctrlDeptMetric.value : 'profit',
+      ctrlDeptRange ? ctrlDeptRange.value : 'top5'
+    );
+  };
 
-    // Global filters trigger everything
-    const globalCurr = document.getElementById('global-currency');
-    if (globalCurr) globalCurr.addEventListener('change', fetchAll);
+  if (ctrlDeptMetric) ctrlDeptMetric.addEventListener('change', triggerDeptPerf);
+  if (ctrlDeptRange) ctrlDeptRange.addEventListener('change', triggerDeptPerf);
 
-    // Chart specific filters
-    const bindFilter = (id, loaderFn) => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('change', loaderFn);
+  loadDeptPerformance('profit', 'top5');
+
+  // =========================================================================
+  // 5. ROW 2 CENTER: FINANCIAL DISTRIBUTION (METRIC + DEPT DYNAMIC)
+  // =========================================================================
+  const expDistEl = document.getElementById('chart-expense-dist');
+  const expDistChart = expDistEl ? initEchart(expDistEl) : null;
+
+  async function loadExpenseDistribution(metric = 'expense', dept = 'all') {
+    if (!expDistChart) return;
+    const bodyEl = document.getElementById('expense-dist-body');
+    const emptyEl = document.getElementById('expense-empty-state');
+    const legendEl = document.getElementById('expense-dist-legend');
+    const titleEl = document.getElementById('title-dist-card');
+
+    const metricTitleMap = {
+      'expense': 'Expense Distribution',
+      'revenue': 'Revenue Distribution',
+      'profit': 'Profit Distribution',
+      'margin_pct': 'Net Margin % Distribution'
     };
-
-    bindFilter('ctrl-rev-dept', loadRevExpProfit);
-    bindFilter('ctrl-rev-agg', loadRevExpProfit);
-    bindFilter('ctrl-anom-agg', loadAnomalyOverview);
-    bindFilter('ctrl-dept-metric', loadDeptPerformance);
-    bindFilter('ctrl-dept-limit', loadDeptPerformance);
-    bindFilter('ctrl-dist-metric', loadExpenseDist);
-    bindFilter('ctrl-fcst-dept', loadForecast);
-    bindFilter('ctrl-fcst-agg', loadForecast);
-    bindFilter('ctrl-cf-dept', loadCashFlow);
-    bindFilter('ctrl-cf-agg', loadCashFlow);
-    bindFilter('ctrl-bdg-agg', loadBudget);
-
-    // Budget modal
-    const btnSetBudget = document.getElementById('btn-set-budget');
-    const budgetModal = document.getElementById('budget-modal');
-    const budgetModalContent = document.getElementById('budget-modal-content');
-    const btnCloseBudget = document.getElementById('btn-close-budget');
-    const btnCancelBudget = document.getElementById('btn-cancel-budget');
-    const budgetForm = document.getElementById('budget-form');
-
-    async function openBudgetModal() {
-        if (!budgetModal) return;
-        const deptSelect = document.getElementById('budget-dept');
-        if (deptSelect) {
-            const deptsRes = await api.get('/api/v1/pl/departments').catch(() => null);
-            const depts = deptsRes?.departments || ['Finance', 'Sales', 'IT', 'Marketing', 'HR', 'Operations'];
-            deptSelect.innerHTML = depts.map(d => `<option value="${d}">${d}</option>`).join('');
-        }
-        budgetModal.classList.remove('hidden');
-        budgetModal.classList.add('flex');
-        setTimeout(() => {
-            budgetModal.classList.remove('opacity-0');
-            budgetModalContent.classList.remove('scale-95');
-        }, 10);
+    if (titleEl) {
+      titleEl.textContent = metricTitleMap[metric] || 'Expense Distribution';
     }
 
-    function closeBudgetModal() {
-        if (!budgetModal) return;
-        budgetModal.classList.add('opacity-0');
-        budgetModalContent.classList.add('scale-95');
-        setTimeout(() => {
-            budgetModal.classList.add('hidden');
-            budgetModal.classList.remove('flex');
-        }, 300);
-    }
+    try {
+      const res = await api.get(`/api/v1/pl/expense-distribution?metric=${metric}&dept=${dept}`);
+      if (res && res.has_data && res.categories && res.categories.length > 0) {
+        if (bodyEl) bodyEl.classList.remove('hidden');
+        if (emptyEl) emptyEl.classList.add('hidden');
 
-    if (btnSetBudget) btnSetBudget.addEventListener('click', openBudgetModal);
-    if (btnCloseBudget) btnCloseBudget.addEventListener('click', closeBudgetModal);
-    if (btnCancelBudget) btnCancelBudget.addEventListener('click', closeBudgetModal);
-    
-    if (budgetForm) {
-        budgetForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const department = document.getElementById('budget-dept').value;
-            const amount = parseFloat(document.getElementById('budget-amount').value);
-            
-            api.post('/api/v1/pl/budget', { department, amount, budget_amount: amount })
-                .then(r => {
-                    closeBudgetModal();
-                    loadBudget(); // isolated refetch
-            }).catch(err => {
-                console.error('Budget error:', err);
-                alert('Error saving budget.');
-            });
+        const isMargin = res.is_percentage || metric === 'margin_pct';
+        const chartData = res.categories.map(c => ({
+          name: c.name,
+          value: c.amount,
+          percentage: c.percentage,
+          itemStyle: { color: c.color }
+        }));
+
+        safeSetOption(expDistChart, {
+          tooltip: {
+            trigger: 'item',
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); border-radius: 8px;',
+            textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+            formatter: (params) => {
+              const d = params.data;
+              const valDisplay = isMargin ? `${d.value}%` : formatCurrency(d.value);
+              const labelDesc = isMargin ? 'Margin Share' : `of total ${metric}`;
+              return `<div style="padding:4px 6px;font-size:11px;color:#0f172a">
+                <div style="font-weight:700;margin-bottom:2px">${params.name}</div>
+                <div style="font-size:12px;font-weight:600;color:#3B82F6">${valDisplay}</div>
+                <div style="font-size:10px;color:#64748B;margin-top:2px"><b>${d.percentage || params.percent}%</b> ${labelDesc}</div>
+              </div>`;
+            }
+          },
+          series: [{
+            type: 'pie',
+            radius: ['52%', '80%'],
+            center: ['50%', '50%'],
+            avoidLabelOverlap: false,
+            label: { show: false },
+            itemStyle: {
+              borderColor: '#ffffff',
+              borderWidth: 2
+            },
+            data: chartData
+          }]
         });
+
+        if (legendEl) {
+          legendEl.innerHTML = '';
+          res.categories.forEach(c => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between py-1 border-b border-slate-50 last:border-0';
+            const valDisplay = isMargin ? `${c.amount}%` : formatCurrency(c.amount);
+            row.innerHTML = `
+              <span class="flex items-center gap-1.5 truncate max-w-[100px]" title="${c.name}">
+                <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${c.color}"></span>
+                <span class="truncate text-slate-700 font-medium">${c.name}</span>
+              </span>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <span class="font-bold text-slate-900">${valDisplay}</span>
+                <span class="text-slate-400 text-[9px] w-7 text-right">${c.percentage}%</span>
+              </div>
+            `;
+            legendEl.appendChild(row);
+          });
+        }
+      } else {
+        if (bodyEl) bodyEl.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.remove('hidden');
+      }
+    } catch (err) {
+      console.warn('Expense distribution error:', err);
+      if (bodyEl) bodyEl.classList.add('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
     }
+  }
+
+  const ctrlExpDistMetric = document.getElementById('ctrl-exp-dist-metric');
+  const ctrlExpDistDept = document.getElementById('ctrl-exp-dist-dept');
+
+  const triggerExpDist = () => {
+    loadExpenseDistribution(
+      ctrlExpDistMetric ? ctrlExpDistMetric.value : 'expense',
+      ctrlExpDistDept ? ctrlExpDistDept.value : 'all'
+    );
+  };
+
+  if (ctrlExpDistMetric) ctrlExpDistMetric.addEventListener('change', triggerExpDist);
+  if (ctrlExpDistDept) ctrlExpDistDept.addEventListener('change', triggerExpDist);
+
+  loadExpenseDistribution('expense', 'all');
+
+  // =========================================================================
+  // 6. ROW 2 RIGHT: DATA-DRIVEN INSIGHTS & EXTENDED VIEW ALL MODAL
+  // =========================================================================
+  let loadedInsights = [];
+  async function loadInsights() {
+    const container = document.getElementById('insights-container');
+    if (!container) return;
+
+    try {
+      const res = await api.get('/api/v1/pl/insights').catch(() => null);
+      if (res && res.insights && res.insights.length > 0) {
+        loadedInsights = res.insights;
+        container.innerHTML = '';
+
+        loadedInsights.slice(0, 4).forEach(ins => {
+          const icon = ins.category === 'Revenue' ? 'trending_up' :
+                       (ins.category === 'Expenses' ? 'warning' :
+                       (ins.category === 'Margin' ? 'favorite' : 'auto_awesome'));
+          const iconColor = ins.type === 'POSITIVE' ? 'text-emerald-600' :
+                            (ins.type === 'WARNING' ? 'text-rose-500' : 'text-purple-600');
+          const badgeBg = ins.badge === 'CRITICAL' || ins.badge === 'ALERT' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                          (ins.badge === 'HIGH IMPACT' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-blue-50 text-blue-600 border-blue-100');
+
+          const div = document.createElement('div');
+          div.className = 'flex items-start justify-between gap-2';
+          div.innerHTML = `
+            <div class="flex items-start gap-1.5">
+              <span class="material-symbols-outlined ${iconColor} text-sm mt-0.5">${icon}</span>
+              <div>
+                <p class="text-[10px] font-bold text-slate-800 leading-tight">${ins.title}</p>
+                <p class="text-[9px] text-slate-500 leading-tight mt-0.5">${ins.description}</p>
+              </div>
+            </div>
+            <span class="px-1.5 py-0.2 rounded text-[8px] font-bold ${badgeBg} border flex-shrink-0">${ins.badge}</span>
+          `;
+          container.appendChild(div);
+        });
+      }
+    } catch (err) {
+      console.warn('Insights error:', err);
+    }
+  }
+  loadInsights();
+
+  // Wire Extended Insights Modal
+  const btnViewAllInsights = document.getElementById('btn-view-all-insights');
+  const modalInsights = document.getElementById('modal-insights');
+  const closeModalInsights = document.getElementById('close-modal-insights');
+  const btnCloseInsightsFooter = document.getElementById('btn-close-insights-footer');
+
+  if (btnViewAllInsights && modalInsights) {
+    btnViewAllInsights.addEventListener('click', () => {
+      const list = document.getElementById('modal-insights-list');
+      if (list) {
+        list.innerHTML = '';
+        loadedInsights.forEach((ins, idx) => {
+          const card = document.createElement('div');
+          card.className = 'p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2.5';
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-slate-900">${idx + 1}. ${ins.title}</span>
+              <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">${ins.category} • ${ins.department}</span>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed">${ins.description}</p>
+            <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100">
+              <div><span class="font-bold text-slate-900">Metric:</span> ${ins.metric}</div>
+              <div><span class="font-bold text-slate-900">Current Value:</span> ${typeof ins.current_value === 'number' ? formatCurrency(ins.current_value) : ins.current_value}</div>
+              <div><span class="font-bold text-slate-900">Change:</span> <span class="${ins.change_pct >= 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}">${ins.change_pct >= 0 ? '+' : ''}${ins.change_pct}%</span></div>
+              <div><span class="font-bold text-slate-900">Period:</span> ${ins.time_period || 'Historical Multi-Period'}</div>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100 space-y-1.5 leading-relaxed">
+              <div><span class="font-bold text-slate-900">Why It Matters:</span> ${ins.why_it_matters}</div>
+              <div><span class="font-bold text-slate-900">Supporting Data:</span> ${ins.supporting_data}</div>
+              <div><span class="font-bold text-slate-900">Interpretation:</span> ${ins.interpretation}</div>
+              <div><span class="font-bold text-slate-900">Suggested Action:</span> ${ins.suggested_action}</div>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+      }
+      modalInsights.classList.remove('hidden');
+    });
+  }
+  if (closeModalInsights) closeModalInsights.addEventListener('click', () => modalInsights?.classList.add('hidden'));
+  if (btnCloseInsightsFooter) btnCloseInsightsFooter.addEventListener('click', () => modalInsights?.classList.add('hidden'));
+
+  // =========================================================================
+  // 7. ROW 3 LEFT: FORECAST VS ACTUAL (WITH DEPT + PERIOD + VARIANCE IN TOOLTIP)
+  // =========================================================================
+  const fcstEl = document.getElementById('chart-forecast-actual');
+  const fcstChart = fcstEl ? initEchart(fcstEl) : null;
+  setupZoomControls(fcstChart, 'zoom-in-fcst', 'zoom-out-fcst', 'zoom-reset-fcst');
+
+  async function loadForecastActual(dept = 'all', period = 'monthly') {
+    if (!fcstChart) return;
+    try {
+      const res = await api.get(`/api/v1/pl/forecast-vs-actual?dept=${dept}&period=${period}`);
+      if (res && res.periods && res.periods.length > 0) {
+        safeSetOption(fcstChart, {
+          tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); border-radius: 8px;',
+            textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+            formatter: (params) => {
+              let html = `<div style="padding:4px 8px;font-size:11px;color:#0f172a"><div style="font-weight:600;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">${params[0]?.axisValue}</div>`;
+              let actVal = null;
+              let fcstVal = null;
+              params.forEach(p => {
+                if (p.value !== null && p.value !== undefined && !p.seriesName.includes('Confidence')) {
+                  html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin:2px 0">
+                    <span style="display:flex;align-items:center;gap:4px">
+                      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${p.color}"></span>
+                      <span>${p.seriesName}:</span>
+                    </span>
+                    <b>${formatCurrency(p.value)}</b>
+                  </div>`;
+                  if (p.seriesName === 'Actual') actVal = p.value;
+                  if (p.seriesName === 'Forecast') fcstVal = p.value;
+                }
+              });
+              if (actVal !== null && fcstVal !== null) {
+                const diff = actVal - fcstVal;
+                const diffPct = fcstVal !== 0 ? (diff / fcstVal * 100).toFixed(1) : 0;
+                const sign = diff >= 0 ? '+' : '';
+                const color = diff >= 0 ? '#10B981' : '#EF4444';
+                html += `<div style="margin-top:4px;border-top:1px solid #e2e8f0;padding-top:2px;color:${color}">Variance: <b>${formatCurrency(diff)} (${sign}${diffPct}%)</b></div>`;
+              }
+              html += '</div>';
+              return html;
+            }
+          },
+          grid: { left: '8%', right: '4%', top: '10%', bottom: '15%', containLabel: true },
+          dataZoom: [{ type: 'inside' }],
+          xAxis: {
+            type: 'category',
+            data: res.periods,
+            axisLine: { lineStyle: { color: '#E2E8F0' } },
+            axisTick: { show: false },
+            axisLabel: { color: '#64748B', fontSize: 10 }
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: { formatter: (v) => formatShort(v), color: '#94A3B8', fontSize: 10 },
+            splitLine: { lineStyle: { color: '#F1F5F9' } }
+          },
+          series: [
+            {
+              name: 'Actual',
+              type: 'line',
+              smooth: 0.4,
+              symbol: 'circle',
+              symbolSize: 5,
+              data: res.actual,
+              itemStyle: { color: '#3B82F6' },
+              lineStyle: { width: 2.5, color: '#3B82F6' }
+            },
+            {
+              name: 'Forecast',
+              type: 'line',
+              smooth: 0.4,
+              symbol: 'circle',
+              symbolSize: 5,
+              data: res.forecast,
+              itemStyle: { color: '#8B5CF6' },
+              lineStyle: { width: 2.5, type: 'dashed', color: '#8B5CF6' }
+            },
+            {
+              name: 'Confidence Upper',
+              type: 'line',
+              smooth: 0.4,
+              symbol: 'none',
+              data: res.confidence_upper,
+              lineStyle: { opacity: 0 },
+              stack: 'confidence-band',
+              areaStyle: { color: '#DDD6FE', opacity: 0.35 }
+            },
+            {
+              name: 'Confidence Lower',
+              type: 'line',
+              smooth: 0.4,
+              symbol: 'none',
+              data: res.confidence_lower,
+              lineStyle: { opacity: 0 },
+              stack: 'confidence-band',
+              areaStyle: { color: '#FFFFFF', opacity: 1 }
+            }
+          ]
+        });
+      }
+    } catch (err) {
+      console.warn('Forecast actual error:', err);
+    }
+  }
+
+  const ctrlFcstDept = document.getElementById('ctrl-fcst-dept');
+  const ctrlFcstPeriod = document.getElementById('ctrl-fcst-period');
+
+  const triggerFcst = () => {
+    loadForecastActual(
+      ctrlFcstDept ? ctrlFcstDept.value : 'all',
+      ctrlFcstPeriod ? ctrlFcstPeriod.value : 'monthly'
+    );
+  };
+
+  if (ctrlFcstDept) ctrlFcstDept.addEventListener('change', triggerFcst);
+  if (ctrlFcstPeriod) ctrlFcstPeriod.addEventListener('change', triggerFcst);
+
+  loadForecastActual('all', 'monthly');
+
+  // =========================================================================
+  // 8. ROW 3 RIGHT: CASH FLOW TREND (INFLOW/OUTFLOW/NET WITH DEPT + PERIOD)
+  // =========================================================================
+  const cfChartEl = document.getElementById('chart-cash-flow');
+  const cfChart = cfChartEl ? initEchart(cfChartEl) : null;
+  setupZoomControls(cfChart, 'zoom-in-cf', 'zoom-out-cf', 'zoom-reset-cf');
+
+  async function loadCashFlowTrend(dept = 'all', period = 'monthly') {
+    if (!cfChart) return;
+    try {
+      const res = await api.get(`/api/v1/pl/cash-flow-trend?dept=${dept}&period=${period}`);
+      if (res && res.periods && res.periods.length > 0) {
+        const inflowData = (res.inflow || []).map(v => Math.abs(v));
+        const outflowData = (res.outflow || []).map(v => -Math.abs(v));
+        const netFlowData = res.net_flow || [];
+        const barW = res.periods.length > 20 ? 9 : (res.periods.length > 10 ? 13 : 18);
+
+        safeSetOption(cfChart, {
+          legend: {
+            show: true,
+            top: 2,
+            itemWidth: 8,
+            itemHeight: 8,
+            itemGap: 16,
+            icon: 'circle',
+            textStyle: { fontSize: 11, color: '#475569', fontWeight: 500, fontFamily: 'Inter, sans-serif' },
+            data: ['Inflow', 'Outflow', 'Net Flow']
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); border-radius: 8px; z-index: 99;',
+            textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+            formatter: (params) => {
+              const pName = params[0]?.axisValue || '';
+              const idx = params[0]?.dataIndex ?? 0;
+              const rawInflow = res.inflow?.[idx] ?? 0;
+              const rawOutflow = res.outflow?.[idx] ?? 0;
+              const rawNet = res.net_flow?.[idx] ?? 0;
+              const netColor = rawNet >= 0 ? '#10B981' : '#EF4444';
+
+              let html = `<div style="padding:4px 8px;font-size:11px;color:#0f172a">
+                <div style="font-weight:600;margin-bottom:6px;border-bottom:1px solid #e2e8f0;padding-bottom:3px">${pName}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin:3px 0">
+                  <span style="display:flex;align-items:center;gap:5px;color:#475569">
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10B981"></span>
+                    <span>Inflow:</span>
+                  </span>
+                  <b style="color:#10B981">+${formatCurrency(rawInflow)}</b>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin:3px 0">
+                  <span style="display:flex;align-items:center;gap:5px;color:#475569">
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#EF4444"></span>
+                    <span>Outflow:</span>
+                  </span>
+                  <b style="color:#EF4444">-${formatCurrency(rawOutflow)}</b>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:6px;border-top:1px dashed #e2e8f0;padding-top:4px">
+                  <span style="display:flex;align-items:center;gap:5px;color:#475569">
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3B82F6"></span>
+                    <span style="font-weight:600">Net Flow:</span>
+                  </span>
+                  <b style="color:${netColor}">${formatCurrency(rawNet)}</b>
+                </div>
+              </div>`;
+              return html;
+            }
+          },
+          grid: { left: 8, right: 16, top: 32, bottom: 26, containLabel: true },
+          dataZoom: [
+            { type: 'inside' },
+            {
+              type: 'slider',
+              height: 10,
+              bottom: 2,
+              borderColor: 'transparent',
+              backgroundColor: '#F1F5F9',
+              fillerColor: 'rgba(59, 130, 246, 0.15)',
+              handleSize: '0%',
+              showDetail: false
+            }
+          ],
+          xAxis: {
+            type: 'category',
+            data: res.periods,
+            axisLine: { lineStyle: { color: '#E2E8F0' } },
+            axisTick: { show: false },
+            axisLabel: { color: '#64748B', fontSize: 10, fontFamily: 'Inter, sans-serif' }
+          },
+          yAxis: {
+            type: 'value',
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: {
+              formatter: (v) => formatShort(Math.abs(v)),
+              color: '#94A3B8',
+              fontSize: 10,
+              fontFamily: 'Inter, sans-serif'
+            },
+            splitLine: { lineStyle: { color: '#F1F5F9' } }
+          },
+          series: [
+            {
+              name: 'Inflow',
+              type: 'bar',
+              stack: 'cashflow',
+              barWidth: barW,
+              data: inflowData,
+              itemStyle: { color: '#10B981', borderRadius: [3, 3, 0, 0] }
+            },
+            {
+              name: 'Outflow',
+              type: 'bar',
+              stack: 'cashflow',
+              barWidth: barW,
+              data: outflowData,
+              itemStyle: { color: '#EF4444', borderRadius: [0, 0, 3, 3] }
+            },
+            {
+              name: 'Net Flow',
+              type: 'line',
+              smooth: 0.25,
+              symbol: 'circle',
+              symbolSize: 5,
+              data: netFlowData,
+              itemStyle: { color: '#3B82F6', borderColor: '#ffffff', borderWidth: 1 },
+              lineStyle: { width: 2, color: '#3B82F6' },
+              z: 10
+            }
+          ]
+        });
+      }
+    } catch (err) {
+      console.warn('Cash flow error:', err);
+    }
+  }
+
+  const ctrlCfDept = document.getElementById('ctrl-cf-dept');
+  const ctrlCfPeriod = document.getElementById('ctrl-cf-period');
+
+  const triggerCf = () => {
+    loadCashFlowTrend(
+      ctrlCfDept ? ctrlCfDept.value : 'all',
+      ctrlCfPeriod ? ctrlCfPeriod.value : 'monthly'
+    );
+  };
+
+  if (ctrlCfDept) ctrlCfDept.addEventListener('change', triggerCf);
+  if (ctrlCfPeriod) ctrlCfPeriod.addEventListener('change', triggerCf);
+
+  loadCashFlowTrend('all', 'monthly');
+
+  // =========================================================================
+  // 9. ROW 4 LEFT: BUDGET VS ACTUAL (INTERACTIVE FINANCIAL COMPARISON CHART)
+  // =========================================================================
+  const budgetChartEl = document.getElementById('chart-budget-actual');
+  const budgetChart = budgetChartEl ? initEchart(budgetChartEl) : null;
+
+  async function loadBudgetActual(dept = 'all') {
+    const chartDiv = document.getElementById('chart-budget-actual');
+    const emptyEl = document.getElementById('budget-empty-state');
+    if (!budgetChart) return;
+    try {
+      const res = await api.get(`/api/v1/pl/budget-vs-actual?dept=${dept}`);
+      if (res && res.has_data && res.items && res.items.length > 0) {
+        if (chartDiv) chartDiv.classList.remove('hidden');
+        if (emptyEl) emptyEl.classList.add('hidden');
+
+        // Reverse for horizontal display (top department on top)
+        const items = [...res.items].reverse();
+        const depts = items.map(it => it.department);
+        const actuals = items.map(it => it.actual);
+        const budgets = items.map(it => it.budget);
+
+        safeSetOption(budgetChart, {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: '#ffffff',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            extraCssText: 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); border-radius: 8px;',
+            textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+            formatter: (params) => {
+              const deptName = params[0]?.name;
+              const item = items.find(it => it.department === deptName);
+              if (!item) return '';
+              const isOver = item.variance > 0;
+              const statusColor = isOver ? '#EF4444' : '#10B981';
+              const sign = item.variance > 0 ? '+' : '';
+
+              let html = `<div style="padding:4px 8px;font-size:11px;color:#0f172a">
+                <div style="font-weight:700;color:#0F172A;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px">${deptName}</div>
+                <div style="display:flex;justify-content:space-between;gap:8px;margin:2px 0">
+                  <span style="display:flex;align-items:center;gap:4px">
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#6366F1"></span>
+                    <span>Actual Spend:</span>
+                  </span>
+                  <b>${formatCurrency(item.actual)}</b>
+                </div>
+                <div style="display:flex;justify-content:space-between;gap:8px;margin:2px 0">
+                  <span style="display:flex;align-items:center;gap:4px">
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#94A3B8"></span>
+                    <span>Budget Target:</span>
+                  </span>
+                  <b>${formatCurrency(item.budget)}</b>
+                </div>
+                <div style="margin-top:4px;border-top:1px solid #e2e8f0;padding-top:2px;color:${statusColor};font-weight:600">
+                  Variance: ${formatCurrency(item.variance)} (${sign}${item.variance_pct}%) • ${item.status}
+                </div>
+              </div>`;
+              return html;
+            }
+          },
+          grid: { left: 4, right: 18, top: 8, bottom: 8, containLabel: true },
+          dataZoom: [{ type: 'inside', yAxisIndex: 0 }],
+          xAxis: {
+            type: 'value',
+            axisLabel: { formatter: (v) => formatShort(v), color: '#94A3B8', fontSize: 9 },
+            splitLine: { lineStyle: { color: '#F1F5F9' } }
+          },
+          yAxis: {
+            type: 'category',
+            data: depts,
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: {
+              color: '#334155',
+              fontSize: 10,
+              fontWeight: 600,
+              width: 80,
+              overflow: 'truncate'
+            }
+          },
+          series: [
+            {
+              name: 'Actual Spend',
+              type: 'bar',
+              barWidth: 9,
+              barGap: '30%',
+              data: actuals,
+              itemStyle: {
+                color: '#6366F1',
+                borderRadius: [0, 3, 3, 0]
+              }
+            },
+            {
+              name: 'Budget Target',
+              type: 'bar',
+              barWidth: 9,
+              data: budgets,
+              itemStyle: {
+                color: '#94A3B8',
+                borderRadius: [0, 3, 3, 0]
+              }
+            }
+          ]
+        });
+      } else {
+        if (chartDiv) chartDiv.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.remove('hidden');
+      }
+    } catch (err) {
+      console.warn('Budget vs actual error:', err);
+      if (chartDiv) chartDiv.classList.add('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
+    }
+  }
+
+  const ctrlBudgetDept = document.getElementById('ctrl-budget-dept');
+  const btnLoadBudget = document.getElementById('btn-load-budget');
+
+  if (ctrlBudgetDept) ctrlBudgetDept.addEventListener('change', () => loadBudgetActual(ctrlBudgetDept.value));
+  if (btnLoadBudget) btnLoadBudget.addEventListener('click', () => loadBudgetActual(ctrlBudgetDept ? ctrlBudgetDept.value : 'all'));
+
+  loadBudgetActual('all');
+
+  // =========================================================================
+  // 10. ROW 4 RIGHT: RECOMMENDATIONS (AI) & IN-PLACE MODAL
+  // =========================================================================
+  let loadedRecommendations = [];
+  async function loadRecommendations() {
+    const container = document.getElementById('recommendations-container');
+    if (!container) return;
+
+    try {
+      const res = await api.get('/api/v1/recommendations').catch(() => null);
+      if (res && Array.isArray(res) && res.length > 0) {
+        loadedRecommendations = res;
+        container.innerHTML = '';
+        loadedRecommendations.slice(0, 4).forEach(rec => {
+          const cat = (rec.category || '').toLowerCase();
+          const icon = cat.includes('revenue') ? 'campaign' :
+                       (cat.includes('cost') || cat.includes('expense') ? 'account_balance_wallet' :
+                       (cat.includes('margin') ? 'trending_up' :
+                       (cat.includes('risk') ? 'warning' : 'smart_toy')));
+          const impactBadge = rec.priority === 'High'
+            ? 'bg-rose-50 text-rose-600 border-rose-100'
+            : (rec.priority === 'Medium' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-blue-50 text-blue-600 border-blue-100');
+
+          const div = document.createElement('div');
+          div.className = 'p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between';
+          div.innerHTML = `
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-start gap-1.5">
+                <span class="material-symbols-outlined text-indigo-600 text-sm mt-0.5">${icon}</span>
+                <div>
+                  <p class="text-[10px] font-bold text-slate-800 leading-tight">${rec.title}</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5 line-clamp-2">${rec.reason}</p>
+                </div>
+              </div>
+              <span class="px-1.5 py-0.2 rounded text-[8px] font-bold ${impactBadge} border flex-shrink-0">${rec.priority}</span>
+            </div>
+            <div class="mt-1 pt-1 border-t border-slate-100 flex items-center justify-between text-[9px]">
+              <span class="text-slate-500 font-medium">Dept: <b>${rec.department || 'All'}</b></span>
+              <span class="text-indigo-600 font-semibold truncate max-w-[130px]">${rec.suggested_action}</span>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+    } catch (err) {
+      console.warn('Recommendations error:', err);
+    }
+  }
+  loadRecommendations();
+
+  // Wire Extended Recommendations Modal
+  const btnViewAllRecommendations = document.getElementById('btn-view-all-recommendations');
+  const modalRecommendations = document.getElementById('modal-recommendations');
+  const closeModalRecommendations = document.getElementById('close-modal-recommendations');
+  const btnCloseRecommendationsFooter = document.getElementById('btn-close-recommendations-footer');
+
+  if (btnViewAllRecommendations && modalRecommendations) {
+    btnViewAllRecommendations.addEventListener('click', () => {
+      const list = document.getElementById('modal-recommendations-list');
+      if (list) {
+        list.innerHTML = '';
+        loadedRecommendations.forEach((rec, idx) => {
+          const badgeBg = rec.priority === 'High' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                          (rec.priority === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200');
+          const card = document.createElement('div');
+          card.className = 'p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2.5';
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-slate-900">${idx + 1}. ${rec.title}</span>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-bold ${badgeBg} border">${rec.priority} Priority</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">${rec.department || 'Enterprise'}</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed">${rec.reason}</p>
+            <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100">
+              <div><span class="font-bold text-slate-900">Category:</span> ${rec.category || 'Strategic Advisory'}</div>
+              <div><span class="font-bold text-slate-900">Financial Impact:</span> <span class="text-emerald-600 font-semibold">${typeof rec.financial_impact === 'number' ? formatCurrency(rec.financial_impact) : rec.financial_impact}</span></div>
+              <div><span class="font-bold text-slate-900">Confidence Score:</span> ${rec.confidence || 90}%</div>
+              <div><span class="font-bold text-slate-900">Expected Benefit:</span> ${rec.expected_benefit || 'EBITDA expansion'}</div>
+            </div>
+            <div class="bg-indigo-50/50 p-3 rounded-lg text-xs text-slate-800 border border-indigo-100 flex items-center justify-between gap-3">
+              <div><span class="font-bold text-slate-900">Suggested Action:</span> ${rec.suggested_action}</div>
+              <button class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors flex-shrink-0 cursor-pointer">
+                ${rec.action_button || 'Implement'}
+              </button>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+      }
+      modalRecommendations.classList.remove('hidden');
+    });
+  }
+  if (closeModalRecommendations) closeModalRecommendations.addEventListener('click', () => modalRecommendations?.classList.add('hidden'));
+  if (btnCloseRecommendationsFooter) btnCloseRecommendationsFooter.addEventListener('click', () => modalRecommendations?.classList.add('hidden'));
+
+  // Close modals on backdrop click or Escape key
+  if (modalInsights) {
+    modalInsights.addEventListener('click', (e) => {
+      if (e.target === modalInsights) modalInsights.classList.add('hidden');
+    });
+  }
+  if (modalRecommendations) {
+    modalRecommendations.addEventListener('click', (e) => {
+      if (e.target === modalRecommendations) modalRecommendations.classList.add('hidden');
+    });
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      modalInsights?.classList.add('hidden');
+      modalRecommendations?.classList.add('hidden');
+    }
+  });
+
+  // Global window resize listener
+  window.addEventListener('resize', () => {
+    revExpChart?.resize();
+    anomOverviewChart?.resize();
+    deptPerfChart?.resize();
+    expDistChart?.resize();
+    fcstChart?.resize();
+    cfChart?.resize();
+    budgetChart?.resize();
+  });
 });

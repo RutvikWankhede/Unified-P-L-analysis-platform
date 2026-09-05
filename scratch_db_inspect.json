@@ -1,0 +1,629 @@
+{
+  "C:\\Users\\HP\\.gemini\\antigravity-ide\\scratch\\P&L system\\enterprise_pl.db": {
+    "size_bytes": 1462272,
+    "tables": {
+      "domain_settings": {
+        "count": 0,
+        "columns": [
+          "id",
+          "domain",
+          "contamination_rate"
+        ]
+      },
+      "users": {
+        "count": 1,
+        "columns": [
+          "id",
+          "username",
+          "email",
+          "hashed_password",
+          "role",
+          "is_active",
+          "created_at",
+          "last_login",
+          "preferences"
+        ]
+      },
+      "department_budgets": {
+        "count": 0,
+        "columns": [
+          "id",
+          "department",
+          "budget_amount",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "settings": {
+        "count": 6,
+        "columns": [
+          "key",
+          "value"
+        ]
+      },
+      "ai_logs": {
+        "count": 0,
+        "columns": [
+          "id",
+          "agent_name",
+          "action",
+          "request_payload",
+          "response_payload",
+          "execution_time_ms",
+          "status",
+          "created_at"
+        ]
+      },
+      "forecasts": {
+        "count": 0,
+        "columns": [
+          "id",
+          "domain",
+          "target_period",
+          "predicted_amount",
+          "confidence_lower",
+          "confidence_upper",
+          "model_version",
+          "created_at"
+        ]
+      },
+      "pl_records": {
+        "count": 1800,
+        "columns": [
+          "id",
+          "upload_id",
+          "domain",
+          "period",
+          "line_item",
+          "amount",
+          "currency",
+          "cost_center",
+          "dynamic_data",
+          "uploaded_by",
+          "created_at"
+        ]
+      },
+      "audit_logs": {
+        "count": 3,
+        "columns": [
+          "id",
+          "user_id",
+          "action_type",
+          "resource_type",
+          "resource_id",
+          "description",
+          "ip_address",
+          "user_agent",
+          "timestamp",
+          "metadata_json"
+        ]
+      },
+      "notifications": {
+        "count": 0,
+        "columns": [
+          "id",
+          "user_id",
+          "title",
+          "message",
+          "type",
+          "priority",
+          "is_read",
+          "created_at"
+        ]
+      },
+      "workflow_instances": {
+        "count": 0,
+        "columns": [
+          "id",
+          "process_instance_id",
+          "workflow_name",
+          "status",
+          "started_by",
+          "variables",
+          "started_at",
+          "completed_at"
+        ]
+      },
+      "uploaded_files": {
+        "count": 1,
+        "columns": [
+          "id",
+          "upload_id",
+          "filename",
+          "file_size_bytes",
+          "user_id",
+          "status",
+          "created_at"
+        ]
+      },
+      "schema_mapping_history": {
+        "count": 20,
+        "columns": [
+          "id",
+          "user_id",
+          "original_column",
+          "mapped_column",
+          "confidence",
+          "sample_values",
+          "currency_context",
+          "created_at"
+        ]
+      },
+      "chat_history": {
+        "count": 0,
+        "columns": [
+          "id",
+          "user_id",
+          "session_id",
+          "role",
+          "content",
+          "created_at"
+        ]
+      },
+      "anomalies": {
+        "count": 95,
+        "columns": [
+          "id",
+          "pl_record_id",
+          "anomaly_score",
+          "severity",
+          "is_anomaly",
+          "percentile_rank",
+          "status",
+          "detected_at",
+          "resolved_at",
+          "assigned_to"
+        ]
+      },
+      "recommendations": {
+        "count": 0,
+        "columns": [
+          "id",
+          "anomaly_id",
+          "priority",
+          "action_type",
+          "description",
+          "action_owner",
+          "sod_flag",
+          "estimated_impact",
+          "reason",
+          "financial_impact",
+          "confidence",
+          "suggested_action",
+          "expected_benefit",
+          "status",
+          "created_at"
+        ]
+      },
+      "explanations": {
+        "count": 0,
+        "columns": [
+          "id",
+          "anomaly_id",
+          "state_hash",
+          "explanation_text",
+          "root_cause",
+          "business_impact",
+          "model_version",
+          "generated_at",
+          "tokens_used"
+        ]
+      }
+    },
+    "summary": {}
+  },
+  "C:\\Users\\HP\\.gemini\\antigravity-ide\\scratch\\P&L system\\unified-pl-system\\backend\\enterprise_pl.db": {
+    "size_bytes": 76820480,
+    "tables": {
+      "alembic_version": {
+        "count": 1,
+        "columns": [
+          "version_num"
+        ]
+      },
+      "users": {
+        "count": 1,
+        "columns": [
+          "id",
+          "username",
+          "email",
+          "hashed_password",
+          "role",
+          "is_active",
+          "created_at",
+          "last_login",
+          "preferences"
+        ]
+      },
+      "chat_history": {
+        "count": 8,
+        "columns": [
+          "id",
+          "user_id",
+          "session_id",
+          "role",
+          "content",
+          "created_at"
+        ]
+      },
+      "notifications": {
+        "count": 0,
+        "columns": [
+          "id",
+          "user_id",
+          "title",
+          "message",
+          "type",
+          "priority",
+          "is_read",
+          "created_at"
+        ]
+      },
+      "pl_records": {
+        "count": 1872,
+        "columns": [
+          "id",
+          "upload_id",
+          "domain",
+          "period",
+          "line_item",
+          "amount",
+          "currency",
+          "cost_center",
+          "dynamic_data",
+          "uploaded_by",
+          "created_at"
+        ]
+      },
+      "uploaded_files": {
+        "count": 3,
+        "columns": [
+          "id",
+          "upload_id",
+          "filename",
+          "file_size_bytes",
+          "user_id",
+          "status",
+          "created_at"
+        ]
+      },
+      "workflow_instances": {
+        "count": 22,
+        "columns": [
+          "id",
+          "process_instance_id",
+          "workflow_name",
+          "status",
+          "started_by",
+          "variables",
+          "started_at",
+          "completed_at"
+        ]
+      },
+      "anomalies": {
+        "count": 95,
+        "columns": [
+          "id",
+          "pl_record_id",
+          "anomaly_score",
+          "severity",
+          "is_anomaly",
+          "percentile_rank",
+          "status",
+          "detected_at",
+          "resolved_at",
+          "assigned_to"
+        ]
+      },
+      "explanations": {
+        "count": 0,
+        "columns": [
+          "id",
+          "anomaly_id",
+          "state_hash",
+          "explanation_text",
+          "root_cause",
+          "business_impact",
+          "model_version",
+          "generated_at",
+          "tokens_used"
+        ]
+      },
+      "recommendations": {
+        "count": 5136,
+        "columns": [
+          "id",
+          "anomaly_id",
+          "priority",
+          "action_type",
+          "description",
+          "action_owner",
+          "sod_flag",
+          "estimated_impact",
+          "status",
+          "created_at",
+          "reason",
+          "financial_impact",
+          "confidence",
+          "suggested_action",
+          "expected_benefit"
+        ]
+      },
+      "ai_logs": {
+        "count": 4,
+        "columns": [
+          "id",
+          "agent_name",
+          "action",
+          "request_payload",
+          "response_payload",
+          "execution_time_ms",
+          "status",
+          "created_at"
+        ]
+      },
+      "forecasts": {
+        "count": 0,
+        "columns": [
+          "id",
+          "domain",
+          "target_period",
+          "predicted_amount",
+          "confidence_lower",
+          "confidence_upper",
+          "model_version",
+          "created_at"
+        ]
+      },
+      "audit_logs": {
+        "count": 362,
+        "columns": [
+          "id",
+          "user_id",
+          "action_type",
+          "resource_type",
+          "resource_id",
+          "description",
+          "ip_address",
+          "user_agent",
+          "timestamp",
+          "metadata_json"
+        ]
+      },
+      "schema_mapping_history": {
+        "count": 75,
+        "columns": [
+          "id",
+          "user_id",
+          "original_column",
+          "mapped_column",
+          "confidence",
+          "created_at",
+          "sample_values",
+          "currency_context"
+        ]
+      },
+      "settings": {
+        "count": 6,
+        "columns": [
+          "key",
+          "value"
+        ]
+      },
+      "department_budgets": {
+        "count": 2,
+        "columns": [
+          "id",
+          "department",
+          "budget_amount",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "domain_settings": {
+        "count": 0,
+        "columns": [
+          "id",
+          "domain",
+          "contamination_rate"
+        ]
+      }
+    },
+    "summary": {}
+  },
+  "C:\\Users\\HP\\.gemini\\antigravity-ide\\scratch\\P&L system\\unified-pl-system\\enterprise_pl.db": {
+    "size_bytes": 1314816,
+    "tables": {
+      "users": {
+        "count": 1,
+        "columns": [
+          "id",
+          "username",
+          "email",
+          "hashed_password",
+          "role",
+          "is_active",
+          "created_at",
+          "last_login"
+        ]
+      },
+      "ai_logs": {
+        "count": 0,
+        "columns": [
+          "id",
+          "agent_name",
+          "action",
+          "request_payload",
+          "response_payload",
+          "execution_time_ms",
+          "status",
+          "created_at"
+        ]
+      },
+      "forecasts": {
+        "count": 0,
+        "columns": [
+          "id",
+          "domain",
+          "target_period",
+          "predicted_amount",
+          "confidence_lower",
+          "confidence_upper",
+          "model_version",
+          "created_at"
+        ]
+      },
+      "pl_records": {
+        "count": 1800,
+        "columns": [
+          "id",
+          "upload_id",
+          "domain",
+          "period",
+          "line_item",
+          "amount",
+          "currency",
+          "cost_center",
+          "dynamic_data",
+          "uploaded_by",
+          "created_at"
+        ]
+      },
+      "audit_logs": {
+        "count": 0,
+        "columns": [
+          "id",
+          "user_id",
+          "action_type",
+          "resource_type",
+          "resource_id",
+          "description",
+          "ip_address",
+          "user_agent",
+          "timestamp",
+          "metadata_json"
+        ]
+      },
+      "chat_history": {
+        "count": 0,
+        "columns": [
+          "id",
+          "user_id",
+          "session_id",
+          "role",
+          "content",
+          "created_at"
+        ]
+      },
+      "notifications": {
+        "count": 0,
+        "columns": [
+          "id",
+          "user_id",
+          "title",
+          "message",
+          "type",
+          "priority",
+          "is_read",
+          "created_at"
+        ]
+      },
+      "schema_mapping_history": {
+        "count": 0,
+        "columns": [
+          "id",
+          "user_id",
+          "original_column",
+          "mapped_column",
+          "confidence",
+          "created_at"
+        ]
+      },
+      "uploaded_files": {
+        "count": 1,
+        "columns": [
+          "id",
+          "upload_id",
+          "filename",
+          "file_size_bytes",
+          "user_id",
+          "status",
+          "created_at"
+        ]
+      },
+      "workflow_instances": {
+        "count": 1,
+        "columns": [
+          "id",
+          "process_instance_id",
+          "workflow_name",
+          "status",
+          "started_by",
+          "variables",
+          "started_at",
+          "completed_at"
+        ]
+      },
+      "anomalies": {
+        "count": 95,
+        "columns": [
+          "id",
+          "pl_record_id",
+          "anomaly_score",
+          "severity",
+          "is_anomaly",
+          "percentile_rank",
+          "status",
+          "detected_at",
+          "resolved_at",
+          "assigned_to"
+        ]
+      },
+      "recommendations": {
+        "count": 0,
+        "columns": [
+          "id",
+          "anomaly_id",
+          "priority",
+          "action_type",
+          "description",
+          "action_owner",
+          "sod_flag",
+          "estimated_impact",
+          "status",
+          "created_at"
+        ]
+      },
+      "explanations": {
+        "count": 0,
+        "columns": [
+          "id",
+          "anomaly_id",
+          "state_hash",
+          "explanation_text",
+          "root_cause",
+          "business_impact",
+          "model_version",
+          "generated_at",
+          "tokens_used"
+        ]
+      },
+      "settings": {
+        "count": 6,
+        "columns": [
+          "id",
+          "key",
+          "value"
+        ]
+      },
+      "sqlite_sequence": {
+        "count": 1,
+        "columns": [
+          "name",
+          "seq"
+        ]
+      }
+    },
+    "summary": {}
+  }
+}

@@ -75,10 +75,12 @@ TARGET_SCHEMAS = {
         "revenue",
         "sales",
         "sales amount",
+        "sales revenue",
         "gross revenue",
         "revenue amount",
         "income",
         "total income",
+        "total revenue",
         "net sales",
         "turnover",
         "operating revenue",
@@ -88,12 +90,12 @@ TARGET_SCHEMAS = {
         "expenses",
         "cost",
         "costs",
-        "operating cost",
-        "operating expenses",
-        "expenditure",
-        "spend",
         "total expense",
         "total expenses",
+        "expenditure",
+        "spending",
+        "operating cost",
+        "operating expenses",
         "cogs",
         "opex",
     ],
@@ -101,18 +103,48 @@ TARGET_SCHEMAS = {
         "profit",
         "net profit",
         "net income",
+        "earnings",
+        "gain",
+        "net gain",
         "operating profit",
         "ebit",
         "p&l",
         "pnl",
     ],
+    "Cash_Inflow": [
+        "cash inflow",
+        "inflow",
+        "cash received",
+        "receipts",
+        "collections",
+        "cash_inflow",
+        "operating cash inflow"
+    ],
+    "Cash_Outflow": [
+        "cash outflow",
+        "outflow",
+        "cash paid",
+        "payments",
+        "cash_outflow",
+        "operating cash outflow"
+    ],
     "Budget": [
         "budget",
         "budget amount",
         "approved budget",
+        "planned",
         "planned budget",
+        "planned amount",
         "planned expense",
+        "target",
         "budgeted amount",
+    ],
+    "Actual": [
+        "actual",
+        "actual amount",
+        "realized",
+        "actual revenue",
+        "actual expense",
     ],
     "currency": ["currency", "currency code", "ccy", "curr", "fx", "symbol", "coin"],
     "cost_center": ["cost center", "cost_center", "cc"],
@@ -147,13 +179,15 @@ def calculate_similarity(a: str, b: str) -> float:
     if not a_clean or not b_clean:
         return 0.0
 
-    # RapidFuzz similarity
-    ratio = fuzz.ratio(a_clean, b_clean)
-    token_set_ratio = fuzz.token_set_ratio(a_clean, b_clean)
-    partial_ratio = fuzz.partial_ratio(a_clean, b_clean)
+    if a_clean == b_clean:
+        return 100.0
 
-    # Combine them for the best indicator of match quality
-    return float(max(ratio, token_set_ratio, partial_ratio))
+    # RapidFuzz similarity - prioritize full token matches over partial substrings
+    ratio = fuzz.ratio(a_clean, b_clean)
+    token_sort_ratio = fuzz.token_sort_ratio(a_clean, b_clean)
+    token_set_ratio = fuzz.token_set_ratio(a_clean, b_clean)
+
+    return float(max(ratio, token_sort_ratio, token_set_ratio * 0.9))
 
 
 def get_mapping_confidence(
@@ -164,9 +198,10 @@ def get_mapping_confidence(
     if not cleaned:
         return 0.0
 
-    # 1. Check exact matches in aliases
-    if cleaned in TARGET_SCHEMAS.get(target, []):
-        return 99.0
+    # 1. Check exact matches in aliases (Highest Priority)
+    aliases = TARGET_SCHEMAS.get(target, [])
+    if cleaned in aliases:
+        return 100.0
 
     # 2. Check history database (Learning Schema)
     try:
@@ -183,26 +218,29 @@ def get_mapping_confidence(
     except Exception as e:
         logger.warning(f"Error reading schema mapping history: {e}")
 
-    # 3. Regex matches
+    # 3. Exact word boundary regex matches
     if target == "date":
-        if re.search(r"(date|time|timestamp|period|posting|created)", cleaned):
-            return 85.0
+        if re.search(r"\b(date|time|timestamp|period|posting|created)\b", cleaned):
+            return 90.0
     elif target == "department":
-        if re.search(r"(dept|department|bu|division|team|segment|unit)", cleaned):
-            return 85.0
+        if re.search(r"\b(dept|department|bu|division|team|segment|unit)\b", cleaned):
+            return 90.0
     elif target == "Revenue":
-        if re.search(r"(revenue|sales|income|sales_amount|turnover)", cleaned):
-            return 85.0
+        if re.search(r"\b(revenue|sales|income|turnover)\b", cleaned):
+            return 90.0
     elif target == "Expense":
-        if re.search(r"(expense|cost|opex|spend|cogs)", cleaned):
-            return 85.0
+        if re.search(r"\b(expense|expenses|cost|costs|opex|spend|spending|expenditure|cogs)\b", cleaned):
+            return 90.0
+    elif target == "Profit":
+        if re.search(r"\b(profit|gain|earnings|ebit|margin)\b", cleaned):
+            return 90.0
     elif target == "amount":
-        if re.search(r"(amount|value|total|debit|credit|balance|sum)", cleaned):
+        if re.search(r"\b(amount|value|total|debit|credit|balance|sum)\b", cleaned):
             return 80.0
 
-    # 4. Fuzzy string matching
+    # 4. Fuzzy string matching against aliases
     best_score = 0.0
-    for alias in TARGET_SCHEMAS.get(target, []):
+    for alias in aliases:
         score = calculate_similarity(cleaned, alias)
         if score > best_score:
             best_score = score
@@ -286,6 +324,10 @@ def infer_schema(columns: list, db: Session, user_id: int) -> dict:
 
         for target in TARGET_SCHEMAS.keys():
             conf = get_mapping_confidence(col_clean, target, db, user_id)
+            if conf >= 100.0:
+                best_confidence = 100.0
+                best_target = target
+                break
             if conf > best_confidence:
                 best_confidence = conf
                 best_target = target

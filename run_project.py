@@ -16,6 +16,14 @@ import urllib.error
 import webbrowser
 from pathlib import Path
 
+# Force UTF-8 on Windows
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 # ─── Configuration ────────────────────────────────────────────────────────────
 
 BASE_DIR = Path(__file__).resolve().parent

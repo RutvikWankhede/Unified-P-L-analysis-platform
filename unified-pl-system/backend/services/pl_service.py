@@ -620,18 +620,22 @@ def finalize_ingestion(
 _demo_data_seeded = False
 
 def ensure_demo_data(db: Session):
-    """Seed the database with demo dataset if no records exist."""
+    """Seed the database with the canonical demo dataset (unified_pnl_enterprise_demo.csv) if no records exist."""
     global _demo_data_seeded
     if _demo_data_seeded:
         return
 
     import os
+    from pathlib import Path
     if "PYTEST_CURRENT_TEST" in os.environ:
         return
 
     from models.pl_record import PLRecord
     from models.recommendation import Setting
     from routers.datasets_router import _active_dataset
+
+    canonical_upload_id = "899540e5-fa49-49e8-b87a-6965b44fd71f"
+    canonical_filename = "unified_pnl_enterprise_demo.xlsx"
 
     # Sync active dataset from persistent Setting table if present
     try:
@@ -642,10 +646,10 @@ def ensure_demo_data(db: Session):
             cnt = db.query(PLRecord).filter(PLRecord.upload_id == active_setting.value).count()
             if cnt > 0:
                 _active_dataset["dataset_id"] = active_setting.value
-                _active_dataset["filename"] = active_fn_setting.value if active_fn_setting else "Dataset"
+                _active_dataset["filename"] = active_fn_setting.value if active_fn_setting else canonical_filename
             else:
-                _active_dataset["dataset_id"] = "DEMO-DATASET"
-                _active_dataset["filename"] = "unified_pnl_enterprise_demo.csv"
+                _active_dataset["dataset_id"] = canonical_upload_id
+                _active_dataset["filename"] = canonical_filename
     except Exception as err:
         logger.warning(f"Failed to read active dataset setting: {err}")
 
@@ -653,19 +657,48 @@ def ensure_demo_data(db: Session):
         _demo_data_seeded = True
         return
 
-    logger.info("Database is empty on launch. Automatically generating and ingesting default synthetic dataset...")
+    logger.info("Database is empty on launch. Automatically ingesting canonical unified_pnl_enterprise_demo.csv...")
     try:
-        from services.synthetic_generator import generate_synthetic_dataset
-        df = generate_synthetic_dataset()
-        csv_buffer = BytesIO()
-        df.to_csv(csv_buffer, index=False)
-        content = csv_buffer.getvalue()
+        # Search for canonical CSV file
+        candidate_paths = [
+            Path("data/default/unified_pnl_enterprise_demo.csv"),
+            Path("unified_pnl_enterprise_demo.csv"),
+            Path("../data/default/unified_pnl_enterprise_demo.csv"),
+            Path("../unified_pnl_enterprise_demo.csv"),
+            Path("../../data/default/unified_pnl_enterprise_demo.csv"),
+        ]
+        csv_file_path = None
+        for cp in candidate_paths:
+            if cp.exists():
+                csv_file_path = cp
+                break
 
-        res = auto_ingest_dataset(db, content, "unified_pnl_demo_dataset.csv", user_id=1, upload_id="DEMO-DATASET")
-        _demo_data_seeded = True
-        logger.info(f"Successfully auto-ingested default synthetic dataset: {res['records_count']} records.")
+        if csv_file_path:
+            with open(csv_file_path, "rb") as f:
+                content = f.read()
+            res = auto_ingest_dataset(
+                db,
+                content,
+                canonical_filename,
+                user_id=1,
+                upload_id=canonical_upload_id
+            )
+            _active_dataset["dataset_id"] = canonical_upload_id
+            _active_dataset["filename"] = canonical_filename
+            _demo_data_seeded = True
+            logger.info(f"Successfully auto-ingested canonical dataset: {res['records_count']} records.")
+
+            # Run anomaly detection to populate anomalies
+            try:
+                from services.anomaly_detection_engine import run_anomaly_detection
+                anom_res = run_anomaly_detection(db, upload_id=canonical_upload_id)
+                logger.info(f"Auto-detected anomalies on startup: {len(anom_res)} anomalies.")
+            except Exception as anom_err:
+                logger.warning(f"Failed to run initial anomaly detection: {anom_err}")
+        else:
+            logger.error("Canonical unified_pnl_enterprise_demo.csv could not be found.")
     except Exception as e:
-        logger.error(f"Failed to generate and ingest default dataset: {e}")
+        logger.error(f"Failed to ingest default dataset: {e}")
 
 
 def process_csv_upload(db: Session, file_content: bytes, user_id: int):

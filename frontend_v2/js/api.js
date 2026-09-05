@@ -3,7 +3,11 @@
  * All HTTP calls go through this module. Never use raw fetch() in page scripts.
  */
 
-const API_BASE = window.__API_BASE__ || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : '');
+const API_BASE = window.__API_BASE__ || (
+  window.location.port === '3000'
+    ? `${window.location.protocol}//${window.location.hostname}:8000`
+    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? `${window.location.protocol}//${window.location.hostname}:8000` : '')
+);
 const WS_BASE = API_BASE.replace('http', 'ws');
 
 const endpoints = {

@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
  });
 
  // Global Search Setup
- const searchInput = document.querySelector('input[*="Search"]');
+ const searchInput = document.querySelector('input[placeholder*="Search" i], input[type="search"]');
  if (searchInput) {
  searchInput.addEventListener('keydown', (e) => {
  if (e.key === 'Enter') {

@@ -165,21 +165,25 @@ class MetricEngine:
         else:
             raw_df = df.drop_duplicates(subset=["period", "domain", "amount", "line_item"])
             
-        if aggregation == "daily":
+        agg_lower = str(aggregation).lower().replace("_", "-").replace(" ", "-")
+        if agg_lower in ["overall", "total", "all"]:
+            df["group_period"] = "Overall"
+            raw_df["group_period"] = "Overall"
+        elif agg_lower in ["daily", "day"]:
             df["group_period"] = df["date_parsed"].dt.strftime("%Y-%m-%d")
             raw_df["group_period"] = raw_df["date_parsed"].dt.strftime("%Y-%m-%d")
-        elif aggregation == "weekly":
+        elif agg_lower in ["weekly", "week"]:
             df["group_period"] = df["date_parsed"].dt.strftime("%Y-W%U")
             raw_df["group_period"] = raw_df["date_parsed"].dt.strftime("%Y-W%U")
-        elif aggregation == "quarterly":
+        elif agg_lower in ["quarterly", "quarter"]:
             df["group_period"] = df["date_parsed"].dt.year.astype(str) + "-Q" + df["date_parsed"].dt.quarter.astype(str)
             raw_df["group_period"] = raw_df["date_parsed"].dt.year.astype(str) + "-Q" + raw_df["date_parsed"].dt.quarter.astype(str)
-        elif aggregation == "half-yearly":
+        elif agg_lower in ["half-yearly", "half_yearly", "half-year", "half yearly", "h1-h2"]:
             half = np.where(df["date_parsed"].dt.month <= 6, "1", "2")
             df["group_period"] = df["date_parsed"].dt.year.astype(str) + "-H" + half
             raw_half = np.where(raw_df["date_parsed"].dt.month <= 6, "1", "2")
             raw_df["group_period"] = raw_df["date_parsed"].dt.year.astype(str) + "-H" + raw_half
-        elif aggregation == "yearly":
+        elif agg_lower in ["yearly", "year", "annual"]:
             df["group_period"] = df["date_parsed"].dt.strftime("%Y")
             raw_df["group_period"] = raw_df["date_parsed"].dt.strftime("%Y")
         else:
@@ -601,3 +605,413 @@ class MetricEngine:
         merged = pd.merge(rev_group, exp_group, on=["group_period", "domain"], how="outer", suffixes=('_rev', '_exp')).fillna(0.0)
         merged["profit"] = merged["amount_rev"] - merged["amount_exp"]
         return merged
+
+    def get_anomaly_summary(self, period="overall", dept="all"):
+        from models.anomaly import Anomaly
+        query = self.db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
+        if self.active_dataset_id:
+            query = query.filter(PLRecord.upload_id == self.active_dataset_id)
+            
+        if dept and dept.lower() not in ["all", "all departments", "overall"]:
+            query = query.filter(PLRecord.domain.ilike(dept))
+            
+        date_stats = self.db.query(
+            func.min(PLRecord.period).label("min_date"),
+            func.max(PLRecord.period).label("max_date")
+        )
+        if self.active_dataset_id:
+            date_stats = date_stats.filter(PLRecord.upload_id == self.active_dataset_id)
+        min_date, max_date = date_stats.first()
+        
+        p_lower = str(period).lower().replace("_", "-").replace(" ", "-")
+        if max_date and p_lower not in ["overall", "all", "total"]:
+            if p_lower in ["daily", "day"]:
+                query = query.filter(PLRecord.period == max_date[:10])
+            elif p_lower in ["weekly", "week"]:
+                try:
+                    from datetime import datetime, timedelta
+                    dt_max = datetime.strptime(max_date[:10], "%Y-%m-%d")
+                    dt_start = (dt_max - timedelta(days=7)).strftime("%Y-%m-%d")
+                    query = query.filter(PLRecord.period >= dt_start)
+                except Exception:
+                    query = query.filter(PLRecord.period.like(f"{max_date[:7]}%"))
+            elif p_lower in ["monthly", "month"]:
+                query = query.filter(PLRecord.period.like(f"{max_date[:7]}%"))
+            elif p_lower in ["half-yearly", "half-year", "half yearly", "h1-h2"]:
+                yr = max_date[:4]
+                month_num = int(max_date[5:7]) if len(max_date) >= 7 else 12
+                start_m = "07-01" if month_num > 6 else "01-01"
+                query = query.filter(PLRecord.period >= f"{yr}-{start_m}")
+            elif p_lower in ["yearly", "year", "annual"]:
+                query = query.filter(PLRecord.period.like(f"{max_date[:4]}%"))
+
+        anomalies = query.all()
+        total_count = len(anomalies)
+
+        critical_count = sum(1 for a in anomalies if (a.severity or "").lower() == "critical")
+        high_count = sum(1 for a in anomalies if (a.severity or "").lower() == "high")
+        medium_count = sum(1 for a in anomalies if (a.severity or "").lower() == "medium")
+        low_count = sum(1 for a in anomalies if (a.severity or "").lower() == "low")
+
+        unclassified = total_count - (critical_count + high_count + medium_count + low_count)
+        if unclassified > 0:
+            medium_count += unclassified
+
+        severities = [
+            {"name": "Critical", "count": critical_count, "color": "#EF4444", "percentage": round((critical_count/total_count*100), 1) if total_count > 0 else 0},
+            {"name": "High", "count": high_count, "color": "#F97316", "percentage": round((high_count/total_count*100), 1) if total_count > 0 else 0},
+            {"name": "Medium", "count": medium_count, "color": "#FBBF24", "percentage": round((medium_count/total_count*100), 1) if total_count > 0 else 0},
+            {"name": "Low", "count": low_count, "color": "#38BDF8", "percentage": round((low_count/total_count*100), 1) if total_count > 0 else 0},
+        ]
+
+        return {
+            "period": period,
+            "department": dept,
+            "total_anomalies": total_count,
+            "critical_count": critical_count,
+            "high_count": high_count,
+            "medium_count": medium_count,
+            "low_count": low_count,
+            "severities": severities,
+            "has_data": total_count > 0
+        }
+
+    def get_financial_distribution(self, metric="expense", dept="all"):
+        dept_colors = {
+            "Sales": "#3B82F6",
+            "Operations": "#10B981",
+            "Finance": "#F59E0B",
+            "Human Resources": "#EC4899",
+            "HR": "#EC4899",
+            "Engineering": "#8B5CF6",
+            "IT": "#8B5CF6",
+            "Technology": "#8B5CF6",
+            "Information Technology": "#8B5CF6",
+            "Marketing": "#06B6D4",
+            "R&D": "#6366F1",
+            "Research & Development": "#6366F1",
+            "Legal": "#64748B",
+            "Logistics": "#14B8A6",
+            "Supply Chain": "#14B8A6",
+            "Support": "#F97316",
+            "Customer Support": "#F97316",
+            "Commercial": "#0284C7",
+            "Procurement": "#84CC16",
+            "Executive": "#4F46E5",
+            "Administration": "#475569",
+        }
+        palette = [
+            "#3B82F6", "#10B981", "#F59E0B", "#EC4899", "#8B5CF6",
+            "#06B6D4", "#6366F1", "#F97316", "#14B8A6", "#0284C7",
+            "#84CC16", "#A855F7", "#E11D48", "#64748B", "#D97706"
+        ]
+
+        def get_color(name, idx):
+            if name in dept_colors:
+                return dept_colors[name]
+            for k, v in dept_colors.items():
+                if k.lower() == name.lower():
+                    return v
+            return palette[idx % len(palette)]
+
+        m_key = str(metric).lower().replace("_", " ").replace("-", " ")
+        is_revenue = any(w in m_key for w in ["revenue", "sales", "income", "turnover"])
+        is_profit = any(w in m_key for w in ["profit", "net profit", "ebit", "gain", "earnings"]) and not ("margin" in m_key or "%" in m_key or "pct" in m_key)
+        is_margin = any(w in m_key for w in ["margin", "%", "pct", "net margin"])
+        is_expense = not (is_revenue or is_profit or is_margin)
+
+        is_all_depts = not dept or dept.lower() in ["all", "all departments", "overall", "total"]
+
+        query = self._base_query()
+        if not is_all_depts:
+            query = query.filter(PLRecord.domain == dept)
+
+        if is_all_depts:
+            dept_aggs = self.get_department_aggregates()
+            if not dept_aggs:
+                return {"has_data": False, "metric": metric, "department": dept, "total_amount": 0.0, "categories": []}
+
+            cat_map = {}
+            for d in dept_aggs:
+                d_name = d["department"]
+                if is_revenue:
+                    val = float(d.get("revenue") or 0.0)
+                elif is_profit:
+                    val = float(d.get("profit") or 0.0)
+                    if val < 0:
+                        val = 0.0
+                elif is_margin:
+                    val = float(d.get("margin") or 0.0)
+                    if val < 0:
+                        val = 0.0
+                else:  # expense
+                    val = float(d.get("expense") or 0.0)
+
+                if val > 0:
+                    cat_map[d_name] = val
+
+            total_val = sum(cat_map.values())
+            if total_val <= 0:
+                return {"has_data": False, "metric": metric, "department": dept, "total_amount": 0.0, "categories": []}
+
+            sorted_cats = sorted(cat_map.items(), key=lambda x: x[1], reverse=True)
+            categories = []
+            if len(sorted_cats) > 8:
+                top_cats = sorted_cats[:7]
+                other_sum = sum(v for _, v in sorted_cats[7:])
+                for idx, (name, amt) in enumerate(top_cats):
+                    pct = round((amt / total_val) * 100, 1)
+                    categories.append({
+                        "name": name,
+                        "amount": round(amt, 2),
+                        "percentage": pct,
+                        "color": get_color(name, idx),
+                        "is_margin": is_margin
+                    })
+                if other_sum > 0:
+                    categories.append({
+                        "name": "Others",
+                        "amount": round(other_sum, 2),
+                        "percentage": round((other_sum / total_val) * 100, 1),
+                        "color": "#1E293B",
+                        "is_margin": is_margin
+                    })
+            else:
+                for idx, (name, amt) in enumerate(sorted_cats):
+                    pct = round((amt / total_val) * 100, 1)
+                    categories.append({
+                        "name": name,
+                        "amount": round(amt, 2),
+                        "percentage": pct,
+                        "color": get_color(name, idx),
+                        "is_margin": is_margin
+                    })
+
+            return {
+                "has_data": True,
+                "metric": metric,
+                "department": dept,
+                "total_amount": round(total_val, 2),
+                "is_percentage": is_margin,
+                "categories": categories
+            }
+        else:
+            records = query.all()
+            if not records:
+                return {"has_data": False, "metric": metric, "department": dept, "total_amount": 0.0, "categories": []}
+
+            rev_cond = lambda li: any(w in (li or "").lower() for w in ["revenue", "sales", "income"])
+            exp_cond = lambda li: any(w in (li or "").lower() for w in ["expense", "cost", "opex", "salary", "salaries"])
+
+            cat_map = {}
+            for r in records:
+                li = str(r.line_item or "General").strip()
+                amt = float(r.amount or 0.0)
+
+                channel = r.dynamic_data.get("Channel") if r.dynamic_data else None
+                cat_label = channel if (channel and channel != "None") else li
+
+                if is_revenue:
+                    if rev_cond(r.line_item) or (r.dynamic_data and "Revenue" in r.dynamic_data and not exp_cond(r.line_item)):
+                        cat_map[cat_label] = cat_map.get(cat_label, 0.0) + amt
+                elif is_profit:
+                    if rev_cond(r.line_item):
+                        cat_map[cat_label] = cat_map.get(cat_label, 0.0) + amt
+                    elif exp_cond(r.line_item):
+                        cat_map[cat_label] = cat_map.get(cat_label, 0.0) - amt
+                elif is_margin:
+                    cat_map[cat_label] = cat_map.get(cat_label, 0.0) + amt
+                else:  # expense
+                    if exp_cond(r.line_item) or (r.dynamic_data and "Expense" in r.dynamic_data and not rev_cond(r.line_item)):
+                        cat_map[cat_label] = cat_map.get(cat_label, 0.0) + amt
+
+            valid_cats = {k: v for k, v in cat_map.items() if v > 0}
+            if not valid_cats:
+                total_dept_amt = sum(abs(float(r.amount or 0.0)) for r in records)
+                valid_cats = {f"{dept} {metric.capitalize()}": total_dept_amt}
+
+            total_val = sum(valid_cats.values())
+            sorted_cats = sorted(valid_cats.items(), key=lambda x: x[1], reverse=True)
+
+            categories = []
+            if len(sorted_cats) > 8:
+                top_cats = sorted_cats[:7]
+                other_sum = sum(v for _, v in sorted_cats[7:])
+                for idx, (name, amt) in enumerate(top_cats):
+                    categories.append({
+                        "name": name,
+                        "amount": round(amt, 2),
+                        "percentage": round((amt / total_val) * 100, 1) if total_val > 0 else 0,
+                        "color": palette[idx % len(palette)],
+                        "is_margin": is_margin
+                    })
+                if other_sum > 0:
+                    categories.append({
+                        "name": "Others",
+                        "amount": round(other_sum, 2),
+                        "percentage": round((other_sum / total_val) * 100, 1) if total_val > 0 else 0,
+                        "color": "#1E293B",
+                        "is_margin": is_margin
+                    })
+            else:
+                for idx, (name, amt) in enumerate(sorted_cats):
+                    categories.append({
+                        "name": name,
+                        "amount": round(amt, 2),
+                        "percentage": round((amt / total_val) * 100, 1) if total_val > 0 else 0,
+                        "color": palette[idx % len(palette)],
+                        "is_margin": is_margin
+                    })
+
+            return {
+                "has_data": True,
+                "metric": metric,
+                "department": dept,
+                "total_amount": round(total_val, 2),
+                "is_percentage": is_margin,
+                "categories": categories
+            }
+
+    def get_expense_distribution(self, dept="all", metric="expense"):
+        return self.get_financial_distribution(metric=metric, dept=dept)
+
+    def get_department_performance(self, metric="profit", limit="top5"):
+        dept_aggs = self.get_department_aggregates()
+        items = []
+        for d in dept_aggs:
+            dept_name = d["department"]
+            rev = d.get("revenue") or 0.0
+            exp = d.get("expense") or 0.0
+            prof = d.get("profit") if d.get("profit") is not None else (rev - exp)
+            margin = d.get("margin") if d.get("margin") is not None else ((prof / rev * 100) if rev > 0 else 0.0)
+
+            m_key = metric.lower().replace("_", " ").replace("-", " ")
+            if "expense" in m_key or "cost" in m_key:
+                val = exp
+            elif "revenue" in m_key or "sales" in m_key or "income" in m_key:
+                val = rev
+            elif "margin" in m_key or "%" in m_key or "pct" in m_key:
+                val = margin
+            else:
+                val = prof
+
+            items.append({
+                "department": dept_name,
+                "value": round(val, 2),
+                "revenue": round(rev, 2),
+                "expense": round(exp, 2),
+                "profit": round(prof, 2),
+                "margin_pct": round(margin, 2),
+            })
+
+        items.sort(key=lambda x: x["value"], reverse=True)
+
+        limit_lower = str(limit).lower()
+        if limit_lower in ["top5", "5", "top 5"]:
+            items = items[:5]
+        elif limit_lower in ["top10", "10", "top 10"]:
+            items = items[:10]
+
+        return {
+            "metric": metric,
+            "limit": limit,
+            "departments": [it["department"] for it in items],
+            "values": [it["value"] for it in items],
+            "items": items
+        }
+
+    def get_budget_vs_actual(self, dept="all"):
+        from models.pl_record import DepartmentBudget, PLRecord
+
+        profile = self.get_active_profile()
+        budget_col = profile.get("budget_column")
+        budgets_db = {}
+        try:
+            budgets_db = {b.department.lower(): b.budget_amount for b in self.db.query(DepartmentBudget).all() if b.budget_amount and b.budget_amount > 0}
+        except Exception:
+            budgets_db = {}
+
+        base_query = self.db.query(PLRecord)
+        if self.active_dataset_id:
+            base_query = base_query.filter(PLRecord.upload_id == self.active_dataset_id)
+        records = base_query.all()
+
+        seen_txns = set()
+        dept_map = {}
+        has_budget_col_data = False
+
+        for r in records:
+            txn_key = r.dynamic_data.get("Transaction_ID") if r.dynamic_data else None
+            if not txn_key:
+                txn_key = (r.period, r.domain, r.amount, r.line_item)
+            if txn_key not in seen_txns:
+                seen_txns.add(txn_key)
+                d_name = r.domain or "General"
+                if d_name not in dept_map:
+                    dept_map[d_name] = {"actual": 0.0, "budget": 0.0}
+
+                # Extract Expense
+                exp_val = 0.0
+                if r.dynamic_data and "Expense" in r.dynamic_data and r.dynamic_data["Expense"] is not None:
+                    try:
+                        exp_val = float(r.dynamic_data["Expense"])
+                    except (ValueError, TypeError):
+                        exp_val = 0.0
+                elif "exp" in (r.line_item or "").lower() or "cost" in (r.line_item or "").lower():
+                    exp_val = float(r.amount or 0.0)
+
+                dept_map[d_name]["actual"] += exp_val
+
+                # Extract Budget
+                if budget_col and r.dynamic_data and budget_col in r.dynamic_data and r.dynamic_data[budget_col] is not None:
+                    try:
+                        bgt_val = float(r.dynamic_data[budget_col])
+                        dept_map[d_name]["budget"] += bgt_val
+                        has_budget_col_data = True
+                    except (ValueError, TypeError):
+                        pass
+
+        has_any_budget = has_budget_col_data or bool(budgets_db)
+        results = []
+        for d_name, vals in dept_map.items():
+            if dept and dept.lower() not in ["all", "all departments", "overall"] and d_name.lower() != dept.lower():
+                continue
+
+            actual_exp = round(vals["actual"], 2)
+            if has_budget_col_data:
+                allocated_budget = round(vals["budget"], 2)
+            elif d_name.lower() in budgets_db:
+                allocated_budget = round(budgets_db[d_name.lower()], 2)
+            else:
+                allocated_budget = 0.0
+
+            variance = round(actual_exp - allocated_budget, 2)
+            variance_pct = round((variance / allocated_budget * 100), 1) if allocated_budget > 0 else 0.0
+            status = "Over Budget" if variance > 0 else ("Under Budget" if variance < 0 else "On Track")
+
+            results.append({
+                "department": d_name,
+                "actual": actual_exp,
+                "budget": allocated_budget,
+                "variance": variance,
+                "variance_pct": variance_pct,
+                "status": status
+            })
+
+        results.sort(key=lambda x: x["actual"], reverse=True)
+        total_actual = sum(it["actual"] for it in results)
+        total_budget = sum(it["budget"] for it in results)
+        total_var = round(total_actual - total_budget, 2)
+        total_var_pct = round((total_var / total_budget * 100), 1) if total_budget > 0 else 0.0
+
+        return {
+            "department": dept,
+            "has_data": has_any_budget and len(results) > 0,
+            "total_actual": total_actual,
+            "total_budget": total_budget,
+            "total_variance": total_var,
+            "total_variance_pct": total_var_pct,
+            "items": results
+        }
+
+

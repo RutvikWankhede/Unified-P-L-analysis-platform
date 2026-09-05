@@ -1,303 +1,305 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anomalies - P&L AI</title>
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/components.css">
-    <style>
-        .panel {
-            position: fixed;
-            right: -450px;
-            top: 0;
-            bottom: 0;
-            width: 450px;
-            background: var(--color-bg-secondary);
-            box-shadow: var(--shadow-modal);
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 200;
-            padding: var(--space-8);
-            overflow-y: auto;
-            border-left: 1px solid var(--color-border);
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Anomaly Detection - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
         }
-        .panel.open {
-            right: 0;
-        }
-        .close-btn {
-            background: var(--color-bg-elevated);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-primary);
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-full);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            float: right;
-            transition: all var(--transition-fast);
-        }
-        .close-btn:hover {
-            background: var(--color-bg-glass-hover);
-        }
-    </style>
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 16px;
+      padding: 16px 20px;
+    }
+    .content-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 16px;
+      padding: 20px 24px;
+    }
+    .heatmap-cell {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+    }
+    .heatmap-cell:hover {
+      transform: scale(1.04);
+      z-index: 10;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body>
-    <div class="sidebar" id="sidebar">
-        <div class="logo-container">
-            <span class="material-symbols-outlined" style="font-size: 28px;">analytics</span>
-            <span class="logo-text">P&L AI</span>
-        </div>
-        <a href="dashboard.html" class="nav-item">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span class="nav-text">Dashboard</span>
-        </a>
-        <a href="upload.html" class="nav-item">
-            <span class="material-symbols-outlined">upload_file</span>
-            <span class="nav-text">Upload Data</span>
-        </a>
-        <a href="anomalies.html" class="nav-item active">
-            <span class="material-symbols-outlined">warning</span>
-            <span class="nav-text">Anomalies</span>
-        </a>
-        <div style="flex-grow: 1;"></div>
-        <a href="#" class="nav-item" id="logout-btn">
-            <span class="material-symbols-outlined">logout</span>
-            <span class="nav-text">Logout</span>
-        </a>
-    </div>
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
 
-    <div class="main-content" id="main-content">
-        <div class="topbar">
-            <div style="display: flex; align-items: center; gap: var(--space-4);">
-                <button class="icon-btn" id="sidebar-toggle">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
-            </div>
-            
-            <div class="topbar-actions">
-                <button class="icon-btn" id="theme-toggle">
-                    <span class="material-symbols-outlined">light_mode</span>
-                </button>
-                <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-teal)); display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
-                    AD
-                </div>
-            </div>
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] min-h-screen p-8">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Anomaly Detection</h1>
+        <p class="text-xs text-slate-500 mt-0.5">Identify unusual patterns in your financial data</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">search</span>
+          <input type="text" placeholder="Search..." class="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-700 w-56 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"/>
         </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-6);">
-            <div>
-                <h1 style="margin-bottom: var(--space-2);">Anomaly Review</h1>
-                <p style="color: var(--color-text-secondary); margin: 0;">Review and resolve identified data irregularities.</p>
-            </div>
-            <div style="display: flex; gap: var(--space-3);">
-                <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 8px 16px; border-radius: var(--radius-sm);">
-                    <option>All Severities</option>
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                </select>
-                <select style="background: var(--color-bg-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); padding: 8px 16px; border-radius: var(--radius-sm);">
-                    <option>All Statuses</option>
-                    <option>Pending</option>
-                    <option>Resolved</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="card" style="animation: fadeIn 0.4s ease-out;">
-            <div class="table-wrapper">
-                <table id="anomalies-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Severity</th>
-                            <th>Anomaly Score</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Loading Skeletons -->
-                        <tr>
-                            <td><div class="skeleton" style="height: 20px; width: 40px;"></div></td>
-                            <td><div class="skeleton" style="height: 24px; width: 60px; border-radius: 12px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 50px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 80px;"></div></td>
-                            <td><div class="skeleton" style="height: 36px; width: 100px; border-radius: 6px;"></div></td>
-                        </tr>
-                        <tr>
-                            <td><div class="skeleton" style="height: 20px; width: 40px;"></div></td>
-                            <td><div class="skeleton" style="height: 24px; width: 60px; border-radius: 12px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 50px;"></div></td>
-                            <td><div class="skeleton" style="height: 20px; width: 80px;"></div></td>
-                            <td><div class="skeleton" style="height: 36px; width: 100px; border-radius: 6px;"></div></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Details Panel -->
-    <div class="panel" id="detail-panel">
-        <button class="close-btn" id="close-panel">
-            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+        <button class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 shadow-sm transition-colors" id="notifications-trigger">
+          <span class="material-symbols-outlined text-base">notifications</span>
         </button>
-        <h2 style="color: var(--color-accent-teal); margin-top: 0; display: flex; align-items: center; gap: var(--space-2);">
-            <span class="material-symbols-outlined">plagiarism</span>
-            Investigation
-        </h2>
-        
-        <div id="panel-content" style="margin-top: var(--space-6);">
-            <div class="skeleton" style="height: 100px; width: 100%;"></div>
+      </div>
+    </header>
+
+    <!-- KPI Row (5 Cards) -->
+    <section class="grid grid-cols-5 gap-4 mb-6">
+      <!-- 1. Total Anomalies -->
+      <div class="kpi-card custom-shadow flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+          <span class="material-symbols-outlined text-lg">location_on</span>
         </div>
-        
-        <hr style="border: 0; height: 1px; background: var(--color-border); margin: var(--space-6) 0;">
-        
-        <h3 style="color: var(--color-accent-primary); display: flex; align-items: center; gap: var(--space-2);">
-            <span class="material-symbols-outlined">smart_toy</span>
-            AI Copilot Explanation
-        </h3>
-        
-        <div id="ai-explanation" style="background: var(--color-bg-elevated); padding: var(--space-5); border-radius: var(--radius-md); border-left: 3px solid var(--color-accent-primary); margin-top: var(--space-4);">
-            <div style="display: flex; gap: var(--space-3); align-items: center;">
-                <div class="skeleton" style="height: 40px; width: 40px; border-radius: 50%;"></div>
-                <div style="flex: 1;">
-                    <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 8px;"></div>
-                    <div class="skeleton" style="height: 12px; width: 80%;"></div>
-                </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Total Anomalies</p>
+          <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-anom-total">8</h3>
+        </div>
+      </div>
+
+      <!-- 2. Critical -->
+      <div class="kpi-card custom-shadow flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+          <span class="material-symbols-outlined text-lg">error</span>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Critical</p>
+          <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-anom-critical">2</h3>
+        </div>
+      </div>
+
+      <!-- 3. High -->
+      <div class="kpi-card custom-shadow flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+          <span class="material-symbols-outlined text-lg">location_on</span>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">High</p>
+          <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-anom-high">3</h3>
+        </div>
+      </div>
+
+      <!-- 4. Medium -->
+      <div class="kpi-card custom-shadow flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-yellow-50 border border-yellow-100 flex items-center justify-center text-yellow-600">
+          <span class="material-symbols-outlined text-lg">location_on</span>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Medium</p>
+          <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-anom-medium">2</h3>
+        </div>
+      </div>
+
+      <!-- 5. Low -->
+      <div class="kpi-card custom-shadow flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
+          <span class="material-symbols-outlined text-lg">location_on</span>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Low</p>
+          <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-anom-low">1</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter Bar -->
+    <section class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5 text-xs text-slate-600 font-medium mr-1">
+          <span>Filter</span>
+          <span class="material-symbols-outlined text-sm text-slate-500">tune</span>
+        </div>
+
+        <div class="relative">
+          <select id="filter-anom-dept" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer shadow-sm">
+            <option value="all">All Departments</option>
+            <option value="Logistics">Logistics</option>
+            <option value="R&D">R&amp;D</option>
+            <option value="Marketing">Marketing</option>
+            <option value="HR">HR</option>
+            <option value="IT">IT</option>
+            <option value="Procurement">Procurement</option>
+            <option value="Administration">Administration</option>
+            <option value="Legal">Legal</option>
+            <option value="Finance">Finance</option>
+            <option value="Customer Support">Customer Support</option>
+            <option value="Operations">Operations</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+
+        <div class="relative">
+          <select id="filter-anom-acc" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer shadow-sm">
+            <option value="all">All Accounts</option>
+            <option value="travel">Travel Expense</option>
+            <option value="software">Software Subscriptions</option>
+            <option value="marketing">Marketing Budget</option>
+            <option value="vendor">Vendor Contracts</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+
+        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
+          <span class="material-symbols-outlined text-sm text-slate-400">calendar_today</span>
+          <span>May 13 - May 18, 2025</span>
+          <span class="material-symbols-outlined text-sm text-slate-400">expand_more</span>
+        </div>
+      </div>
+
+      <button id="btn-run-detection" class="bg-[#5B5CEB] text-white text-xs font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-all">
+        <span class="material-symbols-outlined text-sm">play_arrow</span> Run Detection
+      </button>
+    </section>
+
+    <!-- Main Content: Risk Heatmap -->
+    <section class="content-card custom-shadow mb-6">
+      <h3 class="font-bold text-slate-900 text-sm mb-4">Risk Heatmap</h3>
+
+      <div class="overflow-x-auto pb-2">
+        <div class="w-full">
+          <!-- Heatmap Grid -->
+          <div class="grid grid-cols-12 gap-1.5 items-stretch text-xs">
+            <!-- Row 1: Low -->
+            <div class="col-span-1 flex items-center justify-end pr-3 text-[11px] font-medium text-slate-500">Low</div>
+            <div class="col-span-11 grid grid-cols-11 gap-1.5" id="row-low">
+              <div class="heatmap-cell rounded" style="background:#EF4444;color:#FFFFFF;">6</div>
+              <div class="heatmap-cell rounded" style="background:#F87171;color:#FFFFFF;">5</div>
+              <div class="heatmap-cell rounded" style="background:#DC2626;color:#FFFFFF;">8</div>
+              <div class="heatmap-cell rounded" style="background:#7F1D1D;color:#FFFFFF;">10</div>
+              <div class="heatmap-cell rounded" style="background:#EF4444;color:#FFFFFF;">7</div>
+              <div class="heatmap-cell rounded" style="background:#FECACA;color:#991B1B;">4</div>
+              <div class="heatmap-cell rounded" style="background:#DC2626;color:#FFFFFF;">8</div>
+              <div class="heatmap-cell rounded" style="background:#DC2626;color:#FFFFFF;">8</div>
+              <div class="heatmap-cell rounded" style="background:#EF4444;color:#FFFFFF;">7</div>
+              <div class="heatmap-cell rounded" style="background:#F87171;color:#FFFFFF;">5</div>
+              <div class="heatmap-cell rounded" style="background:#EF4444;color:#FFFFFF;">7</div>
             </div>
+
+            <!-- Row 2: Medium -->
+            <div class="col-span-1 flex items-center justify-end pr-3 text-[11px] font-medium text-slate-500">Medium</div>
+            <div class="col-span-11 grid grid-cols-11 gap-1.5" id="row-medium">
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">3</div>
+              <div class="heatmap-cell rounded" style="background:#FFF1F2;color:#991B1B;">1</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">2</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">3</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">2</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">3</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">3</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">2</div>
+            </div>
+
+            <!-- Row 3: High -->
+            <div class="col-span-1 flex items-center justify-end pr-3 text-[11px] font-medium text-slate-500">High</div>
+            <div class="col-span-11 grid grid-cols-11 gap-1.5" id="row-high">
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFF1F2;color:#991B1B;">1</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFF1F2;color:#991B1B;">1</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">2</div>
+              <div class="heatmap-cell rounded" style="background:#FEE2E2;color:#991B1B;">2</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+            </div>
+
+            <!-- Row 4: Critical -->
+            <div class="col-span-1 flex items-center justify-end pr-3 text-[11px] font-medium text-slate-500">Critical</div>
+            <div class="col-span-11 grid grid-cols-11 gap-1.5" id="row-critical">
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+              <div class="heatmap-cell rounded" style="background:#FFFFFF;color:#94A3B8;border:1px solid #F1F5F9;">0</div>
+            </div>
+
+            <!-- Column Labels (X-Axis) -->
+            <div class="col-span-1"></div>
+            <div class="col-span-11 grid grid-cols-11 gap-1.5 pt-2 border-t border-slate-200">
+              <div class="text-[9px] text-slate-600 text-center font-medium">Logistics</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">R&amp;D</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">Marketing</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">HR</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">IT</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">Procurement</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">Administration</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">Legal</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">Finance</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium leading-tight">Customer Support</div>
+              <div class="text-[9px] text-slate-600 text-center font-medium">Operations</div>
+            </div>
+          </div>
+
+          <!-- Color Scale Legend below -->
+          <div class="flex items-center justify-center gap-3 mt-6">
+            <span class="text-[11px] font-semibold text-slate-600">0</span>
+            <div class="w-48 h-3 rounded-full" style="background: linear-gradient(to right, #FFFFFF, #FECACA, #EF4444, #7F1D1D); border: 1px solid #E2E8F0;"></div>
+            <span class="text-[11px] font-semibold text-slate-600">10</span>
+          </div>
         </div>
-    </div>
-    
-    <script src="js/api.js"></script>
-    <script>
-        // UI logic
-        const themeBtn = document.getElementById('theme-toggle');
-        themeBtn.addEventListener('click', () => {
-            const html = document.documentElement;
-            if (html.getAttribute('data-theme') === 'dark') {
-                html.setAttribute('data-theme', 'light');
-                themeBtn.innerHTML = '<span class="material-symbols-outlined">dark_mode</span>';
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                themeBtn.innerHTML = '<span class="material-symbols-outlined">light_mode</span>';
-            }
-        });
+      </div>
+    </section>
 
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('main-content');
-        
-        sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-        });
-        
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
-        });
+    <!-- Bottom View All Anomalies Section -->
+    <section class="bg-white rounded-2xl border border-[#EEF2F6] custom-shadow p-3 text-center">
+      <button id="btn-view-all-anomalies" class="w-full py-2 text-primary text-xs font-semibold hover:underline flex items-center justify-center gap-1.5">
+        View All Anomalies <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </section>
+  </main>
 
-        // Panel and API logic
-        const panel = document.getElementById('detail-panel');
-        document.getElementById('close-panel').addEventListener('click', () => panel.classList.remove('open'));
-
-        async function loadAnomalies() {
-            const tbody = document.querySelector('#anomalies-table tbody');
-            try {
-                const anomalies = await window.api.getAnomalies();
-                tbody.innerHTML = '';
-                anomalies.forEach(a => {
-                    const badgeClass = a.severity === 'High' ? 'badge-high' : (a.severity === 'Medium' ? 'badge-medium' : 'badge-low');
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight: 500;">#${a.id}</td>
-                        <td><span class="badge ${badgeClass}">${a.severity}</span></td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: var(--space-2);">
-                                <div style="flex: 1; height: 6px; background: var(--color-bg-elevated); border-radius: var(--radius-full); overflow: hidden;">
-                                    <div style="height: 100%; width: ${Math.min(a.anomaly_score * 10, 100)}%; background: ${a.severity === 'High' ? 'var(--color-accent-red)' : 'var(--color-accent-amber)'};"></div>
-                                </div>
-                                <span style="font-size: var(--font-size-xs); font-weight: 600;">${a.anomaly_score.toFixed(1)}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <span style="display: inline-flex; align-items: center; gap: 4px; color: ${a.status === 'Resolved' ? 'var(--color-accent-green)' : 'var(--color-text-secondary)'}">
-                                <span class="material-symbols-outlined" style="font-size: 14px;">${a.status === 'Resolved' ? 'check_circle' : 'pending'}</span>
-                                ${a.status}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-secondary" onclick="viewDetails(${a.id})" style="padding: 6px 12px; font-size: var(--font-size-xs);">
-                                Investigate
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-accent-red);">Failed to load anomalies.</td></tr>`;
-            }
-        }
-
-        window.viewDetails = async (id) => {
-            panel.classList.add('open');
-            document.getElementById('panel-content').innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-                    <div class="skeleton" style="height: 20px; width: 60%;"></div>
-                    <div class="skeleton" style="height: 20px; width: 80%;"></div>
-                    <div class="skeleton" style="height: 20px; width: 50%;"></div>
-                </div>
-            `;
-            document.getElementById('ai-explanation').innerHTML = `
-                <div style="display: flex; gap: var(--space-3); align-items: center;">
-                    <div class="skeleton" style="height: 40px; width: 40px; border-radius: 50%; flex-shrink: 0;"></div>
-                    <div style="flex: 1;">
-                        <div class="skeleton" style="height: 12px; width: 100%; margin-bottom: 8px;"></div>
-                        <div class="skeleton" style="height: 12px; width: 80%;"></div>
-                    </div>
-                </div>
-            `;
-            
-            try {
-                const detail = await window.api.getAnomalyDetail(id);
-                document.getElementById('panel-content').innerHTML = `
-                    <div style="background: var(--color-bg-primary); padding: var(--space-4); border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-family: monospace;">
-                        <div style="margin-bottom: var(--space-2); color: var(--color-text-secondary);">RECORD DATA:</div>
-                        <div style="display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-4);">
-                            <span style="color: var(--color-accent-teal);">ID:</span> <span>${detail.pl_record_id}</span>
-                            <span style="color: var(--color-accent-teal);">Score:</span> <span>${detail.anomaly_score.toFixed(2)}</span>
-                            <span style="color: var(--color-accent-teal);">Detected:</span> <span>${new Date(detail.detected_at).toLocaleString()}</span>
-                            <span style="color: var(--color-accent-teal);">Status:</span> <span>${detail.status}</span>
-                        </div>
-                    </div>
-                `;
-                
-                // Fetch explanation
-                try {
-                    const exp = await window.api.request(`/explanations/generate/${id}`, { method: 'POST' });
-                    document.getElementById('ai-explanation').innerHTML = `
-                        <p style="margin-top: 0; line-height: 1.6;">${exp.explanation_text}</p>
-                        <div style="margin-top: var(--space-4); padding: var(--space-3); background: rgba(255, 181, 71, 0.1); border: 1px dashed var(--color-accent-amber); border-radius: var(--radius-sm);">
-                            <strong style="color: var(--color-accent-amber); font-size: var(--font-size-sm);">Root Cause Identified:</strong><br>
-                            <span style="font-size: var(--font-size-sm);">${exp.root_cause}</span>
-                        </div>
-                    `;
-                } catch (e) {
-                    document.getElementById('ai-explanation').innerHTML = `<p style="color: var(--color-accent-red);">Failed to load AI analysis. ${e.message}</p>`;
-                }
-
-            } catch (err) {
-                document.getElementById('panel-content').innerHTML = `<p style="color: var(--color-accent-red);">Error loading record details.</p>`;
-            }
-        };
-
-        loadAnomalies();
-    </script>
+  <script type="module" src="js/anomalies_wiring.js"></script>
+  <script type="module" src="js/shell.js"></script>
 </body>
 </html>
