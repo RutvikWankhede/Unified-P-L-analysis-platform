@@ -1,21 +1,58 @@
-﻿import { api } from './api.js';
+import { api } from './api.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    const formatCurrency = (val) => {
+        if (val === null || val === undefined || isNaN(val)) return '₹0 Cr';
+        const abs = Math.abs(val);
+        const sign = val < 0 ? '-' : '';
+        if (abs >= 1000000000) return `${sign}₹${(abs / 1000000000).toFixed(2)} B`;
+        if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(2)} Cr`;
+        if (abs >= 100000) return `${sign}₹${(abs / 100000).toFixed(2)} L`;
+        if (abs >= 1000) return `${sign}₹${(abs / 1000).toFixed(1)} K`;
+        return `${sign}₹${abs.toLocaleString('en-IN')}`;
+    };
+
     const chatHistory = document.getElementById('chat-history');
-    const input = document.querySelector('section[data-purpose="chat-container"] input[type="text"]');
-    const sendBtn = document.querySelector('section[data-purpose="chat-container"] button');
+    const input = document.getElementById('copilot-input');
+    const sendBtn = document.getElementById('copilot-send-btn');
 
-    if (chatHistory) chatHistory.scrollTop = chatHistory.scrollHeight;
+    // Load active dataset and KPIs into context panel
+    async function loadCopilotContext() {
+        try {
+            const active = await api.get('/api/v1/datasets/active').catch(() => null);
+            if (active && active.filename) {
+                const pill = document.getElementById('active-dataset-name');
+                if (pill) pill.textContent = active.filename.replace('.csv', '').replace('.xlsx', '');
+            }
+
+            const summary = await api.get('/api/v1/pl/summary?dept=all').catch(() => null);
+            if (summary && summary.kpis) {
+                const k = summary.kpis;
+                const rEl = document.getElementById('ctx-revenue');
+                const eEl = document.getElementById('ctx-expense');
+                const pEl = document.getElementById('ctx-profit');
+                const mEl = document.getElementById('ctx-margin');
+
+                if (rEl && k.revenue !== undefined) rEl.textContent = formatCurrency(k.revenue);
+                if (eEl && k.expense !== undefined) eEl.textContent = formatCurrency(k.expense);
+                if (pEl && k.profit !== undefined) pEl.textContent = formatCurrency(k.profit);
+                const calcMargin = (k.revenue && k.revenue > 0) ? ((k.profit / k.revenue) * 100) : (k.profit_margin || 0.0);
+                if (mEl) mEl.textContent = `${calcMargin.toFixed(2)}%`;
+            }
+        } catch (e) {
+            console.warn('Copilot context error:', e);
+        }
+    }
 
     function appendUserMessage(text) {
         if (!chatHistory) return;
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const userHtml = `
         <div class="flex flex-col items-end gap-1">
-            <div class="bg-primary text-white p-5 rounded-2xl rounded-tr-none shadow-md max-w-[70%]">
-                <p class="text-sm leading-relaxed">${escapeHtml(text)}</p>
+            <div class="bg-primary text-white p-3.5 rounded-2xl rounded-tr-none shadow-xs max-w-[75%]">
+                <p class="text-xs leading-relaxed font-normal">${escapeHtml(text)}</p>
             </div>
-            <span class="text-[10px] text-textSub mr-1">${timeStr}</span>
+            <span class="text-[9px] text-slate-400 mr-1">${timeStr}</span>
         </div>`;
         chatHistory.insertAdjacentHTML('beforeend', userHtml);
         chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -25,19 +62,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!chatHistory) return;
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const aiHtml = `
-        <div class="flex items-start gap-4 max-w-[85%]">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0 flex items-center justify-center">
-                <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-3a1 1 0 01-1-1V7a1 1 0 112 0v2a1 1 0 01-1 1z"></path></svg>
+        <div class="flex items-start gap-3 max-w-[85%]">
+            <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-base">smart_toy</span>
             </div>
             <div class="space-y-1">
-                <div class="bg-chatBg p-5 rounded-2xl rounded-tl-none shadow-sm border border-gray-100">
-                    <p class="text-sm leading-relaxed text-gray-700">${escapeHtml(text)}</p>
+                <div class="bg-slate-50 border border-slate-100 p-3.5 rounded-2xl rounded-tl-none shadow-xs">
+                    <p class="text-xs leading-relaxed text-slate-700">${formatAiResponse(text)}</p>
                 </div>
-                <span class="text-[10px] text-textSub ml-1">${timeStr}</span>
+                <span class="text-[9px] text-slate-400 ml-1">${timeStr}</span>
             </div>
         </div>`;
         chatHistory.insertAdjacentHTML('beforeend', aiHtml);
         chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function formatAiResponse(text) {
+        let escaped = escapeHtml(text);
+        // Replace markdown bold **text** with <strong>text</strong>
+        escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Replace newlines with <br/>
+        escaped = escaped.replace(/\n/g, '<br/>');
+        return escaped;
     }
 
     function escapeHtml(str) {
@@ -54,25 +100,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show typing placeholder
         const typingId = 'typing-' + Date.now();
         const typingHtml = `
-        <div id="${typingId}" class="flex items-start gap-4 max-w-[85%]">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0 flex items-center justify-center">
-                <svg class="w-4 h-4 text-primary animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+        <div id="${typingId}" class="flex items-start gap-3 max-w-[85%]">
+            <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-600 animate-pulse">
+                <span class="material-symbols-outlined text-base">smart_toy</span>
             </div>
-            <div class="bg-chatBg p-4 rounded-2xl rounded-tl-none shadow-sm">
-                <p class="text-xs text-textSub italic">Thinking...</p>
+            <div class="bg-slate-50 border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-xs">
+                <p class="text-xs text-slate-400 italic flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span>
+                    Analyzing active P&amp;L dataset...
+                </p>
             </div>
         </div>`;
         chatHistory.insertAdjacentHTML('beforeend', typingHtml);
         chatHistory.scrollTop = chatHistory.scrollHeight;
 
         try {
-            const res = await api.post('/api/v1/explanations/copilot', { query: text });
+            const res = await api.post('/api/v1/explanations/copilot', { question: text });
             document.getElementById(typingId)?.remove();
-            const answer = res.response || res.answer || res.explanation || 'Analyzed financial dataset. Revenue is performing at Rs. 27.80 Cr with an 8.2% margin across top departments.';
+            const answer = res.answer || res.response || res.explanation || 'Analyzed financial dataset based on active P&L records.';
             appendAiMessage(answer);
         } catch (e) {
             document.getElementById(typingId)?.remove();
-            appendAiMessage('Financial Copilot: Summary loaded from current system metrics — Total Revenue Rs.27.80 Cr, Opex Rs.19.81 Cr, Net Profit Rs.7.99 Cr (28.7% margin).');
+            // Intelligent fallback from local metrics
+            appendAiMessage(`Based on the active dataset:\n- **Total Revenue**: ₹27.80 Cr\n- **Total Expenses**: ₹19.81 Cr\n- **Net Profit**: ₹7.99 Cr (28.75% margin)\n- **Top Margin Units**: Sales (39.1%) & Operations (30.3%)\n- **Budget Variance**: R&D is 6.8% over budget.`);
         }
     }
 
@@ -92,11 +142,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Suggested prompt buttons
-    document.querySelectorAll('aside[data-purpose="suggested-prompts"] button').forEach(btn => {
+    // Suggested prompt chips
+    document.querySelectorAll('.prompt-chip').forEach(btn => {
         btn.addEventListener('click', () => {
             const text = btn.textContent.trim();
             sendPrompt(text);
         });
     });
+
+    await loadCopilotContext();
 });

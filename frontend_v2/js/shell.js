@@ -34,7 +34,7 @@ const NAV_ITEMS = [
     { href: 'copilot.html',     icon: 'smart_toy',     label: 'AI Copilot' },
     { href: 'workflow.html',    icon: 'account_tree',  label: 'Workflow' },
     { href: 'reports.html',     icon: 'description',   label: 'Reports' },
-    { href: 'audit.html',       icon: 'history',       label: 'Audit Trail' },
+    { href: 'what-if.html',     icon: 'tune',          label: 'What-If Analysis' },
     { href: 'settings.html',    icon: 'settings',      label: 'Settings' },
 ];
 
@@ -81,9 +81,11 @@ const PAGE_ALIASES = {
     'financial-health.html':'reports.html',
     'analytics.html':      'reports.html',
 
-    // 9. Audit Trail
-    'audit.html':          'audit.html',
-    'audit-trail.html':    'audit.html',
+    // 9. What-If Analysis
+    'what-if.html':        'what-if.html',
+    'whatif.html':         'what-if.html',
+    'audit.html':          'what-if.html',
+    'audit-trail.html':    'what-if.html',
 
     // 10. Settings
     'settings.html':       'settings.html',
@@ -282,7 +284,10 @@ function initSearch() {
         ['dataset', 'datasets.html'],
         ['copilot', 'copilot.html'],
         ['setting', 'settings.html'],
-        ['audit', 'audit.html'],
+        ['what', 'what-if.html'],
+        ['simul', 'what-if.html'],
+        ['scenario', 'what-if.html'],
+        ['audit', 'what-if.html'],
         ['dept', 'departments.html'],
     ];
 

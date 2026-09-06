@@ -234,6 +234,7 @@ def get_domain_forecast(
     timeframe: str = Query("12M"),
     periods: int = Query(12),
     confidence: str = Query("95%"),
+    agg: str = Query("monthly"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -254,7 +255,7 @@ def get_domain_forecast(
         timeframe_map = {"3M": 3, "6M": 6, "12M": 12, "24M": 24}
         n_forecast = timeframe_map.get(timeframe.upper(), 12)
     
-    forecast_data = ae.get_forecast(domain, metric=metric, n_forecast=n_forecast)
+    forecast_data = ae.get_forecast(domain, metric=metric, n_forecast=n_forecast, agg=agg)
     
     if not forecast_data["has_enough_data"]:
         return {
@@ -370,6 +371,8 @@ def get_departments_summary(
 @router.get("/departments/trend")
 def get_departments_trend(
     agg: str = "monthly",
+    metric: str = "profit",
+    dept: str = "all",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -384,23 +387,72 @@ def get_departments_trend(
     df_dim = me.aggregate_by_dimension(agg)
     
     if df_dim.empty:
-        return {"periods": [], "series": {}}
+        return {"periods": [], "series": {}, "metric": metric, "is_percentage": False}
         
     periods = sorted(df_dim["group_period"].unique().tolist())
     
-    # Identify top 5 departments by absolute total profit
-    dept_totals = df_dim.groupby("domain")["profit"].sum().abs()
-    top_depts = dept_totals.nlargest(5).index.tolist()
+    m_clean = str(metric).lower().replace("_", " ").replace("-", " ")
+    is_revenue = any(w in m_clean for w in ["revenue", "sales", "income"])
+    is_expense = any(w in m_clean for w in ["expense", "cost", "opex", "spend"])
+    is_margin = any(w in m_clean for w in ["margin", "%", "pct", "net margin"])
     
+    if is_revenue:
+        target_col = "revenue"
+        is_pct = False
+    elif is_expense:
+        target_col = "expense"
+        is_pct = False
+    elif is_margin:
+        target_col = "margin_pct"
+        is_pct = True
+    else:
+        target_col = "profit"
+        is_pct = False
+
+    # Filter/Select Departments
+    all_domains = [d for d in df_dim["domain"].unique() if d and d not in ["Unknown", "All Departments"]]
+    dept_totals = df_dim.groupby("domain")[target_col].sum().abs()
+    
+    d_clean = str(dept).strip()
+    if "," in d_clean:
+        dept_list = [x.strip() for x in d_clean.split(",") if x.strip()]
+        selected_depts = []
+        for d_name in dept_list:
+            match = [d for d in all_domains if d.lower() == d_name.lower()]
+            if match:
+                for m in match:
+                    if m not in selected_depts:
+                        selected_depts.append(m)
+            else:
+                if d_name not in selected_depts:
+                    selected_depts.append(d_name)
+    elif d_clean.lower() in ["top5", "5", "top 5"]:
+        selected_depts = dept_totals.nlargest(5).index.tolist()
+    elif d_clean.lower() in ["top10", "10", "top 10"]:
+        selected_depts = dept_totals.nlargest(10).index.tolist()
+    elif d_clean.lower() in ["all", "all departments", "overall", "total", ""]:
+        selected_depts = dept_totals.sort_values(ascending=False).index.tolist()
+    else:
+        match = [d for d in all_domains if d.lower() == d_clean.lower()]
+        selected_depts = match if match else [d_clean]
+
     series = {}
-    for domain in df_dim["domain"].unique():
-        if domain not in top_depts:
-            continue
+    for domain in selected_depts:
         domain_df = df_dim[df_dim["domain"] == domain]
-        domain_dict = dict(zip(domain_df["group_period"], domain_df["profit"]))
-        series[domain] = [round(domain_dict.get(p, 0.0)) for p in periods]
+        if not domain_df.empty:
+            domain_dict = dict(zip(domain_df["group_period"], domain_df[target_col]))
+            series[domain] = [round(float(domain_dict.get(p, 0.0)), 1 if is_pct else 2) for p in periods]
+        else:
+            series[domain] = [0.0 for _ in periods]
         
-    return {"periods": periods, "series": series}
+    return {
+        "periods": periods,
+        "series": series,
+        "metric": metric,
+        "dept": dept,
+        "agg": agg,
+        "is_percentage": is_pct
+    }
 
 
 @router.get("/charts")
@@ -788,6 +840,8 @@ def get_cash_flow_trend(
 @router.get("/budget-vs-actual")
 def get_budget_vs_actual(
     dept: str = "all",
+    range: str = "all",
+    limit: str = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -798,7 +852,8 @@ def get_budget_vs_actual(
     ensure_demo_data(db)
     active_id = get_active_dataset_id(db)
     me = MetricEngine(db, active_id)
-    return me.get_budget_vs_actual(dept=dept)
+    range_lim = limit if limit else range
+    return me.get_budget_vs_actual(dept=dept, range_limit=range_lim)
 
 
 

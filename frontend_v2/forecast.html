@@ -1,230 +1,350 @@
 <!DOCTYPE html>
-
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Forecast - Unified P&amp;L</title>
-<!-- Tailwind CSS CDN -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Font Configuration -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<script>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Forecast &amp; Scenario Analysis - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            'brand': '#5b5ceb',
-            'surface': '#f8f9fd',
-            'surface-bright': '#ffffff',
-            'border-light': '#e5e7eb',
-            'text-primary': '#1f2937',
-            'text-secondary': '#6b7280'
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
           },
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
           },
           borderRadius: {
-            'custom': '20px',
+            'card': '14px',
           }
         }
       }
-    }
+    };
   </script>
-<style data-purpose="custom-layout">
+  <style>
     body {
-      background-color: #f8f9fd;
-      color: #1f2937;
+      background-color: #F8FAFC;
       font-family: 'Inter', sans-serif;
     }
-    .sidebar-width {
-      width: 260px;
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
     }
-    .main-content {
-      width: calc(100% - 260px);
-    }
-    .active-nav-item {
-      background-color: rgba(91, 92, 235, 0.1);
-      color: #5b5ceb;
-      border-right: 3px solid #5b5ceb;
+    .dash-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 18px 20px;
     }
   </style>
-    <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body class="flex min-h-screen">
-<div id="sidebar-container"></div>
-<!-- BEGIN: Main Content -->
-<main class="main-content flex-1 overflow-y-auto">
-<!-- Header Section -->
-<header class="bg-white border-b border-border-light px-8 py-6 flex justify-between items-start" data-purpose="page-header">
-<div>
-<h2 class="text-2xl font-bold text-gray-900">Forecast</h2>
-<p class="text-sm text-text-secondary">Predict future financial performance</p>
-</div>
-<button class="bg-brand text-white px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-opacity-90 transition-all shadow-sm shadow-brand/20" id="btn-run-forecast">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        Run Forecast
-      </button>
-</header>
-<!-- Filters Bar -->
-<div class="px-8 py-6 grid grid-cols-2 gap-6" data-purpose="filters">
-<div class="space-y-1">
-<label class="text-[11px] font-bold text-text-secondary uppercase">Metric</label>
-<div class="relative">
-<select class="w-full bg-white border border-border-light rounded-xl px-4 py-2.5 appearance-none text-sm focus:ring-brand focus:border-brand" id="filter-metric">
-<option value="net_profit">Net Profit</option>
-<option value="revenue">Revenue</option>
-<option value="expense">OpEx</option>
-</select>
-<div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-</div>
-</div>
-<div class="space-y-1">
-<label class="text-[11px] font-bold text-text-secondary uppercase">Period</label>
-<div class="relative">
-<select class="w-full bg-white border border-border-light rounded-xl px-4 py-2.5 appearance-none text-sm focus:ring-brand focus:border-brand" id="filter-period">
-<option value="12">Next 12 Months</option>
-<option value="6">Next 6 Months</option>
-<option value="current_fy">Current FY</option>
-</select>
-<div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-<svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-</div>
-</div>
-</div>
-<!-- Charts and Summary Grid -->
-<div class="px-8 grid grid-cols-12 gap-6">
-<!-- BEGIN: Forecast Summary Card -->
-<section class="col-span-4 bg-white p-6 rounded-custom border border-border-light shadow-sm" data-purpose="forecast-summary">
-<h3 class="text-sm font-bold text-gray-900 mb-6">Forecast Summary</h3>
-<div class="mb-8">
-<p class="text-[11px] text-text-secondary font-medium mb-1">Predicted Net Profit (Next 12 Months)</p>
-<div class="flex items-baseline gap-2">
-<span class="text-3xl font-bold" id="kpi-forecasted-profit"><span id="kpi-forecast-profit">â¹2.46 Cr</span></span>
-<div class="flex items-center text-green-500 text-xs font-bold bg-green-50 px-1.5 py-0.5 rounded" id="kpi-forecast-growth">
-<svg class="w-3 h-3" fill="currentColor" viewbox="0 0 20 20"><path clip-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" fill-rule="evenodd"></path></svg>
-              11.2%
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
+
+  <!-- Main Content Area -->
+  <main class="ml-[240px] min-h-screen p-6 pb-12">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Forecast &amp; Predictive Analytics</h1>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="active-dataset-name">Active Dataset</span>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-0.5">Statistical forecasting workspace, confidence bands &amp; multi-scenario sensitivity modeling</p>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-2.5">
+        <!-- Metric Selector -->
+        <div class="relative">
+          <select id="filter-metric" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+            <option value="profit" selected>Net Profit</option>
+            <option value="revenue">Revenue</option>
+            <option value="expense">Total Expense</option>
+            <option value="gross_profit">Gross Profit</option>
+            <option value="margin_pct">Margin %</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+
+        <!-- Aggregation Selector -->
+        <div class="relative">
+          <select id="filter-agg" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="half-yearly">Half-Yearly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+
+        <!-- Period Horizon Selector -->
+        <div class="relative">
+          <select id="filter-period" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+            <option value="3">3 Periods</option>
+            <option value="6">6 Periods</option>
+            <option value="12" selected>12 Periods</option>
+            <option value="24">24 Periods</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+
+        <!-- Run Forecast Button -->
+        <button id="btn-run-forecast" class="bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-opacity-90 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-sm">online_prediction</span>
+          <span>Run Forecast</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="space-y-4">
+      <!-- ======================================================== -->
+      <!-- ROW 1 — MAIN FORECAST AREA (LEFT 75% + RIGHT 25%)         -->
+      <!-- ======================================================== -->
+      <section class="grid grid-cols-12 gap-4 items-stretch">
+        <!-- LEFT 75%: Forecast vs Historical Chart -->
+        <div class="col-span-12 lg:col-span-9 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h3 class="font-bold text-xs text-slate-900" id="chart-title">Forecast vs Historical Trajectory</h3>
+              <p class="text-[10px] text-slate-400">Continuous historical observations with projected trajectory and 95% confidence interval</p>
             </div>
-<span class="text-[10px] text-text-secondary">vs current month</span>
-</div>
-</div>
-<div class="space-y-6">
-<div>
-<p class="text-[11px] text-text-secondary font-bold uppercase mb-1">Model</p>
-<p class="text-sm font-semibold" id="kpi-forecast-model">Prophet Forecasting</p>
-</div>
-<div>
-<p class="text-[11px] text-text-secondary font-bold uppercase mb-1">Confidence Score</p>
-<p class="text-sm font-bold" id="kpi-forecast-confidence"><span id="kpi-model-confidence">92%</span></p>
-</div>
-<div>
-<p class="text-[11px] text-text-secondary font-bold uppercase mb-1">Generated On</p>
-<p class="text-sm font-semibold" id="kpi-forecast-date"><span id="kpi-model-date">May 18, 2025</span></p>
-</div>
-</div>
-</section>
-<!-- END: Forecast Summary Card -->
-<!-- BEGIN: Net Profit Forecast Chart -->
-<section class="col-span-8 bg-white p-6 rounded-custom border border-border-light shadow-sm relative" data-purpose="forecast-chart">
-<div class="flex justify-between items-center mb-8">
-<h3 class="text-sm font-bold text-gray-900">Net Profit Forecast</h3>
-<div class="flex items-center gap-4">
-<div class="flex items-center gap-6 text-[10px] font-medium text-text-secondary">
-<div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-brand rounded-full"></span> Actual</div>
-<div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-brand/40 rounded-full"></span> Forecast</div>
-<div class="flex items-center gap-1.5"><span class="w-2 h-2 bg-blue-100 rounded-full"></span> Confidence Range</div>
-</div>
 
-<div class="flex bg-gray-100 p-0.5 rounded-lg" id="chart-aggregations">
-    <button class="px-4 py-1 text-[10px] font-bold text-text-secondary hover:bg-white rounded-md transition-all" data-agg="daily">Daily</button>
-    <button class="px-4 py-1 text-[10px] font-bold text-text-secondary hover:bg-white rounded-md transition-all" data-agg="weekly">Weekly</button>
-    <button class="px-4 py-1 text-[10px] font-bold bg-brand text-white rounded-md" data-agg="monthly">Monthly</button>
-    <button class="px-4 py-1 text-[10px] font-bold text-text-secondary hover:bg-white rounded-md transition-all" data-agg="quarterly">Quarterly</button>
-</div>
-<div class="flex bg-gray-100 p-0.5 rounded-lg ml-2">
-    <button class="px-3 py-1 text-[10px] font-bold text-text-secondary hover:bg-white rounded-md" id="btn-zoom-in">+</button>
-    <button class="px-3 py-1 text-[10px] font-bold text-text-secondary hover:bg-white rounded-md" id="btn-zoom-out">-</button>
-    <button class="px-3 py-1 text-[10px] font-bold text-text-secondary hover:bg-white rounded-md" id="btn-expand">[ ]</button>
-</div>
+            <!-- Legend Indicator -->
+            <div class="flex items-center gap-3 text-[10px] font-medium text-slate-500 pl-2 border-l border-slate-200">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#5B5CEB]"></span> Historical</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full border border-dashed border-[#5B5CEB]"></span> Forecast</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-indigo-100/70 border border-indigo-200"></span> 95% Confidence</span>
+            </div>
+          </div>
 
-</div>
-</div>
-<div class="h-[280px] w-full relative" id="chart-container">
-<div class="w-full h-full" id="chart-forecast-profit"></div>
-</div>
-
-</section>
-<!-- END: Net Profit Forecast Chart -->
-</div>
-
-<!-- BEGIN: Scenario Projections -->
-<section class="col-span-12 bg-white p-6 rounded-custom border border-border-light shadow-sm mt-6">
-    <h3 class="text-sm font-bold text-gray-900 mb-6">Scenario Projections</h3>
-    <div class="grid grid-cols-3 gap-6" id="scenario-container">
-        <!-- Best Case -->
-        <div class="p-4 border border-green-200 bg-green-50 rounded-lg">
-            <p class="text-[11px] font-bold text-green-700 uppercase mb-2">Best Case</p>
-            <h4 class="text-xl font-bold text-green-900" id="scenario-best">â¹3.10 Cr</h4>
-            <p class="text-xs text-green-600 mt-1">High growth, optimal conditions</p>
+          <!-- Chart Box with Explicit Responsive Height -->
+          <div class="w-full relative flex-1 min-h-[340px]">
+            <div id="chart-forecast-profit" class="w-full h-[340px]"></div>
+          </div>
         </div>
-        <!-- Expected Case -->
-        <div class="p-4 border border-brand/30 bg-blue-50 rounded-lg">
-            <p class="text-[11px] font-bold text-brand uppercase mb-2">Expected Case</p>
-            <h4 class="text-xl font-bold text-slate-900" id="scenario-expected">â¹2.46 Cr</h4>
-            <p class="text-xs text-slate-500 mt-1">Baseline trajectory</p>
+
+        <!-- RIGHT 25%: Multi-Scenario Projection -->
+        <div class="col-span-12 lg:col-span-3 dash-card custom-shadow flex flex-col justify-between">
+          <div class="mb-2">
+            <h4 class="font-bold text-slate-900 text-xs">Multi-Scenario Projection</h4>
+            <p class="text-[10px] text-slate-400">Statistical bounds based on active dataset</p>
+          </div>
+
+          <div class="space-y-2.5 flex-1 flex flex-col justify-between" id="scenario-container">
+            <!-- BEST CASE -->
+            <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/50 flex-1 flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Best Case (+15%)</span>
+                <span class="material-symbols-outlined text-sm text-emerald-600">trending_up</span>
+              </div>
+              <div class="my-1">
+                <h4 class="text-base font-bold text-emerald-950 tracking-tight" id="scenario-best">₹0.00 Cr</h4>
+              </div>
+              <p class="text-[10px] text-emerald-700 leading-tight">Higher revenue / lower cost assumptions</p>
+            </div>
+
+            <!-- EXPECTED / BASELINE -->
+            <div class="p-3 rounded-xl border border-indigo-100 bg-indigo-50/50 flex-1 flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wide">Expected (Baseline)</span>
+                <span class="material-symbols-outlined text-sm text-indigo-600">show_chart</span>
+              </div>
+              <div class="my-1">
+                <h4 class="text-base font-bold text-indigo-950 tracking-tight" id="scenario-expected">₹0.00 Cr</h4>
+              </div>
+              <p class="text-[10px] text-indigo-700 leading-tight">Current empirical statistical trajectory</p>
+            </div>
+
+            <!-- WORST CASE -->
+            <div class="p-3 rounded-xl border border-rose-100 bg-rose-50/50 flex-1 flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wide">Worst Case (-15%)</span>
+                <span class="material-symbols-outlined text-sm text-rose-600">trending_down</span>
+              </div>
+              <div class="my-1">
+                <h4 class="text-base font-bold text-rose-950 tracking-tight" id="scenario-worst">₹0.00 Cr</h4>
+              </div>
+              <p class="text-[10px] text-rose-700 leading-tight">Lower revenue / higher cost assumptions</p>
+            </div>
+          </div>
         </div>
-        <!-- Worst Case -->
-        <div class="p-4 border border-red-200 bg-red-50 rounded-lg">
-            <p class="text-[11px] font-bold text-red-700 uppercase mb-2">Worst Case</p>
-            <h4 class="text-xl font-bold text-red-900" id="scenario-worst">â¹1.80 Cr</h4>
-            <p class="text-xs text-red-600 mt-1">Market downturn</p>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- ROW 2 — MODEL ANALYSIS + FORECAST DRIVERS                 -->
+      <!-- ======================================================== -->
+      <section class="grid grid-cols-12 gap-4">
+        <!-- Model Analysis (6 Cols) -->
+        <div class="col-span-12 md:col-span-6 dash-card custom-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-xs">Model Analysis &amp; Metadata</h4>
+              <p class="text-[10px] text-slate-400">Statistical parameters calculated from active dataset</p>
+            </div>
+            <span class="material-symbols-outlined text-base text-primary">analytics</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3" id="model-analysis-grid">
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+              <p class="text-[10px] text-slate-500 font-medium">Prediction Model</p>
+              <p class="text-xs font-bold text-slate-900 mt-0.5" id="meta-model-name">Linear Regression (OLS)</p>
+            </div>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+              <p class="text-[10px] text-slate-500 font-medium">Confidence Score (R²)</p>
+              <p class="text-xs font-bold text-emerald-600 mt-0.5" id="meta-confidence">95%</p>
+            </div>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+              <p class="text-[10px] text-slate-500 font-medium">Training Observations</p>
+              <p class="text-xs font-bold text-slate-900 mt-0.5" id="meta-observations">12 Periods</p>
+            </div>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+              <p class="text-[10px] text-slate-500 font-medium">Forecast Horizon</p>
+              <p class="text-xs font-bold text-slate-900 mt-0.5" id="meta-horizon">12 Periods</p>
+            </div>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+              <p class="text-[10px] text-slate-500 font-medium">Data Coverage</p>
+              <p class="text-xs font-bold text-slate-900 mt-0.5" id="meta-coverage">Complete (100%)</p>
+            </div>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+              <p class="text-[10px] text-slate-500 font-medium">Model Status</p>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <p class="text-xs font-bold text-slate-900" id="meta-status">Active &amp; Calibrated</p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Forecast Drivers (6 Cols) -->
+        <div class="col-span-12 md:col-span-6 dash-card custom-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-xs">Forecast Drivers</h4>
+              <p class="text-[10px] text-slate-400">Underlying financial forces influencing trajectory</p>
+            </div>
+            <span class="material-symbols-outlined text-base text-indigo-600">tune</span>
+          </div>
+
+          <div class="space-y-2" id="forecast-drivers-container">
+            <!-- Dynamically populated from active dataset -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- ROW 3 — SENSITIVITY FACTORS + INSIGHTS & RECOMMENDATIONS   -->
+      <!-- ======================================================== -->
+      <section class="grid grid-cols-12 gap-4">
+        <!-- Key Sensitivity Factors (5 Cols) -->
+        <div class="col-span-12 md:col-span-5 dash-card custom-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-xs">Key Sensitivity Factors</h4>
+              <p class="text-[10px] text-slate-400">Relative impact on projected metric</p>
+            </div>
+            <span class="material-symbols-outlined text-base text-amber-500">speed</span>
+          </div>
+
+          <div class="space-y-3" id="sensitivity-factors-container">
+            <!-- Revenue Growth -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700">Revenue Growth Sensitivity</span>
+                <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">High</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+              </div>
+            </div>
+
+            <!-- Operating Expense -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700">Operating Expense Volatility</span>
+                <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">Medium</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="bg-indigo-400 h-2 rounded-full" style="width: 62%"></div>
+              </div>
+            </div>
+
+            <!-- Department Cost Concentration -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700">Department Cost Concentration</span>
+                <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">Medium</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="bg-indigo-400 h-2 rounded-full" style="width: 48%"></div>
+              </div>
+            </div>
+
+            <!-- Budget Variance -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700">Historical Variance Drift</span>
+                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">Low</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: 28%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Forecast Insights & Recommendations (7 Cols) -->
+        <div class="col-span-12 md:col-span-7 dash-card custom-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-xs">Forecast Insights &amp; Recommendations</h4>
+              <p class="text-[10px] text-slate-400">Data-driven observations &amp; concrete operational action points</p>
+            </div>
+            <span class="material-symbols-outlined text-base text-primary">lightbulb</span>
+          </div>
+
+          <div class="space-y-3">
+            <!-- Insights Group -->
+            <div>
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-indigo-600">insights</span>
+                Forecast Insights
+              </p>
+              <div id="forecast-insights-list" class="space-y-1.5">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Recommendations Group -->
+            <div class="pt-2 border-t border-slate-100">
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-emerald-600">task_alt</span>
+                Actionable Recommendations
+              </p>
+              <div id="forecast-recommendations-list" class="space-y-1.5">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-</section>
-<!-- END: Scenario Projections -->
+  </main>
 
-<!-- Bottom Panels Grid -->
-<div class="px-8 py-6 grid grid-cols-12 gap-6">
-<!-- BEGIN: Forecast Insights -->
-<section class="col-span-7 bg-white p-6 rounded-custom border border-border-light shadow-sm" data-purpose="insights-panel">
-<h3 class="text-sm font-bold text-gray-900 mb-6">Forecast Insights</h3>
-<ul class="space-y-4" id="insights-panel-container">
-<li class="flex items-start gap-3" data-row-template="true">
-<div class="mt-1 w-2 h-2 bg-brand rounded-full shrink-0"></div>
-<p class="text-sm text-text-secondary">Net Profit is expected to grow steadily over the next 12 months.</p>
-</li>
-</ul>
-</section>
-<!-- END: Forecast Insights -->
-<!-- BEGIN: Growth Drivers -->
-<section class="col-span-5 bg-white p-6 rounded-custom border border-border-light shadow-sm" data-purpose="growth-drivers-panel">
-<h3 class="text-sm font-bold text-gray-900 mb-6">Growth Drivers</h3>
-<div class="space-y-4" id="growth-drivers-container">
-<div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors" data-row-template="true">
-<div class="flex items-center gap-3">
-<div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<span class="text-sm font-medium">Revenue Growth</span>
-</div>
-<span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">High</span>
-</div>
-</div>
-</section>
-<!-- END: Growth Drivers -->
-</div>
-<!-- Floating Action Button -->
-<div class="fixed bottom-6 right-6">
-<button class="w-12 h-12 bg-brand text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-</main>
-<!-- END: Main Content -->
-<!-- BEGIN: Chart JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-<script type="module" src="js/forecast_wiring.js"></script>
-    <script type="module" src="js/shell.js"></script>
-</body></html>
+  <script type="module" src="js/forecast_wiring.js"></script>
+  <script type="module" src="js/shell.js"></script>
+</body>
+</html>

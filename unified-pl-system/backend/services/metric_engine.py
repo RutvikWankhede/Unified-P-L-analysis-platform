@@ -532,6 +532,41 @@ class MetricEngine:
                     "margin": round(margin_val, 2) if margin_val is not None else None
                 }
         
+        # Calculate vs previous period for each department
+        distinct_periods = sorted([
+            row[0] for row in query.with_entities(func.substr(PLRecord.period, 1, 7)).distinct().all() if row[0]
+        ])
+        prev_map = {}
+        if len(distinct_periods) >= 2:
+            prev_p = distinct_periods[-2]
+            prev_results = query.filter(PLRecord.period.like(f"{prev_p}%")).with_entities(
+                PLRecord.domain,
+                func.sum(case((rev_cond, PLRecord.amount), else_=0)).label("rev"),
+                func.sum(case((exp_cond, PLRecord.amount), else_=0)).label("exp")
+            ).group_by(PLRecord.domain).all()
+            for domain, rev, exp in prev_results:
+                if domain:
+                    p_rev = float(rev or 0)
+                    p_exp = float(exp or 0)
+                    p_prof = p_rev - p_exp
+                    prev_map[domain] = {"revenue": p_rev, "expense": p_exp, "profit": p_prof}
+
+        for domain, d_item in summary_map.items():
+            if domain in prev_map and prev_map[domain]["profit"] != 0:
+                p_prof = prev_map[domain]["profit"]
+                c_prof = d_item["profit"] or 0
+                diff = c_prof - p_prof
+                pct = (diff / abs(p_prof) * 100) if abs(p_prof) > 0 else 0.0
+                d_item["vs_prev_period_pct"] = round(pct, 1)
+            elif domain in prev_map and prev_map[domain]["revenue"] != 0:
+                p_rev = prev_map[domain]["revenue"]
+                c_rev = d_item["revenue"] or 0
+                diff = c_rev - p_rev
+                pct = (diff / p_rev * 100) if p_rev > 0 else 0.0
+                d_item["vs_prev_period_pct"] = round(pct, 1)
+            else:
+                d_item["vs_prev_period_pct"] = None
+
         return list(summary_map.values())
 
     def get_time_series(self, dept=None):
@@ -582,16 +617,19 @@ class MetricEngine:
         df = pd.DataFrame(rows)
         df["date_parsed"] = pd.to_datetime(df["period"])
         
-        if aggregation == "daily":
+        agg_lower = str(aggregation).lower().replace("_", "-").replace(" ", "-")
+        if agg_lower in ["overall", "total", "all"]:
+            df["group_period"] = "Overall"
+        elif agg_lower in ["daily", "day"]:
             df["group_period"] = df["date_parsed"].dt.strftime("%Y-%m-%d")
-        elif aggregation == "weekly":
+        elif agg_lower in ["weekly", "week"]:
             df["group_period"] = df["date_parsed"].dt.strftime("%Y-W%U")
-        elif aggregation == "quarterly":
+        elif agg_lower in ["quarterly", "quarter"]:
             df["group_period"] = df["date_parsed"].dt.year.astype(str) + "-Q" + df["date_parsed"].dt.quarter.astype(str)
-        elif aggregation == "half-yearly":
+        elif agg_lower in ["half-yearly", "half_yearly", "half-year", "half yearly", "h1-h2"]:
             half = np.where(df["date_parsed"].dt.month <= 6, "1", "2")
             df["group_period"] = df["date_parsed"].dt.year.astype(str) + "-H" + half
-        elif aggregation == "yearly":
+        elif agg_lower in ["yearly", "year", "annual"]:
             df["group_period"] = df["date_parsed"].dt.strftime("%Y")
         else:
             df["group_period"] = df["date_parsed"].dt.strftime("%Y-%m")
@@ -603,7 +641,14 @@ class MetricEngine:
         exp_group = df[exp_cond].groupby(["group_period", "domain"])["amount"].sum().reset_index()
         
         merged = pd.merge(rev_group, exp_group, on=["group_period", "domain"], how="outer", suffixes=('_rev', '_exp')).fillna(0.0)
+        merged["revenue"] = merged["amount_rev"]
+        merged["expense"] = merged["amount_exp"]
         merged["profit"] = merged["amount_rev"] - merged["amount_exp"]
+        merged["margin_pct"] = np.where(
+            merged["amount_rev"] > 0,
+            (merged["profit"] / merged["amount_rev"] * 100),
+            0.0
+        )
         return merged
 
     def get_anomaly_summary(self, period="overall", dept="all"):
@@ -920,7 +965,7 @@ class MetricEngine:
             "items": items
         }
 
-    def get_budget_vs_actual(self, dept="all"):
+    def get_budget_vs_actual(self, dept="all", range_limit="all"):
         from models.pl_record import DepartmentBudget, PLRecord
 
         profile = self.get_active_profile()
@@ -987,7 +1032,16 @@ class MetricEngine:
 
             variance = round(actual_exp - allocated_budget, 2)
             variance_pct = round((variance / allocated_budget * 100), 1) if allocated_budget > 0 else 0.0
-            status = "Over Budget" if variance > 0 else ("Under Budget" if variance < 0 else "On Track")
+
+            # Dynamic Sensible Status Thresholds
+            if variance_pct > 5.0:
+                status = "Over Budget"
+            elif variance_pct > 0.5:
+                status = "Slightly Over"
+            elif variance_pct >= -0.5:
+                status = "On Track"
+            else:
+                status = "Under Budget"
 
             results.append({
                 "department": d_name,
@@ -999,19 +1053,43 @@ class MetricEngine:
             })
 
         results.sort(key=lambda x: x["actual"], reverse=True)
-        total_actual = sum(it["actual"] for it in results)
-        total_budget = sum(it["budget"] for it in results)
+
+        # Apply range limitation if requested
+        lim = str(range_limit).lower()
+        if lim in ["top5", "5", "top 5"]:
+            display_results = results[:5]
+        elif lim in ["top10", "10", "top 10"]:
+            display_results = results[:10]
+        else:
+            display_results = results
+
+        total_actual = sum(it["actual"] for it in display_results)
+        total_budget = sum(it["budget"] for it in display_results)
         total_var = round(total_actual - total_budget, 2)
         total_var_pct = round((total_var / total_budget * 100), 1) if total_budget > 0 else 0.0
 
+        # Overall summary stats
+        on_budget_count = sum(1 for it in display_results if it["variance"] <= 0 or it["status"] in ["Under Budget", "On Track"])
+        over_budget_count = sum(1 for it in display_results if it["variance"] > 0 and it["status"] in ["Over Budget", "Slightly Over"])
+
+        highest_var_item = max(display_results, key=lambda x: x["variance_pct"]) if display_results else None
+        highest_var_dept = highest_var_item["department"] if highest_var_item else "N/A"
+        highest_var_pct = highest_var_item["variance_pct"] if highest_var_item else 0.0
+
         return {
             "department": dept,
-            "has_data": has_any_budget and len(results) > 0,
+            "range": range_limit,
+            "has_data": has_any_budget and len(display_results) > 0,
             "total_actual": total_actual,
             "total_budget": total_budget,
             "total_variance": total_var,
             "total_variance_pct": total_var_pct,
-            "items": results
+            "on_budget_count": on_budget_count,
+            "over_budget_count": over_budget_count,
+            "highest_variance_dept": highest_var_dept,
+            "highest_variance_pct": highest_var_pct,
+            "items": display_results,
+            "all_departments": [it["department"] for it in results]
         }
 
 

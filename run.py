@@ -22,10 +22,11 @@ import sys
 # Force UTF-8 output on Windows to prevent cp1252 encoding errors
 if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True, write_through=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace", line_buffering=True, write_through=True)
 
 import ast
+import atexit
 import time
 import json
 import signal
@@ -39,6 +40,44 @@ import urllib.request
 import urllib.error
 import webbrowser
 from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+LOCK_FILE = SCRIPT_DIR / ".launcher.pid"
+
+def acquire_single_instance_lock():
+    """Ensure only one instance of run.py is active at any time on Windows."""
+    my_pid = os.getpid()
+    if LOCK_FILE.exists():
+        try:
+            old_pid = int(LOCK_FILE.read_text(encoding="utf-8").strip())
+            if old_pid != my_pid:
+                # Check if old launcher is still running and terminate it
+                out = subprocess.check_output(f"tasklist /FI \"PID eq {old_pid}\"", shell=True, stderr=subprocess.DEVNULL).decode(errors="replace")
+                if str(old_pid) in out:
+                    info(f"Terminating previous launcher instance (PID {old_pid})...")
+                    subprocess.run(f"taskkill /F /T /PID {old_pid}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    time.sleep(1.0)
+        except Exception:
+            pass
+    try:
+        LOCK_FILE.write_text(str(my_pid), encoding="utf-8")
+    except Exception:
+        pass
+
+def release_single_instance_lock():
+    try:
+        if LOCK_FILE.exists():
+            my_pid = str(os.getpid())
+            try:
+                content = LOCK_FILE.read_text(encoding="utf-8").strip()
+                if content == my_pid:
+                    LOCK_FILE.unlink(missing_ok=True)
+            except Exception:
+                LOCK_FILE.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+atexit.register(release_single_instance_lock)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # ANSI colours (safe on Windows 10+)
@@ -54,14 +93,14 @@ RESET  = "\033[0m"
 
 SPIN = ["-", "\\", "|", "/"]
 
-def ok(msg):    print(f"  {GREEN}[OK]{RESET}   {msg}")
-def warn(msg):  print(f"  {YELLOW}[!!]{RESET}   {msg}")
-def err(msg):   print(f"  {RED}[ERR]{RESET}  {msg}")
-def info(msg):  print(f"  {CYAN}[>>]{RESET}   {msg}")
+def ok(msg):    print(f"  {GREEN}[OK]{RESET}   {msg}", flush=True)
+def warn(msg):  print(f"  {YELLOW}[!!]{RESET}   {msg}", flush=True)
+def err(msg):   print(f"  {RED}[ERR]{RESET}  {msg}", flush=True)
+def info(msg):  print(f"  {CYAN}[>>]{RESET}   {msg}", flush=True)
 def header(msg):
     bar = "=" * len(msg)
-    print(f"\n{BOLD}{CYAN}{bar}\n{msg}\n{bar}{RESET}")
-def divider():  print(f"\n{DIM}{'─' * 60}{RESET}")
+    print(f"\n{BOLD}{CYAN}{bar}\n{msg}\n{bar}{RESET}", flush=True)
+def divider():  print(f"\n{DIM}{'─' * 60}{RESET}", flush=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PHASE 1 – PROJECT DISCOVERY
@@ -75,9 +114,19 @@ def discover_backend(start: Path) -> Path | None:
     """
     Walk from *start* upward/downward to find a directory that contains
     a FastAPI entry-point file (main.py, server.py, app.py, application.py).
-    Returns the backend directory Path, or None if not found.
+    Prioritizes the canonical unified-pl-system/backend path.
     """
-    # BFS through all subdirectories up to 5 levels deep
+    canonical = [
+        start / "unified-pl-system" / "backend",
+        start / "backend",
+    ]
+    for p in canonical:
+        for name in CANDIDATE_MODULES:
+            candidate = p / f"{name}.py"
+            if candidate.exists() and _file_has_fastapi(candidate):
+                return p
+
+    # BFS through other subdirectories (excluding backups/reconstructed)
     visited: set[Path] = set()
     queue = [start]
 
@@ -91,14 +140,15 @@ def discover_backend(start: Path) -> Path | None:
                 candidate = directory / f"{name}.py"
                 if candidate.exists() and _file_has_fastapi(candidate):
                     return directory
-            # Expand children (skip heavy/hidden dirs)
             try:
                 for child in sorted(directory.iterdir()):
+                    cname = child.name.lower()
                     if child.is_dir() and child.name not in {
-                        ".git", "__pycache__", "node_modules", ".venv",
+                        ".git", "__pycache__", "node_modules", ".venv", "venv",
                         ".pytest_cache", ".ruff_cache", "site-packages",
-                        ".github", "dist", "build", "docs",
-                    }:
+                        ".github", "dist", "build", "docs", "worktrees",
+                        "checkpoints", "evidence", "postgres",
+                    } and not cname.startswith("pre18_") and not cname.startswith("reconstructed_") and "backup" not in cname and "reverted" not in cname:
                         next_level.append(child)
             except PermissionError:
                 pass
@@ -252,6 +302,7 @@ def validate_import(python: str, backend_dir: Path, module_name: str) -> bool:
         capture_output=True,
         text=True,
         env=env,
+        stdin=subprocess.DEVNULL,
     )
 
     if result.returncode == 0 and "OK" in result.stdout:
@@ -349,51 +400,65 @@ BACKEND_PORT  = 8000
 FRONTEND_PORT = 3000
 
 def is_port_free(port: int) -> bool:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.settimeout(1)
-        return s.connect_ex(("127.0.0.1", port)) != 0
+    """Test whether a port is truly available to bind exclusively on Windows."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("127.0.0.1", port))
+            return True
+    except OSError:
+        return False
 
 
-def kill_port(port: int):
-    """Kill processes on the given port (Windows)."""
+def kill_port(port: int, exclude_pids: set[int] | None = None):
+    """Kill stale processes occupying the given port (Windows), excluding active child PIDs."""
+    if exclude_pids is None:
+        exclude_pids = set()
+    exclude_pids.add(os.getpid())
     try:
         out = subprocess.check_output(
-            f"netstat -ano | findstr :{port}", shell=True, stderr=subprocess.DEVNULL
+            "netstat -ano", shell=True, stderr=subprocess.DEVNULL
         ).decode(errors="replace")
-        pids: set[str] = set()
-        my_pid = str(os.getpid())
+        pids: set[int] = set()
+        target_suffix = f":{port}"
         for line in out.splitlines():
-            parts = [p for p in line.strip().split() if p]
-            if len(parts) >= 5 and (f":{port}" in parts[1] or f":{port}" in parts[2]):
-                pid = parts[-1]
-                if pid and pid.isdigit() and pid != "0" and pid != my_pid:
-                    pids.add(pid)
+            parts = line.strip().split()
+            if len(parts) >= 4:
+                local_addr = parts[1]
+                if local_addr.endswith(target_suffix) or f":{port}" in local_addr:
+                    pid_str = parts[-1]
+                    if pid_str.isdigit():
+                        pid = int(pid_str)
+                        if pid not in exclude_pids and pid != 0:
+                            pids.add(pid)
         for pid in pids:
             info(f"Killing stale process PID {pid} on port {port}")
             subprocess.run(
                 f"taskkill /F /T /PID {pid}",
                 shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
-        time.sleep(0.5)
+        if pids:
+            time.sleep(1.0)
     except Exception:
         pass
 
 
-def wait_for_port_free(port: int, timeout: int = 15) -> bool:
-    """Wait until the given port is no longer in use (handles TIME_WAIT on Windows)."""
+def wait_for_port_free(port: int, timeout: int = 15, exclude_pids: set[int] | None = None) -> bool:
+    """Wait until the given port is no longer in use."""
     deadline = time.time() + timeout
     while time.time() < deadline:
         if is_port_free(port):
             return True
-        kill_port(port)
-        time.sleep(1)
+        kill_port(port, exclude_pids=exclude_pids)
+        time.sleep(0.5)
     warn(f"Port {port} still in use after {timeout}s — proceeding anyway")
     return False
 
 
-def check_url(url: str, timeout: int = 5) -> bool:
+_no_proxy_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+def check_url(url: str, timeout: int = 2) -> bool:
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as r:
+        with _no_proxy_opener.open(url, timeout=timeout) as r:
             return r.status < 400
     except urllib.error.HTTPError as e:
         return e.code < 500
@@ -408,31 +473,36 @@ def post_json(url: str, data: dict, timeout: int = 5):
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())
+    with _no_proxy_opener.open(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))
 
 
 def wait_for_url(
     url: str,
-    timeout: int = 45,
+    timeout: int = 30,
     label: str = "service",
     proc: subprocess.Popen | None = None,
+    log_path: Path | None = None,
 ) -> bool:
     start = time.time()
     idx = 0
-    backoff = 0.5
+    backoff = 0.3
     while time.time() - start < timeout:
         if proc and proc.poll() is not None:
             print(f"\n{RED}[STARTUP_EXCEPTION] {label} process exited early (code {proc.returncode}){RESET}")
+            if log_path:
+                _dump_log(log_path)
             return False
-        if check_url(url, timeout=int(min(5, max(1, backoff)))):
+        if check_url(url, timeout=2):
             return True
         sys.stdout.write(f"\r  {SPIN[idx % 4]} Waiting for {label}... ({int(time.time()-start)}s)")
         sys.stdout.flush()
         idx += 1
         time.sleep(backoff)
-        backoff = min(2.0, backoff * 1.2)
+        backoff = min(1.0, backoff * 1.1)
     print(f"\n{RED}[READINESS_TIMEOUT] Timeout waiting for {url}{RESET}")
+    if log_path:
+        _dump_log(log_path)
     return False
 
 
@@ -449,6 +519,7 @@ def check_dependencies(python: str, backend_dir: Path) -> bool:
             [python, "-c", f"import {pkg}"],
             capture_output=True,
             env=build_env(backend_dir),
+            stdin=subprocess.DEVNULL,
         )
         if r.returncode == 0:
             ok(f"Package '{pkg}' available")
@@ -461,6 +532,7 @@ def check_dependencies(python: str, backend_dir: Path) -> bool:
         result = subprocess.run(
             [python, "-m", "pip", "install", "-r", str(req)],
             capture_output=True, text=True,
+            stdin=subprocess.DEVNULL,
         )
         if result.returncode != 0:
             err("pip install failed:")
@@ -500,6 +572,7 @@ def setup_database(python: str, backend_dir: Path):
         cwd=str(backend_dir),
         env=build_env(backend_dir),
         capture_output=True, text=True,
+        stdin=subprocess.DEVNULL,
     )
     if r.returncode == 0:
         ok(f"Seed: {r.stdout.strip() or 'OK'}")
@@ -516,9 +589,6 @@ _backend_proc: subprocess.Popen | None = None
 _frontend_proc: subprocess.Popen | None = None
 _backend_log_fh = None
 _frontend_log_fh = None
-
-SCRIPT_DIR = Path(__file__).resolve().parent
-
 
 def start_backend(
     python: str,
@@ -552,6 +622,7 @@ def start_backend(
         cmd,
         cwd=str(backend_dir),   # ← CRITICAL: must be backend_dir
         env=env,                  # ← CRITICAL: PYTHONPATH + .env vars injected
+        stdin=subprocess.DEVNULL,
         stdout=_backend_log_fh,
         stderr=subprocess.STDOUT,
     )
@@ -559,8 +630,8 @@ def start_backend(
 
 
 def await_backend(proc: subprocess.Popen, log_path: Path) -> bool:
-    url = f"http://127.0.0.1:{BACKEND_PORT}/api/v1/system/ready"
-    ok_flag = wait_for_url(url, timeout=120, label="backend readiness", proc=proc)
+    url = f"http://127.0.0.1:{BACKEND_PORT}/api/v1/system/health"
+    ok_flag = wait_for_url(url, timeout=30, label="backend readiness", proc=proc, log_path=log_path)
     print()
     if ok_flag:
         ok(f"Backend running at http://127.0.0.1:{BACKEND_PORT}")
@@ -662,7 +733,7 @@ def verify_health() -> bool:
         for path, label in protected:
             try:
                 req = urllib.request.Request(f"{base}{path}", headers=headers)
-                with urllib.request.urlopen(req, timeout=5) as r:
+                with _no_proxy_opener.open(req, timeout=5) as r:
                     if r.status == 200:
                         ok(label)
                     else:
@@ -681,6 +752,7 @@ def start_frontend(python: str, frontend_dir: Path, log_path: Path) -> subproces
     global _frontend_proc, _frontend_log_fh
 
     kill_port(FRONTEND_PORT)
+    wait_for_port_free(FRONTEND_PORT, timeout=10)
 
     _frontend_log_fh = open(log_path, "a", encoding="utf-8")
     _frontend_log_fh.write(f"\n\n--- STARTING FRONTEND AT {time.time()} ---\n\n")
@@ -691,6 +763,7 @@ def start_frontend(python: str, frontend_dir: Path, log_path: Path) -> subproces
     _frontend_proc = subprocess.Popen(
         [python, "-u", server_script],
         cwd=str(frontend_dir),
+        stdin=subprocess.DEVNULL,
         stdout=_frontend_log_fh,
         stderr=subprocess.STDOUT,
     )
@@ -699,7 +772,7 @@ def start_frontend(python: str, frontend_dir: Path, log_path: Path) -> subproces
 
 def await_frontend(proc: subprocess.Popen, log_path: Path) -> bool:
     url = f"http://127.0.0.1:{FRONTEND_PORT}/login.html"
-    ok_flag = wait_for_url(url, timeout=30, label="frontend", proc=proc)
+    ok_flag = wait_for_url(url, timeout=30, label="frontend", proc=proc, log_path=log_path)
     print()
     if ok_flag:
         ok(f"Frontend running at http://127.0.0.1:{FRONTEND_PORT}")
@@ -760,7 +833,7 @@ def print_summary(frontend_dir: Path | None):
 
   Press {BOLD}Ctrl+C{RESET} to stop.
 {BOLD}{'='*55}{RESET}
-""")
+""", flush=True)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -847,6 +920,9 @@ def run_diagnostics(ctx: dict):
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
+    global _backend_proc, _frontend_proc
+    acquire_single_instance_lock()
+
     # ── Banner ────────────────────────────────────────────────────────────────
     print(f"""
 {BOLD}{CYAN}+======================================================+
@@ -993,22 +1069,35 @@ def main():
     # ── Keep-alive loop with auto-restart ─────────────────────────────────────
     try:
         while True:
-            time.sleep(10)
+            time.sleep(2)
             if _backend_proc and _backend_proc.poll() is not None:
-                err("Backend crashed — restarting...")
+                rc = _backend_proc.returncode
+                pid = _backend_proc.pid
+                err(f"Backend process exited unexpectedly (PID: {pid}, exit code: {rc}) — restarting...")
+                _dump_log(log_be, tail=30)
                 proc_be = start_backend(python, backend_dir, module_name, app_var, log_be)
                 if not await_backend(proc_be, log_be):
                     err("Backend restart failed. Giving up.")
                     cleanup()
                     sys.exit(1)
             if frontend_dir and _frontend_proc and _frontend_proc.poll() is not None:
-                err("Frontend crashed — restarting...")
+                rc = _frontend_proc.returncode
+                pid = _frontend_proc.pid
+                err(f"Frontend process exited unexpectedly (PID: {pid}, exit code: {rc}) — restarting...")
+                _dump_log(log_fe, tail=30)
                 log_fe = SCRIPT_DIR / "frontend.log"
-                start_frontend(python, frontend_dir, log_fe)
+                _frontend_proc = start_frontend(python, frontend_dir, log_fe)
+                if not await_frontend(_frontend_proc, log_fe):
+                    warn("Frontend restart failed.")
     except KeyboardInterrupt:
         cleanup()
-        print(f"\n{GREEN}Goodbye!{RESET}\n")
+        print(f"\n{GREEN}Goodbye!{RESET}\n", flush=True)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

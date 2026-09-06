@@ -14,15 +14,16 @@
         extend: {
           colors: {
             primary: '#5B5CEB',
-            'card-border': '#E2E8F0',
+            'card-border': '#EEF2F6',
             success: '#10B981',
             danger: '#EF4444',
+            warning: '#F59E0B',
           },
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
           },
           borderRadius: {
-            'card': '16px',
+            'card': '14px',
           }
         }
       }
@@ -36,17 +37,43 @@
     .custom-shadow {
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
     }
-    .kpi-card {
+    .dash-card {
       background: #FFFFFF;
       border: 1px solid #EEF2F6;
-      border-radius: 16px;
-      padding: 16px 20px;
+      border-radius: 14px;
+      padding: 16px;
     }
-    .content-card {
+    .dash-kpi {
       background: #FFFFFF;
       border: 1px solid #EEF2F6;
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 14px;
+      padding: 14px 16px;
+      position: relative;
+      overflow: hidden;
+      min-height: 104px;
+    }
+    .sparkline-canvas {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      width: 80px;
+      height: 38px;
+      pointer-events: none;
+    }
+    /* Custom scrollbar for Top Performers & Multi-select */
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
     }
   </style>
   <link rel="stylesheet" href="css/sidebar.css">
@@ -54,263 +81,354 @@
 <body class="font-sans text-slate-800 bg-[#F8FAFC]">
   <div id="sidebar-container"></div>
 
-  <!-- Main Content Wrapper -->
-  <main class="ml-[240px] min-h-screen p-8">
+  <!-- Main Content Wrapper (standard ml-[240px] matching global dashboard shell) -->
+  <main class="ml-[240px] min-h-screen p-6 pb-12">
     <!-- Top Header -->
-    <header class="flex items-center justify-between mb-6">
+    <header class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Department Analysis</h1>
-        <p class="text-xs text-slate-500 mt-0.5">Analyze department-wise performance</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="relative">
-          <select id="dept-filter-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer shadow-sm">
-            <option value="all">All Departments</option>
-            <option value="Sales">Sales</option>
-            <option value="Operations">Operations</option>
-            <option value="Finance">Finance</option>
-            <option value="HR">HR</option>
-            <option value="IT">IT</option>
-          </select>
-          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
-        </div>
-        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
-          <span class="material-symbols-outlined text-sm text-slate-400">calendar_today</span>
-          <span id="date-range-display">May 13 - May 18, 2025</span>
-          <span class="material-symbols-outlined text-sm text-slate-400">expand_more</span>
-        </div>
+        <h1 class="text-xl font-bold text-slate-900 tracking-tight">Department Analysis</h1>
+        <p class="text-[11px] text-slate-500 mt-0.5">Comprehensive departmental performance, margin analysis &amp; operational efficiency</p>
       </div>
     </header>
 
-    <!-- KPI Row (4 Cards) -->
-    <section class="grid grid-cols-4 gap-5 mb-6">
-      <!-- Total Revenue -->
-      <div class="kpi-card custom-shadow flex items-center justify-between">
-        <div class="flex items-center gap-3.5">
-          <div class="w-11 h-11 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-            ₹
+    <div class="space-y-4">
+      <!-- 4 KPI CARDS ROW (Exact match with Executive Dashboard) -->
+      <section class="grid grid-cols-4 gap-4">
+        <!-- 1. Total Revenue -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <div class="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+              <span class="material-symbols-outlined text-base">savings</span>
+            </div>
           </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Total Revenue</p>
-            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-revenue">₹27,80,Cr</h3>
-            <div class="flex items-center gap-1 text-xs text-emerald-600 font-semibold mt-0.5" id="kpi-revenue-trend">
-              <span>▲</span>
-              <span>+15.2%</span>
+          <div class="mt-2">
+            <p class="text-[10px] text-slate-500 font-medium leading-none">Total Revenue</p>
+            <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-total-revenue">₹0 Cr</h3>
+            <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1" id="kpi-revenue-trend">
+              <span>↑ +5.2%</span>
+              <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+            </div>
+          </div>
+          <div id="sparkline-revenue" class="sparkline-canvas"></div>
+        </div>
+
+        <!-- 2. Total Expense -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+              <span class="material-symbols-outlined text-base">credit_card</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <p class="text-[10px] text-slate-500 font-medium leading-none">Total Expense</p>
+            <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-total-expenses">₹0 Cr</h3>
+            <div class="flex items-center gap-1 text-[10px] text-rose-500 font-semibold mt-1" id="kpi-expense-trend">
+              <span>↑ +3.8%</span>
+              <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+            </div>
+          </div>
+          <div id="sparkline-expenses" class="sparkline-canvas"></div>
+        </div>
+
+        <!-- 3. Net Profit -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+              <span class="material-symbols-outlined text-base">trending_up</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <p class="text-[10px] text-slate-500 font-medium leading-none">Net Profit</p>
+            <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-net-profit">₹0 Cr</h3>
+            <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1" id="kpi-profit-trend">
+              <span>↑ +6.4%</span>
+              <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+            </div>
+          </div>
+          <div id="sparkline-profit" class="sparkline-canvas"></div>
+        </div>
+
+        <!-- 4. Net Margin (DYNAMICALLY CALCULATED) -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <div class="w-7 h-7 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+              <span class="material-symbols-outlined text-base">percent</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <p class="text-[10px] text-slate-500 font-medium leading-none">Net Margin</p>
+            <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-net-margin">0.0%</h3>
+            <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1" id="kpi-margin-trend">
+              <span>↑ +1.2%</span>
+              <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+            </div>
+          </div>
+          <div id="sparkline-margin" class="sparkline-canvas"></div>
+        </div>
+      </section>
+
+      <!-- ROW 1: DEPARTMENT PERFORMANCE + DEPARTMENT TREND (50% / 50% Two-Column Grid) -->
+      <section class="grid grid-cols-12 gap-4">
+        <!-- 1. Department Performance (Left 50% - Reusing exact dashboard component) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between min-h-[300px]">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h3 class="font-bold text-xs text-slate-900">Department Performance</h3>
+              <p class="text-[10px] text-slate-400">Ranked metrics across business units</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="relative">
+                <select id="ctrl-dept-perf-metric" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="profit" selected>Profit</option>
+                  <option value="revenue">Revenue</option>
+                  <option value="expense">Expense</option>
+                  <option value="margin_pct">Net Margin %</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <div class="relative">
+                <select id="ctrl-dept-perf-range" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="top5" selected>Top 5</option>
+                  <option value="top10">Top 10</option>
+                  <option value="all">All</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Zoom controls -->
+              <div class="flex items-center gap-0.5 text-slate-400 border-l border-slate-200 pl-1">
+                <button id="zoom-in-dept-perf" title="Zoom In" class="p-0.5 hover:text-slate-700 transition-colors cursor-pointer"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
+                <button id="zoom-out-dept-perf" title="Zoom Out" class="p-0.5 hover:text-slate-700 transition-colors cursor-pointer"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
+                <button id="zoom-reset-dept-perf" title="Reset Zoom" class="p-0.5 hover:text-slate-700 transition-colors cursor-pointer"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
+              </div>
+            </div>
+          </div>
+          <div id="chart-dept-performance" class="w-full h-60"></div>
+        </div>
+
+        <!-- 2. Department Trend (Right 50% - Enhanced Multi-Select Filter + Time Aggregation) -->
+        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between min-h-[300px] relative">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h3 class="font-bold text-xs text-slate-900" id="title-dept-trend">Department Trend</h3>
+              <p class="text-[10px] text-slate-400" id="subtitle-dept-trend">Historical trajectory by department &amp; period</p>
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap justify-end">
+              <!-- Metric Selector -->
+              <div class="relative">
+                <select id="ctrl-dept-trend-metric" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="profit" selected>Profit</option>
+                  <option value="revenue">Revenue</option>
+                  <option value="expense">Expense</option>
+                  <option value="margin_pct">Net Margin %</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+
+              <!-- Multi-Select Department Selector Dropdown Button -->
+              <div class="relative" id="multiselect-container">
+                <button id="btn-dept-trend-multiselect" type="button" class="bg-white border border-slate-200 text-slate-700 text-[10px] font-medium rounded px-2.5 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer flex items-center gap-1 shadow-xs hover:bg-slate-50 transition-colors">
+                  <span id="trend-dept-select-label" class="truncate max-w-[110px]">All Departments</span>
+                  <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                </button>
+
+                <!-- Multi-Select Dropdown Menu Popover -->
+                <div id="dropdown-dept-trend-multiselect" class="hidden absolute right-0 top-full mt-1 w-60 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-100">
+                  <!-- Header Actions: Select All / Clear All -->
+                  <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px]">
+                    <span class="font-bold text-slate-800">Select Departments</span>
+                    <div class="flex items-center gap-2">
+                      <button id="btn-trend-select-all" type="button" class="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer">All</button>
+                      <span class="text-slate-300">|</span>
+                      <button id="btn-trend-clear-all" type="button" class="text-slate-500 hover:text-slate-700 font-medium cursor-pointer">Clear</button>
+                    </div>
+                  </div>
+                  <!-- Scrollable Checkbox List -->
+                  <div class="max-h-48 overflow-y-auto custom-scroll space-y-1 pr-1" id="trend-dept-checkbox-list">
+                    <!-- Injected dynamically via JS -->
+                  </div>
+                  <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                    <span id="trend-dept-count-badge">0 selected</span>
+                    <button id="btn-trend-apply-filter" type="button" class="px-3 py-1 bg-indigo-600 text-white rounded text-[10px] font-semibold hover:bg-indigo-700 cursor-pointer transition-colors shadow-xs">Apply</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Time Aggregation Selector -->
+              <div class="relative">
+                <select id="ctrl-dept-trend-agg" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                  <option value="monthly" selected>Monthly</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="half-yearly">Half-Yearly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+
+              <!-- Zoom controls -->
+              <div class="flex items-center gap-0.5 text-slate-400 border-l border-slate-200 pl-1">
+                <button id="zoom-in-dept-trend" title="Zoom In" class="p-0.5 hover:text-slate-700 transition-colors cursor-pointer"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
+                <button id="zoom-out-dept-trend" title="Zoom Out" class="p-0.5 hover:text-slate-700 transition-colors cursor-pointer"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
+                <button id="zoom-reset-dept-trend" title="Reset Zoom" class="p-0.5 hover:text-slate-700 transition-colors cursor-pointer"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
+              </div>
+            </div>
+          </div>
+          <div id="chart-dept-trend" class="w-full h-60"></div>
+        </div>
+      </section>
+
+      <!-- ROW 2: BUDGET VS ACTUAL (Full-Width Enterprise Visual Reference Architecture) -->
+      <section class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 dash-card custom-shadow flex flex-col justify-between" id="card-budget-vs-actual">
+          <!-- Card Header -->
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 tracking-tight">Budget vs Actual</h2>
+              <p class="text-[11px] text-slate-500 mt-0.5 font-normal">Department-wise spend against allocated budget targets</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <!-- Range Selector: Top 5 / Top 10 / All Departments -->
+              <div class="relative">
+                <select id="ctrl-budget-range" class="bg-white border border-slate-200 text-slate-700 text-[11px] rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-medium appearance-none cursor-pointer">
+                  <option value="top5">Top 5</option>
+                  <option value="top10">Top 10</option>
+                  <option value="all" selected>All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Department Filter Dropdown -->
+              <div class="relative">
+                <select id="ctrl-budget-dept" class="bg-white border border-slate-200 text-slate-700 text-[11px] rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-medium appearance-none cursor-pointer">
+                  <option value="all">All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legend & Table Headers Row -->
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-[11px] text-slate-500 font-medium">
+            <!-- Left Legend -->
+            <div class="flex items-center gap-4 pl-1">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#2563EB]"></span>
+                <span class="text-slate-700 font-medium">Actual Spend</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]"></span>
+                <span class="text-slate-700 font-medium">Budget Target</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-0.5 h-3 bg-slate-900 rounded-full"></span>
+                <span class="text-slate-700 font-medium">Target Marker</span>
+              </span>
+            </div>
+
+            <!-- Right Column Headers Aligned with Data Columns -->
+            <div class="flex items-center text-right font-medium text-slate-600 pr-1 text-[11px]">
+              <span class="w-20 text-right">Actual</span>
+              <span class="w-20 text-right">Budget</span>
+              <span class="w-24 text-right">Variance</span>
+              <span class="w-20 text-right">Variance %</span>
+              <span class="w-28 text-center">Status</span>
+            </div>
+          </div>
+
+          <!-- Main Dynamic Bar Rows & Grid Container -->
+          <div id="budget-actual-chart-container" class="w-full py-2">
+            <!-- Dynamic Rows injected via JS -->
+            <div id="budget-actual-rows" class="space-y-2.5"></div>
+
+            <!-- Bottom X-Axis Scale Labels & Grid Marks -->
+            <div id="budget-actual-axis" class="flex items-center pt-2 mt-1 border-t border-slate-100 text-[9px] text-slate-400"></div>
+          </div>
+
+          <!-- Empty state when budget data is unavailable -->
+          <div id="budget-empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center p-6">
+            <span class="material-symbols-outlined text-slate-400 text-2xl mb-1">balance</span>
+            <p class="text-xs font-semibold text-slate-600">Budget data unavailable for selected dataset</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Upload a dataset with budget fields or configure departmental targets</p>
+          </div>
+
+          <!-- Bottom Concise Summary Area matching reference design -->
+          <div id="budget-summary-card" class="mt-3 p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 flex items-center justify-between">
+            <!-- Left: Overall Budget Variance & Highest Department -->
+            <div class="flex items-center gap-3.5">
+              <div id="budget-summary-icon-container" class="w-9 h-9 rounded-full flex items-center justify-center bg-rose-100 text-rose-600 flex-shrink-0">
+                <span class="material-symbols-outlined text-lg" id="budget-summary-icon">north_east</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <h4 class="text-xs font-bold text-rose-600 tracking-tight" id="budget-summary-title">2.9% over budget</h4>
+                </div>
+                <p class="text-[11px] text-slate-500 font-normal mt-0.5" id="budget-summary-subtitle">R&D has the highest variance (+6.8%).</p>
+              </div>
+            </div>
+
+            <!-- Right: On Budget vs Over Budget Count Cards -->
+            <div class="flex items-center gap-3">
+              <!-- On Budget Card -->
+              <div class="bg-emerald-50/90 border border-emerald-100 rounded-lg px-4 py-1.5 text-center min-w-[90px]">
+                <div class="text-base font-bold text-emerald-600 leading-tight" id="budget-on-target-count">0</div>
+                <div class="text-[10px] font-semibold text-emerald-700 mt-0.5">On Budget</div>
+              </div>
+
+              <!-- Over Budget Card -->
+              <div class="bg-rose-50/90 border border-rose-100 rounded-lg px-4 py-1.5 text-center min-w-[90px]">
+                <div class="text-base font-bold text-rose-600 leading-tight" id="budget-over-target-count">0</div>
+                <div class="text-[10px] font-semibold text-rose-700 mt-0.5">Over Budget</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Total Expense -->
-      <div class="kpi-card custom-shadow flex items-center justify-between">
-        <div class="flex items-center gap-3.5">
-          <div class="w-11 h-11 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 font-bold text-lg">
-            ₹
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Total Expense</p>
-            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-expense">₹8,81,Cr</h3>
-            <div class="flex items-center gap-1 text-xs text-rose-500 font-semibold mt-0.5" id="kpi-expense-trend">
-              <span>▲</span>
-              <span>+8.9%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Net Profit -->
-      <div class="kpi-card custom-shadow flex items-center justify-between">
-        <div class="flex items-center gap-3.5">
-          <div class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-            <span class="material-symbols-outlined text-xl">bar_chart</span>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Net Profit</p>
-            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-profit">₹7,98,Cr</h3>
-            <div class="flex items-center gap-1 text-xs text-emerald-600 font-semibold mt-0.5" id="kpi-profit-trend">
-              <span>▲</span>
-              <span>+6.2%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Employees -->
-      <div class="kpi-card custom-shadow flex items-center justify-between">
-        <div class="flex items-center gap-3.5">
-          <div class="w-11 h-11 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
-            <span class="material-symbols-outlined text-xl">group</span>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Active Employees</p>
-            <h3 class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-employees">2.2 K+</h3>
-            <div class="flex items-center gap-1 text-xs text-emerald-600 font-semibold mt-0.5" id="kpi-employees-trend">
-              <span>▲</span>
-              <span>+4.3%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Main Charts Row (2 Columns) -->
-    <section class="grid grid-cols-2 gap-5 mb-6">
-      <!-- Profit by Department -->
-      <div class="content-card custom-shadow flex flex-col justify-between">
-        <div>
+      <!-- ROW 3: DEPARTMENT SUMMARY TABLE & TOP PERFORMERS (SHOWING ALL DEPARTMENTS) -->
+      <section class="grid grid-cols-12 gap-4">
+        <!-- Department Summary Table (Left ~67% / 8 Cols) -->
+        <div class="col-span-8 dash-card custom-shadow">
           <div class="flex items-center justify-between mb-3">
-            <h4 class="font-bold text-slate-900 text-sm">Profit by Department</h4>
-            <button class="text-slate-400 hover:text-slate-600">
-              <span class="material-symbols-outlined text-base">more_vert</span>
-            </button>
-          </div>
-
-          <!-- Profit / Cost Toggle -->
-          <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg w-fit mb-2">
-            <button id="toggle-metric-profit" class="px-3 py-1 text-xs font-semibold rounded-md bg-white text-slate-800 shadow-sm transition-all">Profit</button>
-            <button id="toggle-metric-cost" class="px-3 py-1 text-xs font-medium rounded-md text-slate-500 hover:text-slate-800 transition-all">Cost</button>
-          </div>
-
-          <!-- Horizontal Bar Chart -->
-          <div id="chart-profit-by-dept" class="w-full h-56"></div>
-        </div>
-
-        <!-- Insight Footer -->
-        <div class="flex items-center gap-2 pt-3 border-t border-slate-100 text-xs text-slate-700">
-          <span class="material-symbols-outlined text-amber-500 text-base">lightbulb</span>
-          <span id="dept-profit-insight">Sales has the highest profit (128.3 Cr) while HR shows lowest profit (45.2 Cr).</span>
-        </div>
-      </div>
-
-      <!-- Department Trend (Profit) -->
-      <div class="content-card custom-shadow flex flex-col">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-1.5">
-            <h4 class="font-bold text-slate-900 text-sm">Department Trend</h4>
-            <span class="text-xs text-slate-400 font-normal">(Profit)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <!-- Filter Chips / Legend -->
-            <div class="flex items-center gap-1.5" id="trend-legend-chips">
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Sales
-              </span>
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Operations
-              </span>
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-600 border border-amber-100">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Finance
-              </span>
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-500 border border-rose-100">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> HR
-              </span>
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-600 border border-purple-100">
-                <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span> IT
-              </span>
-            </div>
-            <button class="text-slate-400 hover:text-slate-600 ml-1">
-              <span class="material-symbols-outlined text-base">more_vert</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Multi-line Trend Chart -->
-        <div id="chart-dept-trend" class="w-full h-64 mt-1"></div>
-      </div>
-    </section>
-
-    <!-- Bottom Row (Summary Table & Top Performers) -->
-    <section class="grid grid-cols-12 gap-5">
-      <!-- Department Summary Table (Large Left ~75%) -->
-      <div class="col-span-9 content-card custom-shadow">
-        <h4 class="font-bold text-slate-900 text-sm mb-4">Department Summary Table</h4>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                <th class="py-3 px-4 font-semibold">DEPARTMENT</th>
-                <th class="py-3 px-4 font-semibold">REVENUE</th>
-                <th class="py-3 px-4 font-semibold">EXPENSE</th>
-                <th class="py-3 px-4 font-semibold">PROFIT</th>
-                <th class="py-3 px-4 font-semibold">MARGIN</th>
-                <th class="py-3 px-4 font-semibold">VS LAST WEEK</th>
-              </tr>
-            </thead>
-            <tbody id="dept-summary-tbody" class="divide-y divide-slate-50 text-xs">
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-4 font-medium text-slate-800 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Finance
-                </td>
-                <td class="py-3.5 px-4 font-semibold text-slate-700">₹12,4 Cr</td>
-                <td class="py-3.5 px-4 text-slate-600">₹7,8 Cr</td>
-                <td class="py-3.5 px-4 font-semibold text-slate-800">₹4,6 Cr</td>
-                <td class="py-3.5 px-4 text-slate-600">48.2%</td>
-                <td class="py-3.5 px-4 font-semibold text-emerald-600">+6.4%</td>
-              </tr>
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-4 font-medium text-slate-800 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-blue-500"></span> Sales
-                </td>
-                <td class="py-3.5 px-4 font-semibold text-slate-700">₹18,6 Cr</td>
-                <td class="py-3.5 px-4 text-slate-600">₹9,2 Cr</td>
-                <td class="py-3.5 px-4 font-semibold text-slate-800">₹9,4 Cr</td>
-                <td class="py-3.5 px-4 text-slate-600">50.1%</td>
-                <td class="py-3.5 px-4 font-semibold text-emerald-600">+8.1%</td>
-              </tr>
-              <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="py-3.5 px-4 font-medium text-slate-800 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-amber-500"></span> IT
-                </td>
-                <td class="py-3.5 px-4 font-semibold text-slate-700">₹8,2 Cr</td>
-                <td class="py-3.5 px-4 text-slate-600">₹4,9 Cr</td>
-                <td class="py-3.5 px-4 font-semibold text-slate-800">₹3,3 Cr</td>
-                <td class="py-3.5 px-4 text-slate-600">40.1%</td>
-                <td class="py-3.5 px-4 font-semibold text-emerald-600">+5.7%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Top Performers (Right ~25%) -->
-      <div class="col-span-3 content-card custom-shadow flex flex-col justify-between">
-        <h4 class="font-bold text-slate-900 text-sm mb-4">Top Performers</h4>
-        <div class="space-y-4 flex-1 flex flex-col justify-around" id="top-performers-container">
-          <!-- Rank 1 -->
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
-              1
-            </div>
             <div>
-              <p class="text-xs font-bold text-slate-800">Sales</p>
-              <p class="text-[11px] text-slate-500 font-medium">₹9,4 Cr</p>
+              <h4 class="font-bold text-slate-900 text-xs">Department Summary Table</h4>
+              <p class="text-[10px] text-slate-400">Granular financial metrics with period-over-period variance</p>
             </div>
+            <div class="text-[10px] text-slate-400 font-medium">Click column headers to sort</div>
           </div>
-
-          <!-- Rank 2 -->
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
-              2
-            </div>
-            <div>
-              <p class="text-xs font-bold text-slate-800">Operations</p>
-              <p class="text-[11px] text-slate-500 font-medium">₹7,8 Cr</p>
-            </div>
-          </div>
-
-          <!-- Rank 3 -->
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm">
-              3
-            </div>
-            <div>
-              <p class="text-xs font-bold text-slate-800">Finance</p>
-              <p class="text-[11px] text-slate-500 font-medium">₹4,6 Cr</p>
-            </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse" id="dept-summary-table">
+              <thead>
+                <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th class="py-2.5 px-3 font-semibold cursor-pointer hover:text-slate-700 transition-colors" data-sort="department">DEPARTMENT ↕</th>
+                  <th class="py-2.5 px-3 font-semibold text-right cursor-pointer hover:text-slate-700 transition-colors" data-sort="revenue">REVENUE ↕</th>
+                  <th class="py-2.5 px-3 font-semibold text-right cursor-pointer hover:text-slate-700 transition-colors" data-sort="expense">EXPENSE ↕</th>
+                  <th class="py-2.5 px-3 font-semibold text-right cursor-pointer hover:text-slate-700 transition-colors" data-sort="profit">PROFIT ↕</th>
+                  <th class="py-2.5 px-3 font-semibold text-right cursor-pointer hover:text-slate-700 transition-colors" data-sort="margin">MARGIN % ↕</th>
+                  <th class="py-2.5 px-3 font-semibold text-right cursor-pointer hover:text-slate-700 transition-colors" data-sort="vs_prev">VS PREV PERIOD ↕</th>
+                </tr>
+              </thead>
+              <tbody id="dept-summary-tbody" class="divide-y divide-slate-50 text-xs">
+                <!-- Dynamically injected via JS -->
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
-    </section>
+
+        <!-- Top Performers (Right ~33% / 4 Cols - Clean Layout starting below header without justify-between) -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h4 class="font-bold text-slate-900 text-xs">Top Performers</h4>
+              <p class="text-[10px] text-slate-400">Ranked by overall net profitability</p>
+            </div>
+            <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100" id="top-performers-count-badge">All Units</span>
+          </div>
+          <!-- Compact List for All Departments naturally starting below header with ~20px top spacing -->
+          <div class="mt-3.5 max-h-[380px] overflow-y-auto custom-scroll space-y-2 pr-1" id="top-performers-container">
+            <!-- Dynamically populated from active dataset -->
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 
   <script type="module" src="js/departments_wiring.js"></script>

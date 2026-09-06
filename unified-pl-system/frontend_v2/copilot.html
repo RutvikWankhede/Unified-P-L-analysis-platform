@@ -1,189 +1,186 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>AI Copilot - Unified P&amp;L</title>
-<!-- Inter font for premium SaaS aesthetic -->
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display
-=swap" rel="stylesheet"/>
-<!-- Tailwind CSS v3 CDN -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-primary: '#5b5ceb',
-sidebar: '#f8f9fc',
-chatBg: '#f3f4f9',
-border: '#e5e7eb',
-textMain: '#111827',
-textSub: '#6b7280',
-},
-fontFamily: {
-sans: ['Inter', 'sans-serif'],
-},
-borderRadius: {
-'2xl': '20px',
-}
-}
-}
-}
-</script>
-<style data-purpose="custom-scrollbars">
-/* Custom scrollbar for a cleaner UI */
-::-webkit-scrollbar {
-width: 6px;
-}
-::-webkit-scrollbar-track {
-background: transparent;
-}
-::-webkit-scrollbar-thumb {
-background: #e5e7eb;
-border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-background: #d1d5db;
-}
-</style>
-    <link rel="stylesheet" href="css/sidebar.css">
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Financial Copilot - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'card': '14px',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .dash-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body class="bg-white font-sans text-textMain h-screen flex overflow-hidden">
-<div id="sidebar-container"></div>
-<!-- Main Content Area -->
-<div class="flex-1 flex flex-col min-w-0 bg-white">
-<!-- BEGIN: Top Navigation -->
-<header class="h-16 border-b border-border flex items-center justify-between px-8 bg-white"
-data-purpose="top-navigation">
-<div class="flex flex-col">
-<h2 class="text-lg font-bold">AI Copilot</h2>
-<p class="text-[11px] text-textSub">Ask anything about your financial data</p>
-</div>
-<div class="flex items-center gap-6">
-<button class="text-textSub hover:text-primary transition-colors">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.228
-9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006
-2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-
-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-<div class="relative">
-<div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
-<button class="text-textSub hover:text-primary transition-colors">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15
-17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4
-0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-
-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-<div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs
-font-bold">RW</div>
-</div>
-</header>
-<!-- END: Top Navigation -->
-<!-- BEGIN: Main Dashboard Layout -->
-<main class="flex-1 flex overflow-hidden">
-<!-- BEGIN: Chat Interface -->
-<section class="flex-1 flex flex-col min-w-0 h-full relative" data-purpose="chat-container">
-<!-- Message History -->
-<div class="flex-1 overflow-y-auto p-8 space-y-8" id="chat-history">
-<!-- AI Welcome Message -->
-<div class="flex items-start gap-4 max-w-[80%]">
-<div class="w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0 flex items-center justify-center">
-<svg class="w-4 h-4 text-primary" fill="currentColor" viewbox="0 0 20 20"><path d="M10 2a8 8
-0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-3a1 1 0 01-1-1V7a1 1 0 112 0v2a1
-1 0 01-1 1z"></path></svg>
-</div>
-<div class="space-y-1">
-<div class="bg-chatBg p-5 rounded-2xl rounded-tl-none shadow-sm">
-<p class="font-bold text-sm mb-1">Hello Rutvik! I'm your AI Copilot.</p>
-<p class="text-sm leading-relaxed text-gray-700">Ask me anything about your financial data,
-trends, anomalies, or recommendations.</p>
-</div>
-<span class="text-[10px] text-textSub ml-1">10:30 AM</span>
-</div>
-</div>
-<!-- User Message -->
-<div class="flex flex-col items-end gap-1">
-<div class="bg-primary text-white p-5 rounded-2xl rounded-tr-none shadow-md max-w-[70%]">
-<p class="text-sm leading-relaxed">Why did marketing expense increase this month?</p>
-</div>
-<span class="text-[10px] text-textSub mr-1">10:31 AM</span>
-</div>
-<!-- AI Detailed Response -->
-<div class="flex items-start gap-4 max-w-[85%]">
-<div class="w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0 flex items-center justify-center">
-<svg class="w-4 h-4 text-primary" fill="currentColor" viewbox="0 0 20 20"><path d="M10 2a8 8
-0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-3a1 1 0 01-1-1V7a1 1 0 112 0v2a1
-1 0 01-1 1z"></path></svg>
-</div>
-<div class="space-y-1">
-<div class="bg-chatBg p-6 rounded-2xl rounded-tl-none shadow-sm border border-gray-100">
-<p class="text-sm font-medium mb-4">Marketing expense increased by 18% compared to last
-month due to:</p>
-<ul class="space-y-3 mb-6">
-<li class="flex items-center justify-between text-sm">
-<div class="flex items-center gap-2">
-<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-<span class="text-textSub">Advertisement Expense</span>
-</div>
-<span class="font-semibold text-gray-700">+$45,000 (<span class="text-red-500">↑
-31%</span>)</span>
-</li>
-<li class="flex items-center justify-between text-sm">
-<div class="flex items-center gap-2">
-<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-<span class="text-textSub">Event Sponsorship</span>
-</div>
-<span class="font-semibold text-gray-700">+$15,000 (<span class="text-red-500">↑
-11%</span>)</span>
-</li>
-<li class="flex items-center justify-between text-sm">
-<div class="flex items-center gap-2">
-<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-<span class="text-textSub">Promotion Expense</span>
-</div>
-<span class="font-semibold text-gray-700">+$12,000 (<span class="text-red-500">↑
-8%</span>)</span>
-</li>
-</ul>
-<p class="text-sm text-gray-700 italic border-t border-gray-200 pt-4">Would you like me to
-generate a detailed report?</p>
-</div>
-<span class="text-[10px] text-textSub ml-1">10:31 AM</span>
-</div>
-</div>
-</div>
-<!-- Chat Input Bar -->
-<div class="p-6 border-t border-border bg-white sticky bottom-0">
-<div class="relative flex items-center">
-<input class="w-full bg-chatBg border-none rounded-2xl py-4 pl-6 pr-14 text-sm focus:ring-2
-focus:ring-primary/20 :text-textSub/60" ="Ask a question..." type="text"/>
-<button class="absolute right-3 w-10 h-10 bg-primary text-white rounded-xl flex items-center
-justify-center hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">
-<svg class="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewbox="0 0 24
-24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-</div>
-</section>
-<!-- END: Chat Interface -->
-<!-- BEGIN: Suggested Prompts Sidebar -->
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
 
-<!-- END: Suggested Prompts Sidebar -->
-</main>
-<!-- END: Main Dashboard Layout -->
-<!-- Floating Action Button (Lower Right) -->
-<div class="fixed bottom-6 right-6 z-50">
-<button class="w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center
-justify-center hover:scale-110 transition-transform">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13
-10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</button>
-</div>
-</div>
-<script type="module" src="js/copilot_wiring.js"></script>
-    <script type="module" src="js/shell.js"></script>
-</body></html>
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] min-h-screen p-6 pb-12 flex flex-col">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Financial Copilot</h1>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="active-dataset-name">Active Dataset</span>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-0.5">Ask questions about your enterprise financial performance, variances, and department metrics</p>
+      </div>
+    </header>
+
+    <!-- Workspace 2-Column Grid (Left: Chat Interface 8 cols, Right: Context & Live KPIs 4 cols) -->
+    <div class="grid grid-cols-12 gap-4 flex-1">
+      <!-- 1. Conversational Chat Workspace (Left 8 Cols) -->
+      <section class="col-span-8 dash-card custom-shadow flex flex-col h-[calc(100vh-140px)] min-h-[500px]" data-purpose="chat-container">
+        <!-- Message History -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4" id="chat-history">
+          <!-- AI Welcome Message -->
+          <div class="flex items-start gap-3 max-w-[85%]">
+            <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-600">
+              <span class="material-symbols-outlined text-base">smart_toy</span>
+            </div>
+            <div class="space-y-1">
+              <div class="bg-slate-50 border border-slate-100 p-3.5 rounded-2xl rounded-tl-none shadow-xs">
+                <p class="font-bold text-xs text-slate-900 mb-0.5">Hello! I'm your Enterprise Financial Copilot.</p>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  I can analyze your active P&amp;L dataset, explain revenue drivers, investigate expense variances, and identify high-performing units.
+                </p>
+              </div>
+              <span class="text-[9px] text-slate-400 ml-1">Live Dataset Context</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Starter Prompt Chips -->
+        <div class="px-4 py-2 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto custom-scroll" id="starter-prompts-container">
+          <button type="button" class="prompt-chip px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 border border-slate-200 text-slate-700 transition-colors whitespace-nowrap cursor-pointer">
+            Why did expenses increase?
+          </button>
+          <button type="button" class="prompt-chip px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 border border-slate-200 text-slate-700 transition-colors whitespace-nowrap cursor-pointer">
+            Which departments are over budget?
+          </button>
+          <button type="button" class="prompt-chip px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 border border-slate-200 text-slate-700 transition-colors whitespace-nowrap cursor-pointer">
+            What is driving profit?
+          </button>
+          <button type="button" class="prompt-chip px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 border border-slate-200 text-slate-700 transition-colors whitespace-nowrap cursor-pointer">
+            Show the strongest performing departments
+          </button>
+        </div>
+
+        <!-- Input Box Bar -->
+        <div class="p-3 border-t border-slate-100 bg-white rounded-b-xl">
+          <div class="relative flex items-center">
+            <input id="copilot-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-4 pr-12 text-xs focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-slate-400 text-slate-800" placeholder="Ask anything about your enterprise financial metrics..." type="text"/>
+            <button id="copilot-send-btn" class="absolute right-1.5 w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center hover:bg-opacity-90 transition-all shadow-xs cursor-pointer">
+              <span class="material-symbols-outlined text-sm">send</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Live Financial Context & Insights Panel (Right 4 Cols) -->
+      <section class="col-span-4 space-y-4">
+        <!-- Live Dataset KPIs Card -->
+        <div class="dash-card custom-shadow">
+          <div class="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-3">
+            <span class="material-symbols-outlined text-base text-indigo-600">monitoring</span>
+            <h3 class="text-xs font-bold text-slate-900">Active Financial Context</h3>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+              <span class="text-[11px] text-slate-500 font-medium">Total Revenue</span>
+              <span class="text-xs font-bold text-slate-900" id="ctx-revenue">₹27.80 Cr</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+              <span class="text-[11px] text-slate-500 font-medium">Total Expenses</span>
+              <span class="text-xs font-bold text-slate-900" id="ctx-expense">₹19.81 Cr</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+              <span class="text-[11px] text-slate-500 font-medium">Net Profit</span>
+              <span class="text-xs font-bold text-emerald-600" id="ctx-profit">₹7.99 Cr</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+              <span class="text-[11px] text-slate-500 font-medium">Net Margin</span>
+              <span class="text-xs font-bold text-indigo-600" id="ctx-margin">28.75%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Intelligence Highlights Card -->
+        <div class="dash-card custom-shadow">
+          <div class="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-3">
+            <span class="material-symbols-outlined text-base text-amber-500">lightbulb</span>
+            <h3 class="text-xs font-bold text-slate-900">Key Intelligence Highlights</h3>
+          </div>
+
+          <ul class="space-y-2.5 text-[11px]">
+            <li class="flex items-start gap-2 text-slate-600">
+              <span class="material-symbols-outlined text-xs text-emerald-600 mt-0.5">star</span>
+              <span><strong>Sales &amp; Operations</strong> generate the highest net margin contribution (>35%).</span>
+            </li>
+            <li class="flex items-start gap-2 text-slate-600">
+              <span class="material-symbols-outlined text-xs text-rose-500 mt-0.5">warning</span>
+              <span><strong>R&amp;D</strong> is currently 6.8% over budget due to tooling investments.</span>
+            </li>
+            <li class="flex items-start gap-2 text-slate-600">
+              <span class="material-symbols-outlined text-xs text-blue-600 mt-0.5">trending_up</span>
+              <span><strong>Cash Flow</strong> remains positive across 8 of 12 operating fiscal periods.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="js/copilot_wiring.js"></script>
+  <script type="module" src="js/shell.js"></script>
+</body>
+</html>

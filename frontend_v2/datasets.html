@@ -1,260 +1,202 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Upload / Datasets - Unified P&amp;L</title>
-<!-- Tailwind CSS v3 CDN -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google Fonts: Inter -->
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swa
-p" rel="stylesheet"/>
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-primary: '#5b5ceb',
-'surface-main': '#f8f9fd',
-'sidebar-bg': '#ffffff',
-'border-light': '#e5e7eb',
-'text-muted': '#64748b',
-'text-dark': '#1e293b',
-'success-bg': '#ecfdf5',
-'success-text': '#10b981',
-'warning-bg': '#fff7ed',
-'warning-text': '#f97316',
-},
-fontFamily: {
-sans: ['Inter', 'sans-serif'],
-},
-borderRadius: {
-'eight': '8px',
-'2xl': '20px',
-},
-}
-}
-}
-</script>
-<style data-purpose="custom-layout">
-body {
-background-color: #f8f9fd;
-font-family: 'Inter', sans-serif;
-}
-.sidebar-width { width: 260px; }
-.main-content { width: calc(100% - 260px); }
-.custom-shadow { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 /
-0.05); }
-.active-tab { border-bottom: 2px solid #5b5ceb; color: #5b5ceb; font-weight: 600; }
-.upload-zone-border { border: 2px dashed #d1d5db; }
-</style>
-    <link rel="stylesheet" href="css/sidebar.css">
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Upload / Datasets - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'card': '14px',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .dash-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .active-tab {
+      border-bottom: 2px solid #5B5CEB;
+      color: #5B5CEB;
+      font-weight: 600;
+    }
+    .upload-zone-border {
+      border: 2px dashed #CBD5E1;
+      transition: all 0.2s ease;
+    }
+    .upload-zone-border:hover {
+      border-color: #5B5CEB;
+      background-color: #F8FAFC;
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body class="flex min-h-screen">
-<div id="sidebar-container"></div>
-<!-- BEGIN: Main Content Area -->
-<main class="main-content flex flex-col">
-<!-- BEGIN: Header -->
-<header class="bg-white px-8 py-6 flex items-center justify-between border-b border-border-
-light">
-<div>
-<h2 class="text-2xl font-bold text-text-dark">Upload / Datasets</h2>
-<p class="text-sm text-text-muted">Upload your financial data and manage datasets</p>
-</div>
-<div class="flex items-center gap-4">
-<button class="text-text-muted hover:text-primary transition-colors">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-
-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-</button>
-<div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-
-bold text-sm">
-RW
-</div>
-</div>
-</header>
-<!-- END: Header -->
-<!-- BEGIN: Dashboard Content -->
-<div class="px-8 py-6 space-y-8">
-<!-- Tabs Section -->
-<div class="border-b border-border-light flex gap-8">
-<a class="pb-4 active-tab text-sm transition-all" href="#">Upload Data</a>
-<a class="pb-4 text-text-muted text-sm hover:text-text-dark transition-all" href="#">My
-Datasets</a>
-<a class="pb-4 text-text-muted text-sm hover:text-text-dark transition-all" href="#">Schema
-Mapping</a>
-<a class="pb-4 text-text-muted text-sm hover:text-text-dark transition-all" href="#">Data
-Quality</a>
-</div>
-<!-- Top Section: Upload & Guidelines -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-<!-- Upload Card -->
-<div class="lg:col-span-2 bg-white rounded-2xl p-8 border border-border-light flex flex-col items-
-center justify-center min-h-[320px]" data-purpose="upload-card">
-<div class="upload-zone-border w-full flex-1 rounded-2xl flex flex-col items-center justify-center
-p-12 border-spacing-4">
-<div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-<svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-
-3v12"></path></svg>
-</div>
-<p class="text-lg font-semibold text-text-dark mb-1">Drag &amp; drop your CSV or Excel file
-here</p>
-<p class="text-sm text-text-muted mb-6">or</p>
-<button class="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-
-200 hover:bg-opacity-90 transition-all">
-Browse Files
-</button>
-<p class="text-xs text-text-muted mt-8">Supports .csv, .xls, .xlsx up to 100MB</p>
-</div>
-</div>
-<!-- Upload Guidelines Card -->
-<div class="bg-white rounded-2xl p-8 border border-border-light" data-purpose="guidelines-
-card">
-<h3 class="text-lg font-bold text-text-dark mb-6">Upload Guidelines</h3>
-<ul class="space-y-6">
-<li class="flex items-start gap-4">
-<div class="mt-1 w-5 h-5 flex-shrink-0 flex items-center justify-center text-text-muted">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15
-12a3 3 0 11-6 0 3 3 0 016 0z"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0
-8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-
-7z"></path></svg>
-</div>
-<p class="text-sm text-text-muted leading-relaxed">Ensure your file contains financial data.</p>
-</li>
-<li class="flex items-start gap-4">
-<div class="mt-1 w-5 h-5 flex-shrink-0 flex items-center justify-center text-text-muted">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15
-12a3 3 0 11-6 0 3 3 0 016 0z"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0
-8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-
-7z"></path></svg>
-</div>
-<p class="text-sm text-text-muted leading-relaxed">Minimum required columns: Date,
-Account.</p>
-</li>
-<li class="flex items-start gap-4">
-<div class="mt-1 w-5 h-5 flex-shrink-0 flex items-center justify-center text-text-muted">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15
-12a3 3 0 11-6 0 3 3 0 016 0z"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0
-8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-
-7z"></path></svg>
-</div>
-<p class="text-sm text-text-muted leading-relaxed">Use fiscal year date (DD-MM-YYYY) or
-(MM-DD-YYYY).</p>
-</li>
-<li class="flex items-start gap-4">
-<div class="mt-1 w-5 h-5 flex-shrink-0 flex items-center justify-center text-text-muted">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15
-12a3 3 0 11-6 0 3 3 0 016 0z"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0
-8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-
-7z"></path></svg>
-</div>
-<p class="text-sm text-text-muted leading-relaxed">Avoid merged cells and empty rows.</p>
-</li>
-</ul>
-</div>
-</div>
-<!-- Recent Uploads Table Section -->
-<div class="bg-white rounded-2xl border border-border-light overflow-hidden" data-
-purpose="recent-uploads-table">
-<div class="p-6 border-b border-border-light flex justify-between items-center">
-<h3 class="text-lg font-bold text-text-dark">Recent Uploads</h3>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left">
-<thead>
-<tr class="text-[11px] font-bold text-text-muted uppercase tracking-wider bg-surface-main">
-<th class="px-6 py-4">File Name</th>
-<th class="px-6 py-4">Rows</th>
-<th class="px-6 py-4">Columns</th>
-<th class="px-6 py-4">Uploaded By</th>
-<th class="px-6 py-4">Uploaded On</th>
-<th class="px-6 py-4">Status</th>
-<th class="px-6 py-4"></th>
-</tr>
-</thead>
-<tbody class="divide-y divide-border-light">
-<!-- Row 1 -->
-<tr class="hover:bg-blue-50/30 transition-colors">
-<td class="px-6 py-4 text-sm font-semibold text-text-dark">P&amp;L_May_2025.csv</td>
-<td class="px-6 py-4 text-sm text-text-muted">12,540</td>
-<td class="px-6 py-4 text-sm text-text-muted">16</td>
-<td class="px-6 py-4 text-sm text-text-muted">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-sm text-text-muted">May 18, 2025 10:20 AM</td>
-<td class="px-6 py-4">
-<span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wide bg-success-bg text-
-success-text rounded-full">Processed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-text-muted hover:text-text-dark"><svg class="w-4 h-4" fill="currentColor"
-viewbox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014
-0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg></button>
-</td>
-</tr>
-<!-- Row 2 -->
-<tr class="hover:bg-blue-50/30 transition-colors">
-<td class="px-6 py-4 text-sm font-semibold text-text-dark">Finance_Q2_2025.xlsx</td>
-<td class="px-6 py-4 text-sm text-text-muted">28,470</td>
-<td class="px-6 py-4 text-sm text-text-muted">22</td>
-<td class="px-6 py-4 text-sm text-text-muted">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-sm text-text-muted">May 18, 2025 01:45 PM</td>
-<td class="px-6 py-4">
-<span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wide bg-success-bg text-
-success-text rounded-full">Processed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-text-muted hover:text-text-dark"><svg class="w-4 h-4" fill="currentColor"
-viewbox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014
-0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg></button>
-</td>
-</tr>
-<!-- Row 3 -->
-<tr class="hover:bg-blue-50/30 transition-colors">
-<td class="px-6 py-4 text-sm font-semibold text-text-dark">Department_May.csv</td>
-<td class="px-6 py-4 text-sm text-text-muted">8,304</td>
-<td class="px-6 py-4 text-sm text-text-muted">12</td>
-<td class="px-6 py-4 text-sm text-text-muted">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-sm text-text-muted">May 18, 2025 07:13 AM</td>
-<td class="px-6 py-4">
-<span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wide bg-success-bg text-
-success-text rounded-full">Processed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-text-muted hover:text-text-dark"><svg class="w-4 h-4" fill="currentColor"
-viewbox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014
-0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg></button>
-</td>
-</tr>
-<!-- Row 4 -->
-<tr class="hover:bg-blue-50/30 transition-colors">
-<td class="px-6 py-4 text-sm font-semibold text-text-dark">RawData_April.csv</td>
-<td class="px-6 py-4 text-sm text-text-muted">18,200</td>
-<td class="px-6 py-4 text-sm text-text-muted">28</td>
-<td class="px-6 py-4 text-sm text-text-muted">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-sm text-text-muted">May 17, 2025 04:45 AM</td>
-<td class="px-6 py-4">
-<span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wide bg-warning-bg text-
-warning-text rounded-full">Mapped</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-text-muted hover:text-text-dark"><svg class="w-4 h-4" fill="currentColor"
-viewbox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014
-0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg></button>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="p-6 border-t border-border-light flex justify-center">
-<button class="text-sm font-bold text-primary flex items-center gap-2 hover:gap-3 transition-all">
-View All Datasets
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-</button>
-</div>
-</div>
-</div>
-<!-- END: Dashboard Content -->
-</main>
-<!-- END: Main Content Area -->
-    <script type="module" src="js/shell.js"></script>
-</body></html>
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
+
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] min-h-screen p-6 pb-12">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Upload / Datasets</h1>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="active-dataset-name">Active Dataset</span>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-0.5">Ingest, normalize, map and manage enterprise financial datasets</p>
+      </div>
+    </header>
+
+    <div class="space-y-4">
+      <!-- Tabs Bar -->
+      <div class="border-b border-slate-200 flex gap-8 text-xs font-medium">
+        <a class="pb-3 active-tab transition-all" href="#">Upload Data</a>
+        <a class="pb-3 text-slate-500 hover:text-slate-900 transition-all" href="datasets.html">My Datasets</a>
+        <a class="pb-3 text-slate-500 hover:text-slate-900 transition-all" href="schema-mapping.html">Schema Mapping</a>
+        <a class="pb-3 text-slate-500 hover:text-slate-900 transition-all" href="dataset-quality.html">Data Quality</a>
+      </div>
+
+      <!-- Top Section: Upload Area (Left ~60%) & Guidelines (Right ~40%) -->
+      <section class="grid grid-cols-12 gap-4">
+        <!-- 1. Drag & Drop Upload Card -->
+        <div class="col-span-8 dash-card custom-shadow flex flex-col justify-center" data-purpose="upload-card">
+          <div class="upload-zone-border rounded-xl flex flex-col items-center justify-center p-8 text-center cursor-pointer min-h-[260px]">
+            <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-3 text-indigo-600 border border-indigo-100">
+              <span class="material-symbols-outlined text-2xl">cloud_upload</span>
+            </div>
+            <p class="text-sm font-bold text-slate-900 mb-0.5">Drag &amp; drop your CSV or Excel file here</p>
+            <p class="text-xs text-slate-400 mb-4">or click to browse your local computer</p>
+
+            <input type="file" id="file-input" class="hidden" accept=".csv, .xlsx, .xls"/>
+            <button type="button" onclick="document.getElementById('file-input').click()" class="bg-primary text-white text-xs font-semibold px-6 py-2.5 rounded-lg shadow-xs hover:bg-opacity-90 transition-all cursor-pointer">
+              Browse Files
+            </button>
+            <p class="text-[10px] text-slate-400 mt-4">Supports .csv, .xls, .xlsx up to 100MB • Auto column normalization</p>
+          </div>
+        </div>
+
+        <!-- 2. Upload Guidelines Card -->
+        <div class="col-span-4 dash-card custom-shadow flex flex-col justify-between" data-purpose="guidelines-card">
+          <div>
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+              <span class="material-symbols-outlined text-base text-indigo-600">checklist</span>
+              <h3 class="text-xs font-bold text-slate-900">Upload Guidelines</h3>
+            </div>
+
+            <ul class="space-y-3">
+              <li class="flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-sm text-emerald-600 mt-0.5">check_circle</span>
+                <p class="text-[11px] text-slate-600 leading-snug">Ensure file contains standard financial records (Revenue, Expenses, or Domain).</p>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-sm text-emerald-600 mt-0.5">check_circle</span>
+                <p class="text-[11px] text-slate-600 leading-snug">Recommended fields: Date/Period, Department, Line Item, and Amount.</p>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-sm text-emerald-600 mt-0.5">check_circle</span>
+                <p class="text-[11px] text-slate-600 leading-snug">Standard date formats supported (YYYY-MM-DD, DD-MM-YYYY, MM/DD/YYYY).</p>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-sm text-emerald-600 mt-0.5">check_circle</span>
+                <p class="text-[11px] text-slate-600 leading-snug">Automatic fuzzy schema mapping normalizes custom column headers.</p>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+            <span>Need sample data?</span>
+            <a href="seeded_dataset/unified_pnl_enterprise_demo.csv" download class="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">download</span> Demo CSV
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Section: Recent Datasets Ingestion Table -->
+      <section class="dash-card custom-shadow" data-purpose="recent-uploads-table">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900">Ingested Datasets</h3>
+            <p class="text-[10px] text-slate-400">Managed financial tables with active status and database sync</p>
+          </div>
+          <button type="button" onclick="window.loadRecentUploads && window.loadRecentUploads()" class="text-[11px] text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1 cursor-pointer">
+            <span class="material-symbols-outlined text-xs">refresh</span> Refresh
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3">FILE NAME</th>
+                <th class="py-2.5 px-3 text-right">RECORDS</th>
+                <th class="py-2.5 px-3 text-right">COLUMNS</th>
+                <th class="py-2.5 px-3">UPLOADED BY</th>
+                <th class="py-2.5 px-3">UPLOAD DATE</th>
+                <th class="py-2.5 px-3 text-center">STATUS</th>
+                <th class="py-2.5 px-3 text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="recent-uploads-table-body" class="divide-y divide-slate-50 text-xs">
+              <!-- Row Template -->
+              <tr data-row-template="true" class="hover:bg-slate-50/70 transition-colors">
+                <td class="py-2.5 px-3 font-semibold text-slate-800 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-base text-slate-400">description</span>
+                  <span>P&amp;L_Dataset.csv</span>
+                </td>
+                <td class="py-2.5 px-3 text-slate-700 text-right font-medium">1,872</td>
+                <td class="py-2.5 px-3 text-slate-600 text-right font-medium">12</td>
+                <td class="py-2.5 px-3 text-slate-600">Admin</td>
+                <td class="py-2.5 px-3 text-slate-400 text-[11px]">2026-09-06</td>
+                <td class="py-2.5 px-3 text-center">
+                  <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    Active
+                  </span>
+                </td>
+                <td class="py-2.5 px-3 text-right">
+                  <button class="text-slate-400 hover:text-slate-700 p-1">
+                    <span class="material-symbols-outlined text-sm">more_horiz</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="js/datasets_wiring.js"></script>
+  <script type="module" src="js/shell.js"></script>
+</body>
+</html>

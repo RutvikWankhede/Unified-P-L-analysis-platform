@@ -31,20 +31,26 @@ def run_checks():
         print(f"[5] Dept Perf ({m}): Top = {dp['departments'][0]} ({dp['values'][0]})", flush=True)
 
     # 5. Check Expense Distribution
-    ed = requests.get(f"{BASE_URL}/api/v1/pl/expense-distribution?dept=all", headers=headers).json()
-    print(f"[6] Expense Dist: HasData = {ed['has_data']}, Categories = {len(ed['categories'])}, Total = Rs {ed['total_expense']:,.2f}", flush=True)
+    for m in ["expense", "revenue", "profit", "margin_pct"]:
+        ed = requests.get(f"{BASE_URL}/api/v1/pl/expense-distribution?metric={m}&dept=all", headers=headers).json()
+        print(f"[6] Financial Dist ({m}): HasData = {ed['has_data']}, Categories = {len(ed['categories'])}, Total = {ed.get('total_amount', 0):,.2f}", flush=True)
 
-    # 6. Check Insights
+    # 6. Check Budget vs Actual with Top 5, Top 10, All
+    for r in ["top5", "top10", "all"]:
+        bva = requests.get(f"{BASE_URL}/api/v1/pl/budget-vs-actual?range={r}&dept=all", headers=headers).json()
+        print(f"[7] Budget vs Actual ({r}): Items = {len(bva['items'])}, Total Var = {bva['total_variance_pct']}%, On = {bva['on_budget_count']}, Over = {bva['over_budget_count']}, Highest = {bva['highest_variance_dept']}", flush=True)
+
+    # 7. Check Insights
     ins = requests.get(f"{BASE_URL}/api/v1/pl/insights", headers=headers).json()
-    print(f"[7] Insights count: {len(ins['insights'])}, First: {ins['insights'][0]['title']}", flush=True)
+    print(f"[8] Insights count: {len(ins['insights'])}, First: {ins['insights'][0]['title']}", flush=True)
 
-    # 7. Check Forecast vs Actual
+    # 8. Check Forecast vs Actual
     fa = requests.get(f"{BASE_URL}/api/v1/pl/forecast-vs-actual?dept=all&period=monthly", headers=headers).json()
-    print(f"[8] Forecast vs Actual (monthly): Periods = {len(fa['periods'])}, Variances = {len(fa['variance'])}", flush=True)
+    print(f"[9] Forecast vs Actual (monthly): Periods = {len(fa['periods'])}, Variances = {len(fa['variance'])}", flush=True)
 
-    # 8. Check Cash Flow Trend
+    # 9. Check Cash Flow Trend
     cf = requests.get(f"{BASE_URL}/api/v1/pl/cash-flow-trend?dept=all&period=monthly", headers=headers).json()
-    print(f"[9] Cash Flow (monthly): Periods = {len(cf['periods'])}, Inflow sample = {cf['inflow'][0]}, Net = {cf['net_flow'][0]}", flush=True)
+    print(f"[10] Cash Flow (monthly): Periods = {len(cf['periods'])}, Inflow sample = {cf['inflow'][0]}, Net = {cf['net_flow'][0]}", flush=True)
 
     print("\n>>> ALL VERIFICATION CHECKS COMPLETED PERFECTLY! <<<", flush=True)
 

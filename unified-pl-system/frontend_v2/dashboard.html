@@ -497,52 +497,134 @@
 
       </div>
 
-      <!-- ROW 4: Budget vs Actual + Recommendations (AI) -->
+      <!-- ROW 4: Budget vs Actual (Full Width, Enterprise Finance Visual Reference Architecture) -->
       <div class="grid grid-cols-12 gap-4">
-        <!-- Budget vs Actual (Left ~50% width) -->
-        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between min-h-[255px]">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-bold text-xs text-slate-900">Budget vs Actual</h3>
+        <div class="col-span-12 dash-card custom-shadow flex flex-col justify-between" id="card-budget-vs-actual">
+          <!-- Card Header -->
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 tracking-tight">Budget vs Actual</h2>
+              <p class="text-xs text-slate-500 mt-0.5 font-normal">Department-wise spend against budget</p>
+            </div>
             <div class="flex items-center gap-2">
-              <div class="flex items-center gap-2 text-[10px] text-slate-600">
-                <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2 rounded-xs bg-[#6366F1]"></span> Actual Spend</span>
-                <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2 rounded-xs bg-[#94A3B8]"></span> Budget Target</span>
-              </div>
+              <!-- Range Selector: Top 5 / Top 10 / All Departments -->
               <div class="relative">
-                <select id="ctrl-budget-dept" class="bg-white border border-slate-200 text-slate-700 text-[10px] rounded px-2 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                <select id="ctrl-budget-range" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-medium appearance-none cursor-pointer">
+                  <option value="top5">Top 5</option>
+                  <option value="top10">Top 10</option>
+                  <option value="all" selected>All Departments</option>
+                </select>
+                <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+              <!-- Department Filter Dropdown -->
+              <div class="relative">
+                <select id="ctrl-budget-dept" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-medium appearance-none cursor-pointer">
                   <option value="all">All Departments</option>
                 </select>
-                <span class="material-symbols-outlined text-[11px] text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+                <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
               </div>
-              <button id="btn-load-budget" title="Reload Budget Data" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-semibold px-2 py-0.5 rounded border border-indigo-200 flex items-center gap-0.5 transition-colors">
-                <span class="material-symbols-outlined text-xs">sync</span>
+              <!-- 3-Dots Menu Button -->
+              <button id="btn-budget-options" title="Options" class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors">
+                <span class="material-symbols-outlined text-base">more_vert</span>
               </button>
             </div>
           </div>
 
-          <!-- Interactive Budget vs Actual Chart -->
-          <div id="chart-budget-actual" class="w-full h-48"></div>
+          <!-- Legend & Table Headers Row -->
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs text-slate-500 font-medium">
+            <!-- Left Legend -->
+            <div class="flex items-center gap-4 pl-1">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#2563EB]"></span>
+                <span class="text-slate-700 font-medium">Actual Spend</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]"></span>
+                <span class="text-slate-700 font-medium">Budget Target</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-0.5 h-3 bg-slate-900 rounded-full"></span>
+                <span class="text-slate-700 font-medium">Budget Target (Marker)</span>
+              </span>
+            </div>
+
+            <!-- Right Column Headers Aligned with Data Columns -->
+            <div class="flex items-center text-right font-medium text-slate-600 pr-1">
+              <span class="w-20 text-right">Actual</span>
+              <span class="w-20 text-right">Budget</span>
+              <span class="w-24 text-right">Variance</span>
+              <span class="w-20 text-right">Variance %</span>
+              <span class="w-28 text-center">Status</span>
+            </div>
+          </div>
+
+          <!-- Main Dynamic Bar Rows & Grid Container -->
+          <div id="budget-actual-chart-container" class="w-full py-2">
+            <!-- Dynamic Rows injected via JS -->
+            <div id="budget-actual-rows" class="space-y-3"></div>
+
+            <!-- Bottom X-Axis Scale Labels & Grid Marks -->
+            <div id="budget-actual-axis" class="flex items-center pt-2 mt-1 border-t border-slate-100 text-[10px] text-slate-400"></div>
+          </div>
 
           <!-- Empty state when budget data is unavailable -->
-          <div id="budget-empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center p-4">
-            <span class="material-symbols-outlined text-slate-400 text-xl mb-1">balance</span>
-            <p class="text-[10px] font-semibold text-slate-500">Budget data unavailable for selected dataset</p>
-            <p class="text-[9px] text-slate-400 mt-0.5">Upload a dataset with budget fields or configure departmental targets</p>
+          <div id="budget-empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center p-6">
+            <span class="material-symbols-outlined text-slate-400 text-2xl mb-1">balance</span>
+            <p class="text-xs font-semibold text-slate-600">Budget data unavailable for selected dataset</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Upload a dataset with budget fields or configure departmental targets</p>
+          </div>
+
+          <!-- Bottom Concise Summary Area matching reference design -->
+          <div id="budget-summary-card" class="mt-4 p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 flex items-center justify-between">
+            <!-- Left: Overall Budget Variance & Highest Department -->
+            <div class="flex items-center gap-3.5">
+              <div id="budget-summary-icon-container" class="w-10 h-10 rounded-full flex items-center justify-center bg-rose-100 text-rose-600 flex-shrink-0">
+                <span class="material-symbols-outlined text-xl" id="budget-summary-icon">north_east</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="text-sm font-bold text-rose-600 tracking-tight" id="budget-summary-title">2.9% over budget</h4>
+                </div>
+                <p class="text-xs text-slate-500 font-normal mt-0.5" id="budget-summary-subtitle">R&D has the highest variance (+6.8%).</p>
+              </div>
+            </div>
+
+            <!-- Right: On Budget vs Over Budget Count Cards -->
+            <div class="flex items-center gap-3">
+              <!-- On Budget Card -->
+              <div class="bg-emerald-50/90 border border-emerald-100 rounded-xl px-5 py-2 text-center min-w-[100px]">
+                <div class="text-lg font-bold text-emerald-600 leading-tight" id="budget-on-target-count">5</div>
+                <div class="text-[11px] font-semibold text-emerald-700 mt-0.5">On Budget</div>
+              </div>
+
+              <!-- Over Budget Card -->
+              <div class="bg-rose-50/90 border border-rose-100 rounded-xl px-5 py-2 text-center min-w-[100px]">
+                <div class="text-lg font-bold text-rose-600 leading-tight" id="budget-over-target-count">3</div>
+                <div class="text-[11px] font-semibold text-rose-700 mt-0.5">Over Budget</div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Recommendations (AI) (Right ~50% width) -->
-        <div class="col-span-6 dash-card custom-shadow flex flex-col justify-between min-h-[255px]">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-indigo-600 text-sm">smart_toy</span>
-              <h3 class="font-bold text-xs text-slate-900">Recommendations (AI)</h3>
+      <!-- ROW 5: Strategic Recommendations (AI) -->
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 dash-card custom-shadow flex flex-col justify-between min-h-[160px]">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                <span class="material-symbols-outlined text-base">smart_toy</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-xs text-slate-900">Strategic Recommendations (AI)</h3>
+                <p class="text-[10px] text-slate-400">Actionable guidance computed from current dataset</p>
+              </div>
             </div>
-            <button id="btn-view-all-recommendations" class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">View All</button>
+            <button id="btn-view-all-recommendations" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">View All Recommendations →</button>
           </div>
 
-          <!-- Dynamic 2x2 Grid populated from active dataset -->
-          <div class="grid grid-cols-2 gap-2.5 flex-1" id="recommendations-container">
+          <!-- Dynamic 4-Column Grid populated from active dataset -->
+          <div class="grid grid-cols-4 gap-3 flex-1" id="recommendations-container">
             <!-- Dynamically populated from /api/v1/recommendations -->
           </div>
         </div>

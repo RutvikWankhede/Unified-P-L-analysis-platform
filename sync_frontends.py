@@ -1,10 +1,9 @@
 import os
 import shutil
-import filecmp
 
-src_dir = r"unified-pl-system\frontend_v2"
+src_dir = r"frontend_v2"
 dst_dirs = [
-    r"frontend_v2",
+    r"unified-pl-system\frontend_v2",
     r"unified-pl-system_reconstructed\frontend_v2"
 ]
 
