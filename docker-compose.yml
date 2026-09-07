@@ -1,48 +1,47 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: enterprise_pl
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d enterprise_pl"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./unified-pl-system/backend
       dockerfile: Dockerfile
+    container_name: unified_pl_backend
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/enterprise_pl
-      - SECRET_KEY=your-super-secret-key
-      - ALLOWED_ORIGINS=http://localhost:3000
-    depends_on:
-      db:
-        condition: service_healthy
-    command: bash -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+      - DATABASE_MODE=sqlite
+      - DATABASE_URL=sqlite:///./data/enterprise_pl.db
+      - SECRET_KEY=supersecretkey-unified-pl-2025
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    volumes:
+      - pl_data:/app/data
+      - pl_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend_v2
       dockerfile: Dockerfile
+    container_name: unified_pl_frontend
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/login.html || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  pl_data:
+    name: unified_pl_data
+  pl_uploads:
+    name: unified_pl_uploads

@@ -8,6 +8,13 @@ SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 _is_sqlite = SQLALCHEMY_DATABASE_URL.startswith("sqlite")
 
 if _is_sqlite:
+    db_path = SQLALCHEMY_DATABASE_URL.replace("sqlite:///", "")
+    if db_path and not db_path.startswith(":memory:"):
+        import os
+        parent_dir = os.path.dirname(db_path)
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
+
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL,
         connect_args={"check_same_thread": False, "timeout": 30},

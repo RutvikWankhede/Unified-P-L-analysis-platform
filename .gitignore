@@ -1,2 +1,117 @@
-# Added by code-review-graph
+# ==============================================================================
+# Git Ignore Rules - Unified P&L Intelligence Platform
+# ==============================================================================
+
+# Environment files and secrets
+.env
+.env.local
+.env.*.local
+.env.backup
+.env.*
+!.env.example
+!backend/.env.example
+!unified-pl-system/backend/.env.example
+
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.coverage.*
+
+# SQLite and runtime databases
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.db.backup*
+enterprise_pl.db*
+pl_database.db*
+unified_pl.db*
+data/
+uploads/
+!uploads/.gitkeep
+postgres/
+postgres.zip
+postgres_data/
+
+# Logs and runtime diagnostics
+*.log
+logs/
+backend.log*
+frontend.log*
+run_diag.log
+*.pid
+.launcher.pid
+uvicorn_output.txt
+curl_output.txt
+inspect_out.txt
+test_endpoints_out.txt
+verify_endpoints_out.txt
+
+# Node / Frontend dependencies and builds
+node_modules/
+dist/
+build/
+.npm/
+
+# IDE, Editor, and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Agent / Tool cache directories
 .code-review-graph/
+.claude/
+.gemini/
+.cursorrules
+.windsurfrules
+.qoder
+.kiro
+.opencode.json
+.mcp.json
+
+# Scratch, evidence, and backup directories
+checkpoints/
+evidence/
+screenshots/
+screenshots2/
+screenshots-stitch/
+worktrees/
+FORENSIC_RESTORE_CANDIDATES/
+PRE18_CANDIDATE_RESTORE_2026-08-21/
+reconstructed_1614/
+root_reconstructed/
+unified-pl-system_broken_backup/
+unified-pl-system_frontend_v2_backup_before_restore/
+unified-pl-system_reconstructed/
+unified-pl-system_reconstructed_py/
+unified-pl-system_reverted/
+unified-pl-system_reverted_final/
+frontend_v2_backup_before_restore/
+frontend_v2_reconstructed/
+frontend_v2_reverted/
+frontend_v2_reverted_final/
+frontend_rebuild/
+ui_rebuild/
+reconstruct_test/
+scratch/
+step_*.txt

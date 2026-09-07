@@ -173,3 +173,8 @@ app.include_router(ws_router.router, prefix="/api/v1", tags=["WebSockets"])
 def read_root():
     return {"message": "Enterprise P&L AI API is running"}
 
+
+@app.get("/health")
+def health_endpoint():
+    return health.health_check()
+

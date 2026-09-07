@@ -19,11 +19,6 @@ def seed():
         sys.exit(1)
         
     try:
-        # Remove any users that are not 'admin'
-        other_users = db.query(User).filter(User.username != "admin").all()
-        for u in other_users:
-            db.delete(u)
-
         user = db.query(User).filter(User.username == "admin").first()
         if not user:
             user = User(

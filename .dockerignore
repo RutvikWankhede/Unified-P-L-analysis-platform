@@ -1,0 +1,74 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.env.*
+venv/
+.venv/
+env/
+ENV/
+
+# Databases and runtime data
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.db.backup*
+data/
+uploads/
+postgres/
+postgres.zip
+postgres_data/
+
+# Logs
+*.log
+logs/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.cursorrules
+.windsurfrules
+.qoder
+.kiro
+.opencode.json
+.mcp.json
+.claude/
+.gemini/
+.code-review-graph/
+
+# Node / Frontend artifacts
+node_modules/
+dist/
+build/
+screenshots/
+screenshots2/
+screenshots-stitch/
+worktrees/
+checkpoints/
+evidence/
+FORENSIC_RESTORE_CANDIDATES/
+PRE18_CANDIDATE_RESTORE_2026-08-21/
+reconstructed_1614/
+root_reconstructed/
+unified-pl-system_broken_backup/
+unified-pl-system_frontend_v2_backup_before_restore/
+unified-pl-system_reconstructed/
+unified-pl-system_reconstructed_py/
+unified-pl-system_reverted/
+unified-pl-system_reverted_final/
