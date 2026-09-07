@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn" 
+                  id="Definitions_PLWorkflow" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.14.0">
+  <bpmn:process id="Process_PLFinancialOrchestration" name="Unified P&amp;L Financial Workflow" isExecutable="true">
+    
+    <!-- START EVENT -->
+    <bpmn:startEvent id="StartEvent_1" name="Trigger Analysis Workflow">
+      <bpmn:outgoing>Flow_Start_Upload</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <!-- 1. UPLOAD DATA -->
+    <bpmn:serviceTask id="Task_UploadData" name="Upload Data" camunda:type="external" camunda:topic="upload_data">
+      <bpmn:incoming>Flow_Start_Upload</bpmn:incoming>
+      <bpmn:outgoing>Flow_Upload_Validate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Start_Upload" sourceRef="StartEvent_1" targetRef="Task_UploadData" />
+    
+    <!-- 2. VALIDATE DATA -->
+    <bpmn:serviceTask id="Task_ValidateData" name="Validate Data" camunda:type="external" camunda:topic="validate_data">
+      <bpmn:incoming>Flow_Upload_Validate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Validate_Gateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Upload_Validate" sourceRef="Task_UploadData" targetRef="Task_ValidateData" />
+    
+    <!-- GATEWAY: VALIDATION CHECK -->
+    <bpmn:exclusiveGateway id="Gateway_ValidationCheck" name="Validation Successful?">
+      <bpmn:incoming>Flow_Validate_Gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_Validation_Pass</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Validation_Fail</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Validate_Gateway" sourceRef="Task_ValidateData" targetRef="Gateway_ValidationCheck" />
+    
+    <!-- VALIDATION FAILED END -->
+    <bpmn:endEvent id="EndEvent_ValidationFailed" name="Validation Failed">
+      <bpmn:incoming>Flow_Validation_Fail</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Validation_Fail" name="No" sourceRef="Gateway_ValidationCheck" targetRef="EndEvent_ValidationFailed" />
+    
+    <!-- 3. PROCESS P&L -->
+    <bpmn:serviceTask id="Task_ProcessPL" name="Process P&amp;L" camunda:type="external" camunda:topic="process_pl">
+      <bpmn:incoming>Flow_Validation_Pass</bpmn:incoming>
+      <bpmn:outgoing>Flow_PL_Anomaly</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Validation_Pass" name="Yes" sourceRef="Gateway_ValidationCheck" targetRef="Task_ProcessPL" />
+    
+    <!-- 4. ANOMALY DETECTION -->
+    <bpmn:serviceTask id="Task_AnomalyDetection" name="Anomaly Detection" camunda:type="external" camunda:topic="anomaly_detection">
+      <bpmn:incoming>Flow_PL_Anomaly</bpmn:incoming>
+      <bpmn:outgoing>Flow_Anomaly_Forecast</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_PL_Anomaly" sourceRef="Task_ProcessPL" targetRef="Task_AnomalyDetection" />
+    
+    <!-- 5. FORECAST -->
+    <bpmn:serviceTask id="Task_Forecast" name="Forecast" camunda:type="external" camunda:topic="forecast">
+      <bpmn:incoming>Flow_Anomaly_Forecast</bpmn:incoming>
+      <bpmn:outgoing>Flow_Forecast_Risk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Anomaly_Forecast" sourceRef="Task_AnomalyDetection" targetRef="Task_Forecast" />
+    
+    <!-- 6. RISK ASSESSMENT -->
+    <bpmn:serviceTask id="Task_RiskAssessment" name="Risk Assessment" camunda:type="external" camunda:topic="risk_assessment">
+      <bpmn:incoming>Flow_Forecast_Risk</bpmn:incoming>
+      <bpmn:outgoing>Flow_Risk_Gateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Forecast_Risk" sourceRef="Task_Forecast" targetRef="Task_RiskAssessment" />
+    
+    <!-- GATEWAY: RISK / APPROVAL REQUIRED? -->
+    <bpmn:exclusiveGateway id="Gateway_ApprovalRequired" name="Approval Required?">
+      <bpmn:incoming>Flow_Risk_Gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approval_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Approval_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Risk_Gateway" sourceRef="Task_RiskAssessment" targetRef="Gateway_ApprovalRequired" />
+    
+    <!-- 7. MANAGER APPROVAL (USER TASK) -->
+    <bpmn:userTask id="Task_ManagerApproval" name="Manager Approval" camunda:candidateGroups="financial_managers">
+      <bpmn:incoming>Flow_Approval_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approval_Decision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_Approval_Yes" name="Yes (High Risk)" sourceRef="Gateway_ApprovalRequired" targetRef="Task_ManagerApproval" />
+    
+    <!-- GATEWAY: MANAGER DECISION -->
+    <bpmn:exclusiveGateway id="Gateway_ManagerDecision" name="Approved?">
+      <bpmn:incoming>Flow_Approval_Decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_Decision_Approved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Decision_Rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Approval_Decision" sourceRef="Task_ManagerApproval" targetRef="Gateway_ManagerDecision" />
+    
+    <!-- REJECTED END -->
+    <bpmn:endEvent id="EndEvent_Rejected" name="Analysis Rejected">
+      <bpmn:incoming>Flow_Decision_Rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Decision_Rejected" name="Rejected" sourceRef="Gateway_ManagerDecision" targetRef="EndEvent_Rejected" />
+    
+    <!-- 8. GENERATE REPORT -->
+    <bpmn:serviceTask id="Task_GenerateReport" name="Generate Report" camunda:type="external" camunda:topic="generate_report">
+      <bpmn:incoming>Flow_Approval_No</bpmn:incoming>
+      <bpmn:incoming>Flow_Decision_Approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_Report_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Approval_No" name="No (Low Risk)" sourceRef="Gateway_ApprovalRequired" targetRef="Task_GenerateReport" />
+    <bpmn:sequenceFlow id="Flow_Decision_Approved" name="Approved" sourceRef="Gateway_ManagerDecision" targetRef="Task_GenerateReport" />
+    
+    <!-- FINAL SUCCESS END -->
+    <bpmn:endEvent id="EndEvent_Completed" name="Workflow Complete">
+      <bpmn:incoming>Flow_Report_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Report_End" sourceRef="Task_GenerateReport" targetRef="EndEvent_Completed" />
+    
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_PLFinancialOrchestration">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="133" y="145" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

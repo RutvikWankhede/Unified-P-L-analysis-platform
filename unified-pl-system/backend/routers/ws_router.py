@@ -39,4 +39,8 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             # We can handle ping/pong or client events here
     except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logging.info(f"WebSocket client disconnected/error: {e}")
+    finally:
         manager.disconnect(websocket)

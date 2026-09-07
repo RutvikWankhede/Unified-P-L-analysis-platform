@@ -1,774 +1,620 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Unified P&amp;L - AI Governance System | Workflow</title>
-<!-- Load Inter Font -->
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display
-=swap" rel="stylesheet"/>
-<!-- Load Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest"></script>
-<!-- Load Tailwind CSS v3 -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-'page-bg': '#F8F9FC',
-'sidebar-bg': '#FFFFFF',
-'primary-blue': '#4F46E5',
-'text-primary': '#111827',
-'text-secondary': '#6B7280',
-'border-light': '#E5E7EB',
-'success-green': '#10B981',
-'warning-orange': '#F59E0B',
-'error-red': '#EF4444',
-'info-blue': '#3B82F6'
-},
-fontFamily: {
-inter: ['Inter', 'sans-serif'],
-},
-borderRadius: {
-'card': '12px',
-'btn': '8px',
-'badge': '6px'
-}
-}
-}
-}
-</script>
-<style data-purpose="layout">
-body {
-background-color: #F8F9FC;
-font-family: 'Inter', sans-serif;
-color: #111827;
-overflow-x: hidden;
-}
-.sidebar { width: 200px; height: 100vh; position: fixed; left: 0; top: 0; }
-.main-content { margin-left: 200px; width: calc(100% - 200px); }
-.sticky-header { position: sticky; top: 0; z-index: 50; }
-/* Scrollbar Styling */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-</style>
-<style data-purpose="workflow-diagram">
-.bpmn-node {
-width: 80px;
-height: 56px;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-border: 1px solid #E5E7EB;
-border-radius: 8px;
-background: white;
-font-size: 9px;
-text-align: center;
-position: relative;
-}
-.bpmn-connector {
-flex-grow: 1;
-height: 2px;
-background: #D1D5DB;
-position: relative;
-}
-.bpmn-connector.active { background: #4F46E5; }
-.bpmn-node.active { border-color: #4F46E5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
-.start-node, .end-node {
-width: 28px;
-height: 28px;
-border-radius: 50%;
-border: 2px solid #D1D5DB;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-.start-node { border-color: #10B981; }
-.end-node { border-color: #EF4444; }
-.pulse-glow {
-animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-@keyframes pulse-ring {
-0%, 100% { opacity: 1; }
-50% { opacity: 0.5; }
-}
-.progress-bar-animate {
-width: 0%;
-animation: grow 1.5s ease-out forwards;
-}
-@keyframes grow {
-to { width: 65%; }
-}
-</style>
-    <link rel="stylesheet" href="css/sidebar.css">
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Workflow Orchestration - Unified P&amp;L Intelligence Platform</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'card': '14px',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .dash-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-sizing: border-box;
+    }
+    .dash-kpi {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100px;
+      box-sizing: border-box;
+    }
+    /* BPMN Diagram Nodes */
+    .bpmn-step-card {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .bpmn-step-card:hover {
+      transform: translateY(-2px);
+    }
+    .pulse-blue {
+      animation: pulseGlow 2s infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(91, 92, 235, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(91, 92, 235, 0); }
+    }
+    /* Custom Scrollbar */
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body class="bg-page-bg">
-<div id="sidebar-container"></div>
-<main class="main-content min-h-screen">
-<!-- BEGIN: Top Bar -->
-<header class="sticky-header bg-white/80 backdrop-blur-md border-b border-border-light px-8
-py-3 flex items-center justify-between">
-<div>
-<h2 class="text-xl font-bold">Workflow</h2>
-<div class="flex items-center gap-2 text-[11px] text-text-secondary mt-0.5">
-Home <i class="w-3 h-3" data-lucide="chevron-right"></i> Workflow
-</div>
-</div>
-<div class="flex items-center gap-6">
-<div class="relative">
-<i class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" data-
-lucide="search"></i>
-<input class="pl-10 pr-10 py-2 bg-gray-50 border border-border-light rounded-lg text-xs w-64
-focus:outline-none focus:ring-1 focus:ring-primary-blue" ="Search anything..."
-type="text"/>
-<i class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary" data-
-lucide="command"></i>
-</div>
-<div class="flex items-center gap-4 text-text-secondary">
-<div class="relative">
-<i class="w-5 h-5" data-lucide="bell"></i>
-<span class="absolute -top-1 -right-1 bg-error-red text-white text-[8px] w-4 h-4 rounded-full flex
-items-center justify-center border-2 border-white">4</span>
-</div>
-<i class="w-5 h-5" data-lucide="help-circle"></i>
-<div class="w-8 h-8 bg-primary-blue rounded-full flex items-center justify-center text-white text-
-xs font-bold">RW</div>
-</div>
-</div>
-</header>
-<!-- END: Top Bar -->
-<div class="p-8 space-y-6">
-<!-- BEGIN: Tabs and Actions -->
-<div class="flex items-center justify-between">
-<div class="flex border-b border-border-light">
-<button class="px-4 py-2 text-xs font-semibold text-primary-blue border-b-2 border-primary-
-blue">Process Overview</button>
-<button class="px-4 py-2 text-xs font-medium text-text-secondary">My Tasks <span class="ml-
-1 bg-error-red/10 text-error-red px-1.5 rounded-full text-[10px]">3</span></button>
-<button class="px-4 py-2 text-xs font-medium text-text-secondary">Running Instances <span
-class="ml-1 bg-blue-100 text-info-blue px-1.5 rounded-full text-[10px]">2</span></button>
-<button class="px-4 py-2 text-xs font-medium text-text-secondary">Completed <span
-class="ml-1 bg-success-green/10 text-success-green px-1.5 rounded-full text-
-[10px]">24</span></button>
-<button class="px-4 py-2 text-xs font-medium text-text-secondary">Incidents <span class="ml-1
-bg-error-red/10 text-error-red px-1.5 rounded-full text-[10px]">1</span></button>
-</div>
-<div class="flex items-center gap-3">
-<button class="flex items-center gap-2 px-3 py-1.5 border border-border-light rounded-btn text-
-xs font-medium bg-white hover:bg-gray-50">
-<i class="w-3.5 h-3.5" data-lucide="refresh-cw"></i> Refresh
-</button>
-<button class="flex items-center gap-2 px-3 py-1.5 border border-border-light rounded-btn text-
-xs font-medium text-primary-blue bg-white hover:bg-indigo-50">
-<i class="w-3.5 h-3.5" data-lucide="external-link"></i> Open in Camunda Cockpit
-</button>
-<div class="flex">
-<button class="bg-primary-blue text-white px-4 py-1.5 rounded-l-btn text-xs font-semibold
-hover:bg-indigo-700">Start New Workflow</button>
-<button class="bg-primary-blue text-white px-2 py-1.5 rounded-r-btn border-l border-white/20
-hover:bg-indigo-700">
-<i class="w-4 h-4" data-lucide="chevron-down"></i>
-</button>
-</div>
-</div>
-</div>
-<!-- END: Tabs and Actions -->
-<!-- BEGIN: Diagram Section -->
-<div class="grid grid-cols-12 gap-6">
-<!-- Main Diagram Card -->
-<div class="col-span-9 bg-white border border-border-light rounded-card p-6">
-<div class="flex items-center justify-between mb-8">
-<div class="flex items-center gap-2">
-<h3 class="text-sm font-semibold">Process Diagram</h3>
-<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="info"></i>
-</div>
-<div class="flex items-center gap-2 bg-gray-50 p-1 rounded-lg">
-<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
-4" data-lucide="zoom-in"></i></button>
-<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
-4" data-lucide="zoom-out"></i></button>
-<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
-4" data-lucide="maximize"></i></button>
-<button class="p-1.5 hover:bg-white rounded shadow-sm text-text-secondary"><i class="w-4 h-
-4" data-lucide="move"></i></button>
-</div>
-</div>
-<!-- Workflow Canvas -->
-<div class="relative h-[360px] flex items-center justify-between px-4 overflow-x-auto">
-<div class="flex items-center shrink-0">
-<div class="start-node"><div class="w-1.5 h-1.5 bg-success-green rounded-full"></div></div>
-<div class="w-8 h-px bg-border-light"></div>
-<div class="text-[10px] absolute -bottom-4 translate-x-2">Start</div>
-</div>
-<!-- Nodes Chain -->
-<div class="flex items-center gap-3 shrink-0">
-<div class="bpmn-node border-indigo-200">
-<i class="w-4 h-4 text-primary-blue mb-1" data-lucide="upload"></i>
-<span>Upload Dataset</span>
-</div>
-<div class="w-4 h-px bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-success-green mb-1" data-lucide="check-square"></i>
-<span>Validate Data</span>
-</div>
-<div class="w-4 h-px bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-info-blue mb-1" data-lucide="grid"></i>
-<span>Schema Mapping</span>
-</div>
-<div class="w-4 h-px bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-success-green mb-1" data-lucide="filter"></i>
-<span>Data Cleaning</span>
-</div>
-<div class="w-4 h-px bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-primary-blue mb-1" data-lucide="database"></i>
-<span>Store in DB</span>
-</div>
-<div class="w-4 h-px bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-purple-500 mb-1" data-lucide="bar-chart-2"></i>
-<span>Generate KPIs</span>
-</div>
-</div>
-<!-- Fork/Branching -->
-<div class="flex items-center shrink-0 px-4">
-<div class="relative flex flex-col gap-12">
-<!-- Top Path -->
-<div class="flex items-center">
-<div class="w-12 h-[2px] bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-error-red mb-1" data-lucide="alert-circle"></i>
-<span>Anomaly Det.</span>
-</div>
-</div>
-<!-- Middle Path (Active) -->
-<div class="flex items-center">
-<div class="w-12 h-[2px] bg-primary-blue"></div>
-<div class="bpmn-node active">
-<i class="w-4 h-4 text-primary-blue mb-1" data-lucide="wand-2"></i>
-<span class="font-bold">AI Recs.</span>
-<span class="absolute -bottom-1 -right-1 w-3 h-3 bg-primary-blue border-2 border-white
-rounded-full pulse-glow"></span>
-</div>
-</div>
-<!-- Bottom Path -->
-<div class="flex items-center">
-<div class="w-12 h-[2px] bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-info-blue mb-1" data-lucide="trending-up"></i>
-<span>Forecast Gen.</span>
-</div>
-</div>
-</div>
-</div>
-<!-- End Chain -->
-<div class="flex items-center gap-3 shrink-0">
-<div class="w-8 h-[2px] bg-primary-blue"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-green-500 mb-1" data-lucide="monitor"></i>
-<span>Dashboard Refresh</span>
-</div>
-<div class="w-4 h-px bg-border-light"></div>
-<div class="bpmn-node">
-<i class="w-4 h-4 text-orange-400 mb-1" data-lucide="file-text"></i>
-<span>Generate Reports</span>
-</div>
-<div class="w-4 h-px bg-border-light"></div>
-<div class="end-node"></div>
-</div>
-</div>
-<!-- Legend -->
-<div class="mt-12 flex items-center justify-center gap-6 text-[10px] text-text-secondary border-t
-border-border-light pt-6">
-<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-success-
-green"></span> Completed</div>
-<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-primary-
-blue"></span> In Progress</div>
-<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-warning-
-orange"></span> Waiting</div>
-<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-error-
-red"></span> Failed</div>
-<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full border-2 border-
-text-secondary"></span> Skipped</div>
-</div>
-</div>
-<!-- Sidebar Details -->
-<div class="col-span-3 bg-white border border-border-light rounded-card p-6 flex flex-col h-full">
-<div class="flex items-center justify-between mb-6">
-<h3 class="text-sm font-semibold">Process Details</h3>
-<span class="bg-success-green/10 text-success-green text-[9px] font-bold px-2 py-0.5 rounded-
-badge uppercase">In Progress</span>
-</div>
-<div class="space-y-4 flex-1">
-<div data-purpose="detail-item">
-<p class="text-[10px] text-text-secondary uppercase">Process Name</p>
-<p class="text-xs font-bold mt-0.5">Financial Data Pipeline</p>
-</div>
-<div data-purpose="detail-item">
-<p class="text-[10px] text-text-secondary uppercase">Process Key</p>
-<p class="text-xs font-medium mt-0.5 text-gray-600">financial-data-pipeline</p>
-</div>
-<div data-purpose="detail-item">
-<p class="text-[10px] text-text-secondary uppercase">Version</p>
-<p class="text-xs font-medium mt-0.5">v1.4</p>
-</div>
-<div data-purpose="detail-item">
-<p class="text-[10px] text-text-secondary uppercase">Business Key</p>
-<p class="text-xs font-bold mt-0.5">FD-2025-0519-1021</p>
-</div>
-<div data-purpose="detail-item">
-<p class="text-[10px] text-text-secondary uppercase">Started By</p>
-<p class="text-xs font-bold mt-0.5">Rutvik Wankhede</p>
-</div>
-<div data-purpose="detail-item">
-<p class="text-[10px] text-text-secondary uppercase">Start Time</p>
-<p class="text-xs font-medium mt-0.5">May 19, 2025 10:30:15 AM</p>
-</div>
-<div data-purpose="detail-item">
-<p class="text-[10px] text-text-secondary uppercase">Duration</p>
-<p class="text-xs font-bold mt-0.5">00:18:42</p>
-</div>
-</div>
-<div class="mt-6 pt-6 border-t border-border-light">
-<div class="flex items-center justify-between mb-2">
-<span class="text-[10px] text-text-secondary uppercase">Progress</span>
-<span class="text-xs font-bold text-primary-blue">65%</span>
-</div>
-<div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-<div class="h-full bg-primary-blue progress-bar-animate"></div>
-</div>
-<div class="mt-4">
-<p class="text-[10px] text-text-secondary uppercase">Current Task</p>
-<div class="flex items-center justify-between mt-1">
-<p class="text-xs font-bold">AI Recommendations</p>
-<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="more-horizontal"></i>
-</div>
-<p class="text-[10px] text-primary-blue mt-1 italic">Processing financial insights...</p>
-</div>
-</div>
-</div>
-</div>
-<!-- END: Diagram Section -->
-<!-- BEGIN: Tables Row -->
-<div class="grid grid-cols-12 gap-6">
-<!-- Live Instances Table -->
-<div class="col-span-9 bg-white border border-border-light rounded-card overflow-hidden">
-<div class="px-6 py-4 flex items-center justify-between border-b border-border-light">
-<div class="flex items-center gap-2">
-<h3 class="text-sm font-semibold">Live Workflow Instances</h3>
-<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="info"></i>
-</div>
-<div class="flex items-center gap-4">
-<div class="relative">
-<i class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-text-secondary" data-
-lucide="search"></i>
-<input class="pl-8 py-1 bg-gray-50 border border-border-light rounded text-[11px] w-40"
-="Filter..." type="text"/>
-</div>
-</div>
-</div>
-<table class="w-full text-left">
-<thead class="bg-gray-50 border-b border-border-light text-[10px] text-text-secondary
-uppercase font-semibold">
-<tr>
-<th class="px-6 py-3">Workflow ID</th>
-<th class="px-6 py-3">Process</th>
-<th class="px-6 py-3">Business Key</th>
-<th class="px-6 py-3">Current Step</th>
-<th class="px-6 py-3 text-center">Status</th>
-<th class="px-6 py-3">Progress</th>
-<th class="px-6 py-3">Started</th>
-<th class="px-6 py-3">Completed</th>
-<th class="px-6 py-3">Actions</th>
-</tr>
-</thead>
-<tbody class="text-xs text-text-primary divide-y divide-border-light">
-<tr class="hover:bg-gray-50/50">
-<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
-lucide="file-text"></i> WF-1021</td>
-<td class="px-6 py-4">Financial Data Pipeline</td>
-<td class="px-6 py-4 font-mono text-[10px]">FD-2025-0519-1021</td>
-<td class="px-6 py-4">AI Recommendations</td>
-<td class="px-6 py-4 text-center">
-<span class="bg-blue-50 text-info-blue px-2 py-0.5 rounded-badge text-[9px] font-bold
-uppercase">In Progress</span>
-</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-primary-
-blue w-[65%]"></div></div>
-<span class="text-[10px]">65%</span>
-</div>
-</td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">10:30
-AM</span></td>
-<td class="px-6 py-4 text-text-secondary">—</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
-hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
-lucide="more-vertical"></i></div>
-</td>
-</tr>
-<tr class="hover:bg-gray-50/50">
-<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
-lucide="file-text"></i> WF-1020</td>
-<td class="px-6 py-4">Forecast Generation</td>
-<td class="px-6 py-4 font-mono text-[10px]">FG-2025-0519-1020</td>
-<td class="px-6 py-4">Completed</td>
-<td class="px-6 py-4 text-center">
-<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
-font-bold uppercase">Completed</span>
-</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
-success-green w-full"></div></div>
-<span class="text-[10px]">100%</span>
-</div>
-</td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">10:15
-AM</span></td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">10:17
-AM</span></td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
-hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
-lucide="more-vertical"></i></div>
-</td>
-</tr>
-<tr class="hover:bg-gray-50/50">
-<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
-lucide="file-text"></i> WF-1019</td>
-<td class="px-6 py-4">Report Generation</td>
-<td class="px-6 py-4 font-mono text-[10px]">RG-2025-0519-1019</td>
-<td class="px-6 py-4">Completed</td>
-<td class="px-6 py-4 text-center">
-<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
-font-bold uppercase">Completed</span>
-</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
-success-green w-full"></div></div>
-<span class="text-[10px]">100%</span>
-</div>
-</td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:50
-AM</span></td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:52
-AM</span></td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
-hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
-lucide="more-vertical"></i></div>
-</td>
-</tr>
-<tr class="hover:bg-gray-50/50">
-<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
-lucide="file-text"></i> WF-1018</td>
-<td class="px-6 py-4">Anomaly Detection</td>
-<td class="px-6 py-4 font-mono text-[10px]">AD-2025-0519-1018</td>
-<td class="px-6 py-4">Completed</td>
-<td class="px-6 py-4 text-center">
-<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
-font-bold uppercase">Completed</span>
-</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
-success-green w-full"></div></div>
-<span class="text-[10px]">100%</span>
-</div>
-</td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:40
-AM</span></td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:43
-AM</span></td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
-hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
-lucide="more-vertical"></i></div>
-</td>
-</tr>
-<tr class="hover:bg-gray-50/50">
-<td class="px-6 py-4 flex items-center gap-2 text-error-red"><i class="w-3.5 h-3.5" data-
-lucide="alert-circle"></i> WF-1017</td>
-<td class="px-6 py-4">Data Import</td>
-<td class="px-6 py-4 font-mono text-[10px]">DI-2025-0519-1017</td>
-<td class="px-6 py-4">Validate Data</td>
-<td class="px-6 py-4 text-center">
-<span class="bg-error-red/10 text-error-red px-2 py-0.5 rounded-badge text-[9px] font-bold
-uppercase">Failed</span>
-</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-error-
-red w-[35%]"></div></div>
-<span class="text-[10px]">35%</span>
-</div>
-</td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:32
-AM</span></td>
-<td class="px-6 py-4 text-text-secondary">—</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
-hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
-lucide="more-vertical"></i></div>
-</td>
-</tr>
-<tr class="hover:bg-gray-50/50">
-<td class="px-6 py-4 flex items-center gap-2"><i class="w-3.5 h-3.5 text-text-secondary" data-
-lucide="file-text"></i> WF-1016</td>
-<td class="px-6 py-4">AI Insight Generation</td>
-<td class="px-6 py-4 font-mono text-[10px]">AI-2025-0519-1016</td>
-<td class="px-6 py-4">Completed</td>
-<td class="px-6 py-4 text-center">
-<span class="bg-success-green/10 text-success-green px-2 py-0.5 rounded-badge text-[9px]
-font-bold uppercase">Completed</span>
-</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-
-success-green w-full"></div></div>
-<span class="text-[10px]">100%</span>
-</div>
-</td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:20
-AM</span></td>
-<td class="px-6 py-4 text-[10px]">May 19, 2025<br/><span class="text-text-secondary">09:22
-AM</span></td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2 text-text-secondary"><i class="w-4 h-4 cursor-pointer
-hover:text-primary-blue" data-lucide="eye"></i> <i class="w-4 h-4 cursor-pointer" data-
-lucide="more-vertical"></i></div>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="px-6 py-3 border-t border-border-light flex items-center justify-between">
-<span class="text-[11px] text-text-secondary">Showing 1 to 6 of 24 instances</span>
-<div class="flex items-center gap-1">
-<button class="p-1 border border-border-light rounded hover:bg-gray-50 disabled:opacity-50"
-disabled=""><i class="w-3.5 h-3.5" data-lucide="chevron-left"></i></button>
-<button class="w-6 h-6 flex items-center justify-center bg-primary-blue text-white text-[11px]
-font-bold rounded">1</button>
-<button class="w-6 h-6 flex items-center justify-center text-[11px] font-medium text-text-
-secondary hover:bg-gray-100 rounded">2</button>
-<button class="w-6 h-6 flex items-center justify-center text-[11px] font-medium text-text-
-secondary hover:bg-gray-100 rounded">3</button>
-<span class="px-1 text-text-secondary">...</span>
-<button class="w-6 h-6 flex items-center justify-center text-[11px] font-medium text-text-
-secondary hover:bg-gray-100 rounded">4</button>
-<button class="p-1 border border-border-light rounded hover:bg-gray-50"><i class="w-3.5 h-3.5"
-data-lucide="chevron-right"></i></button>
-</div>
-</div>
-</div>
-<!-- Execution Log -->
-<div class="col-span-3 bg-white border border-border-light rounded-card p-6 overflow-hidden
-flex flex-col">
-<div class="flex items-center justify-between mb-6">
-<div class="flex items-center gap-2">
-<h3 class="text-sm font-semibold">Execution Log</h3>
-<i class="w-3.5 h-3.5 text-text-secondary" data-lucide="info"></i>
-</div>
-</div>
-<div class="flex-1 space-y-5 overflow-y-auto pr-2">
-<!-- Log Entry -->
-<div class="flex gap-4 relative">
-<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
-<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
-items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
-lucide="check"></i></div></div>
-<div class="flex-1">
-<div class="flex items-center justify-between">
-<span class="text-[10px] text-text-secondary">10:30:15 AM</span>
-</div>
-<p class="text-[11px] font-bold">Workflow Started</p>
-<p class="text-[10px] text-text-secondary">Financial Data Pipeline initiated</p>
-</div>
-</div>
-<!-- Log Entry -->
-<div class="flex gap-4 relative">
-<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
-<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
-items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
-lucide="check"></i></div></div>
-<div class="flex-1">
-<div class="flex items-center justify-between">
-<span class="text-[10px] text-text-secondary">10:30:18 AM</span>
-</div>
-<p class="text-[11px] font-bold">Upload Completed</p>
-<p class="text-[10px] text-text-secondary">Dataset P&amp;L_May_2025.csv uploaded</p>
-</div>
-</div>
-<!-- Log Entry -->
-<div class="flex gap-4 relative">
-<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
-<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
-items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
-lucide="check"></i></div></div>
-<div class="flex-1">
-<div class="flex items-center justify-between">
-<span class="text-[10px] text-text-secondary">10:31:02 AM</span>
-</div>
-<p class="text-[11px] font-bold">Validation Completed</p>
-<p class="text-[10px] text-text-secondary">All data validations passed</p>
-</div>
-</div>
-<!-- Log Entry -->
-<div class="flex gap-4 relative">
-<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
-<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
-items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
-lucide="check"></i></div></div>
-<div class="flex-1">
-<div class="flex items-center justify-between">
-<span class="text-[10px] text-text-secondary">10:31:45 AM</span>
-</div>
-<p class="text-[11px] font-bold">Schema Mapping Completed</p>
-<p class="text-[10px] text-text-secondary">Columns mapped successfully</p>
-</div>
-</div>
-<!-- Log Entry -->
-<div class="flex gap-4 relative">
-<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
-<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
-items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
-lucide="check"></i></div></div>
-<div class="flex-1">
-<div class="flex items-center justify-between">
-<span class="text-[10px] text-text-secondary">10:32:30 AM</span>
-</div>
-<p class="text-[11px] font-bold">Data Cleaning Completed</p>
-<p class="text-[10px] text-text-secondary">Missing values handled</p>
-</div>
-</div>
-<!-- Log Entry -->
-<div class="flex gap-4 relative">
-<div class="absolute left-[7px] top-[18px] bottom-[-18px] w-px bg-border-light"></div>
-<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-success-green flex
-items-center justify-center"><i class="w-2.5 h-2.5 text-success-green" data-
-lucide="check"></i></div></div>
-<div class="flex-1">
-<div class="flex items-center justify-between">
-<span class="text-[10px] text-text-secondary">10:33:16 AM</span>
-</div>
-<p class="text-[11px] font-bold">Database Updated</p>
-<p class="text-[10px] text-text-secondary">Clean data stored in PostgreSQL</p>
-</div>
-</div>
-<!-- Active Log Entry -->
-<div class="flex gap-4 relative">
-<div class="z-10 bg-white"><div class="w-4 h-4 rounded-full border-2 border-primary-blue flex
-items-center justify-center pulse-glow"><span class="w-1.5 h-1.5 bg-primary-blue rounded-
-full"></span></div></div>
-<div class="flex-1">
-<div class="flex items-center justify-between">
-<span class="text-[10px] text-primary-blue font-bold">10:38:10 AM</span>
-</div>
-<p class="text-[11px] font-bold text-primary-blue">AI Recommendations</p>
-<p class="text-[10px] text-text-secondary">Generating recommendations...</p>
-</div>
-</div>
-</div>
-<button class="mt-4 w-full py-2 text-[11px] font-semibold text-primary-blue border border-indigo-
-100 rounded-lg hover:bg-indigo-50 flex items-center justify-center gap-2">
-View Full Log <i class="w-3 h-3" data-lucide="external-link"></i>
-</button>
-</div>
-</div>
-<!-- END: Tables Row -->
-<!-- BEGIN: Bottom KPI Strip -->
-<div class="grid grid-cols-6 gap-6 pb-8">
-<!-- KPI Card -->
-<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
-between">
-<div>
-<p class="text-[10px] text-text-secondary uppercase">Total Workflows</p>
-<h4 class="text-lg font-bold">14</h4>
-<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
-data-lucide="arrow-up"></i> 2 <span class="text-text-secondary">this week</span></p>
-</div>
-<div class="w-10 h-10 bg-indigo-50 text-primary-blue rounded-full flex items-center justify-
-center"><i class="w-5 h-5" data-lucide="users"></i></div>
-</div>
-<!-- KPI Card -->
-<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
-between">
-<div>
-<p class="text-[10px] text-text-secondary uppercase">Running</p>
-<h4 class="text-lg font-bold">2</h4>
-<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
-data-lucide="arrow-up"></i> 1 <span class="text-text-secondary">since yesterday</span></p>
-</div>
-<div class="w-10 h-10 bg-blue-50 text-info-blue rounded-full flex items-center justify-center"><i
-class="w-5 h-5" data-lucide="activity"></i></div>
-</div>
-<!-- KPI Card -->
-<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
-between">
-<div>
-<p class="text-[10px] text-text-secondary uppercase">Completed</p>
-<h4 class="text-lg font-bold">24</h4>
-<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
-data-lucide="arrow-up"></i> 5 <span class="text-text-secondary">this week</span></p>
-</div>
-<div class="w-10 h-10 bg-green-50 text-success-green rounded-full flex items-center justify-
-center"><i class="w-5 h-5" data-lucide="check-circle"></i></div>
-</div>
-<!-- KPI Card -->
-<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
-between">
-<div>
-<p class="text-[10px] text-text-secondary uppercase">Failed</p>
-<h4 class="text-lg font-bold">1</h4>
-<p class="text-[9px] text-error-red mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5" data-
-lucide="arrow-down"></i> 1 <span class="text-text-secondary">this week</span></p>
-</div>
-<div class="w-10 h-10 bg-red-50 text-error-red rounded-full flex items-center justify-center"><i
-class="w-5 h-5" data-lucide="alert-triangle"></i></div>
-</div>
-<!-- KPI Card -->
-<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
-between">
-<div>
-<p class="text-[10px] text-text-secondary uppercase">Avg. Duration</p>
-<h4 class="text-lg font-bold">18m 42s</h4>
-<p class="text-[9px] text-error-red mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5" data-
-lucide="arrow-down"></i> 5m <span class="text-text-secondary">vs last week</span></p>
-</div>
-<div class="w-10 h-10 bg-orange-50 text-warning-orange rounded-full flex items-center justify-
-center"><i class="w-5 h-5" data-lucide="clock"></i></div>
-</div>
-<!-- KPI Card -->
-<div class="bg-white p-4 border border-border-light rounded-card flex items-center justify-
-between">
-<div>
-<p class="text-[10px] text-text-secondary uppercase">Success Rate</p>
-<h4 class="text-lg font-bold">96.2%</h4>
-<p class="text-[9px] text-success-green mt-1 flex items-center gap-1"><i class="w-2.5 h-2.5"
-data-lucide="arrow-up"></i> 3.4% <span class="text-text-secondary">vs last week</span></p>
-</div>
-<div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-
-center"><i class="w-5 h-5" data-lucide="bar-chart-3"></i></div>
-</div>
-</div>
-<!-- END: Bottom KPI Strip -->
-</div>
-</main>
-<script data-purpose="initializer">
-document.addEventListener('DOMContentLoaded', () => {
-lucide.createIcons();
-});
-</script>
-    <script type="module" src="js/shell.js"></script>
-</body></html>
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <!-- Canonical Sidebar Container -->
+  <div id="sidebar-container"></div>
+
+  <!-- Main Content Shell -->
+  <main class="ml-[240px] min-h-screen p-6 pb-16 bg-[#F8FAFC]">
+    <div class="w-full space-y-5">
+
+      <!-- ======================================================== -->
+      <!-- 1. HEADER & CONTROLS                                     -->
+      <!-- ======================================================== -->
+      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Workflow</h1>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Camunda BPMN Orchestrator</span>
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-0.5">Financial analysis &amp; approval process</p>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="flex items-center gap-2.5">
+          <!-- Refresh Button -->
+          <button id="btn-refresh-wf" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-xs hover:bg-slate-50 transition cursor-pointer">
+            <span class="material-symbols-outlined text-sm">refresh</span>
+            <span>Refresh</span>
+          </button>
+
+          <!-- Start New Workflow Button -->
+          <button id="btn-open-start-modal" class="bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-opacity-90 transition cursor-pointer">
+            <span class="material-symbols-outlined text-sm">play_arrow</span>
+            <span>Start New Workflow</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ======================================================== -->
+      <!-- 2. KPI CARDS (4 Cards)                                   -->
+      <!-- ======================================================== -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Active Workflows -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Active Workflows</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+              <span class="material-symbols-outlined text-base">sync</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-blue-600 tracking-tight" id="kpi-active-wf">0</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Currently executing</p>
+          </div>
+        </div>
+
+        <!-- Completed Workflows -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Completed</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+              <span class="material-symbols-outlined text-base">task_alt</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-emerald-600 tracking-tight" id="kpi-completed-wf">0</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">End-to-end verified</p>
+          </div>
+        </div>
+
+        <!-- Pending Approval -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Pending Approval</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+              <span class="material-symbols-outlined text-base">pending_actions</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-amber-600 tracking-tight" id="kpi-pending-wf">0</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Awaiting manager decision</p>
+          </div>
+        </div>
+
+        <!-- Failed Workflows -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Failed</span>
+            <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+              <span class="material-symbols-outlined text-base">error_outline</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-rose-600 tracking-tight" id="kpi-failed-wf">0</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5">Exceptions or rejected</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 3. PENDING APPROVAL ALERT BANNER (Conditional)           -->
+      <!-- ======================================================== -->
+      <div id="pending-approval-banner" class="hidden p-4 rounded-xl border border-amber-200 bg-amber-50/80 text-slate-800 custom-shadow flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
+            <span class="material-symbols-outlined text-xl">gavel</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h4 class="text-xs font-bold text-amber-900">Manager Approval Required</h4>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-100 text-rose-700 border border-rose-200" id="banner-risk-pill">High Risk</span>
+            </div>
+            <p class="text-[11px] text-amber-800 mt-0.5 leading-relaxed" id="banner-risk-desc">
+              Risk assessment flagged ledger outliers requiring executive authorization before final statement generation.
+            </p>
+            <div class="flex items-center gap-4 text-[10px] text-amber-900/80 mt-1 font-medium">
+              <span>Department: <b id="banner-dept">Operations</b></span>
+              <span>Projected Impact: <b id="banner-impact">₹3.80 Cr</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 self-end md:self-center">
+          <button id="btn-banner-details" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/50 transition cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            <span>View Details</span>
+          </button>
+          <button id="btn-banner-reject" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 transition cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">close</span>
+            <span>Reject</span>
+          </button>
+          <button id="btn-banner-approve" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs transition cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">check</span>
+            <span>Approve &amp; Continue</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 4. ACTIVE WORKFLOW MONITOR & STEP INSPECTOR              -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow w-full">
+        <!-- Active Workflow Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-900" id="active-wf-title">Financial Workflow #--</span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold" id="active-wf-status-badge">RUNNING</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              Started: <span id="active-wf-started" class="font-medium text-slate-700">—</span> | 
+              Current Step: <span id="active-wf-step-name" class="font-bold text-primary">—</span> | 
+              Duration: <span id="active-wf-duration" class="font-medium text-slate-700">—</span>
+            </p>
+          </div>
+
+          <!-- Progress Bar & Actions -->
+          <div class="flex items-center gap-3">
+            <div class="w-36 sm:w-48 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+              <div id="active-wf-progress-bar" class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+            <span class="text-xs font-bold text-slate-700 w-10 text-right" id="active-wf-progress-text">0%</span>
+
+            <!-- Actions Context Button -->
+            <div id="active-wf-action-btns" class="flex items-center gap-1.5">
+              <!-- Dynamically populated (e.g. Cancel, Retry, Approve) -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Horizontal Step Flow -->
+        <div class="py-4 overflow-x-auto custom-scroll">
+          <div class="flex items-center min-w-[760px] justify-between gap-2" id="workflow-steps-track">
+            <!-- 8 Steps populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Step Inspector Details Card -->
+        <div class="mt-3 p-3.5 bg-slate-50/90 rounded-xl border border-slate-100 text-xs text-slate-700" id="step-inspector">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-base" id="insp-icon">info</span>
+              <div>
+                <h4 class="font-bold text-slate-900" id="insp-step-title">Select a step to inspect</h4>
+                <p class="text-[10px] text-slate-400" id="insp-service">Service: —</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 text-[11px] text-slate-500">
+              <span>Status: <b id="insp-status" class="text-slate-800">—</b></span>
+              <span>Duration: <b id="insp-duration" class="text-slate-800">—</b></span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2.5">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase">Input Payload</span>
+              <div class="p-2 bg-white rounded-lg border border-slate-200/60 font-mono text-[10px] text-slate-700 mt-1 min-h-[44px]" id="insp-input">—</div>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase">Output Result</span>
+              <div class="p-2 bg-white rounded-lg border border-slate-200/60 font-mono text-[10px] text-slate-700 mt-1 min-h-[44px]" id="insp-output">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 5. BPMN PROCESS DIAGRAM VISUALIZATION                    -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow w-full">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-base text-primary">account_tree</span>
+              <span>BPMN 2.0 Process Flow</span>
+            </h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">Formal enterprise execution graph with exclusive gateways and manager approval tasks</p>
+          </div>
+          <button id="btn-export-bpmn" class="px-2.5 py-1 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">code</span>
+            <span>View BPMN XML</span>
+          </button>
+        </div>
+
+        <!-- BPMN Visual Representation Canvas -->
+        <div class="pt-4 overflow-x-auto custom-scroll">
+          <div class="flex items-center justify-between min-w-[920px] p-4 bg-slate-50/60 rounded-xl border border-slate-100" id="bpmn-visual-graph">
+            <!-- Node: Start -->
+            <div class="flex flex-col items-center">
+              <div class="w-8 h-8 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-emerald-700">
+                <span class="material-symbols-outlined text-sm">play_arrow</span>
+              </div>
+              <span class="text-[9px] font-bold text-slate-600 mt-1">Start</span>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Task: Upload -->
+            <div class="p-2.5 bg-white border border-slate-200 rounded-lg text-center w-24 bpmn-node shadow-2xs" id="bpmn-node-upload_data">
+              <span class="material-symbols-outlined text-xs text-blue-600">upload_file</span>
+              <p class="text-[10px] font-semibold text-slate-800 mt-0.5">Upload Data</p>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Task: Validate -->
+            <div class="p-2.5 bg-white border border-slate-200 rounded-lg text-center w-24 bpmn-node shadow-2xs" id="bpmn-node-validate_data">
+              <span class="material-symbols-outlined text-xs text-indigo-600">verified</span>
+              <p class="text-[10px] font-semibold text-slate-800 mt-0.5">Validate Data</p>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Task: Process P&L -->
+            <div class="p-2.5 bg-white border border-slate-200 rounded-lg text-center w-24 bpmn-node shadow-2xs" id="bpmn-node-process_pl">
+              <span class="material-symbols-outlined text-xs text-primary">calculate</span>
+              <p class="text-[10px] font-semibold text-slate-800 mt-0.5">Process P&amp;L</p>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Task: Anomaly Detection -->
+            <div class="p-2.5 bg-white border border-slate-200 rounded-lg text-center w-24 bpmn-node shadow-2xs" id="bpmn-node-anomaly_detection">
+              <span class="material-symbols-outlined text-xs text-amber-600">crisis_alert</span>
+              <p class="text-[10px] font-semibold text-slate-800 mt-0.5">Anomalies</p>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Task: Forecast -->
+            <div class="p-2.5 bg-white border border-slate-200 rounded-lg text-center w-24 bpmn-node shadow-2xs" id="bpmn-node-forecast">
+              <span class="material-symbols-outlined text-xs text-blue-600">trending_up</span>
+              <p class="text-[10px] font-semibold text-slate-800 mt-0.5">Forecast</p>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Gateway: Risk -->
+            <div class="w-7 h-7 rotate-45 border-2 border-amber-400 bg-amber-50 flex items-center justify-center flex-shrink-0 shadow-2xs" title="Exclusive Risk Gateway">
+              <span class="material-symbols-outlined text-[10px] text-amber-700 -rotate-45 font-bold">close</span>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- User Task: Manager Approval -->
+            <div class="p-2.5 bg-white border-2 border-amber-300 rounded-lg text-center w-28 bpmn-node shadow-2xs" id="bpmn-node-manager_approval">
+              <span class="material-symbols-outlined text-xs text-amber-600">person_check</span>
+              <p class="text-[10px] font-bold text-amber-800 mt-0.5">Manager Approval</p>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Task: Report -->
+            <div class="p-2.5 bg-white border border-slate-200 rounded-lg text-center w-24 bpmn-node shadow-2xs" id="bpmn-node-generate_report">
+              <span class="material-symbols-outlined text-xs text-emerald-600">description</span>
+              <p class="text-[10px] font-semibold text-slate-800 mt-0.5">Report</p>
+            </div>
+
+            <div class="h-0.5 w-6 bg-slate-300"></div>
+
+            <!-- Node: End -->
+            <div class="flex flex-col items-center">
+              <div class="w-8 h-8 rounded-full bg-slate-100 border-2 border-slate-400 flex items-center justify-center text-slate-700">
+                <span class="material-symbols-outlined text-sm">flag</span>
+              </div>
+              <span class="text-[9px] font-bold text-slate-600 mt-1">End</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 6. WORKFLOW HISTORY TABLE                                -->
+      <!-- ======================================================== -->
+      <!-- ======================================================== -->
+      <!-- 6. WORKFLOW HISTORY TABLE                                -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow w-full">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Workflow Execution History</h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">Audited log of all orchestrated pipelines, execution durations, and approvals</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] text-slate-500 font-medium" id="history-count">Showing instances</span>
+            <button id="btn-view-all-history" class="px-2.5 py-1 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer">View All History</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto w-full border border-slate-200 rounded-xl custom-scroll mt-3">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200 bg-slate-50/80">
+                <th class="px-4 py-3 font-bold">Workflow ID</th>
+                <th class="px-4 py-3 font-bold">Department</th>
+                <th class="px-4 py-3 font-bold">Started</th>
+                <th class="px-4 py-3 font-bold">Completed</th>
+                <th class="px-4 py-3 font-bold">Current Step</th>
+                <th class="px-4 py-3 font-bold text-center">Status</th>
+                <th class="px-4 py-3 font-bold text-right">Duration</th>
+                <th class="px-4 py-3 font-bold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="workflow-history-tbody" class="divide-y divide-slate-100 text-slate-700 bg-white">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- START WORKFLOW MODAL                                     -->
+  <!-- ======================================================== -->
+  <div id="modal-start-workflow" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-slate-900/40 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">play_arrow</span>
+          </div>
+          <h3 class="font-bold text-sm text-slate-900">Start New Workflow</h3>
+        </div>
+        <button id="close-start-modal" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">P&amp;L Dataset</label>
+          <select id="modal-dataset-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="1">Enterprise_PL_Historical.csv (Active Dataset)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Financial Period</label>
+          <select id="modal-period-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="Full Year FY2024">Full Year FY2024</option>
+            <option value="Q1 FY2024">Q1 FY2024 (Apr - Jun)</option>
+            <option value="Q2 FY2024">Q2 FY2024 (Jul - Sep)</option>
+            <option value="Q3 FY2024">Q3 FY2024 (Oct - Dec)</option>
+            <option value="Q4 FY2024">Q4 FY2024 (Jan - Mar)</option>
+            <option value="Full Year FY2025">Full Year FY2025</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Department</label>
+          <select id="modal-dept-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="Overall">Overall Enterprise (All Departments)</option>
+            <option value="Sales">Sales &amp; Commercial</option>
+            <option value="Operations">Operations &amp; Supply Chain</option>
+            <option value="IT">IT &amp; Technology</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Finance">Finance</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Analysis Type</label>
+          <select id="modal-analysis-type" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="comprehensive">Comprehensive P&amp;L Audit &amp; Forecast</option>
+            <option value="variance">Variance &amp; Anomaly Surveillance</option>
+            <option value="forecast">Predictive Run-rate Projection</option>
+          </select>
+        </div>
+
+        <div class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-start gap-2.5">
+          <input type="checkbox" id="modal-approval-check" checked class="mt-0.5 rounded text-primary focus:ring-primary">
+          <label for="modal-approval-check" class="text-[11px] text-slate-700 leading-snug cursor-pointer">
+            <b class="text-indigo-900">Enforce Governance Policy:</b> Require Manager Approval if composite risk score evaluates to High or critical anomalies are detected.
+          </label>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 px-6 py-3.5 bg-slate-50 border-t border-slate-100">
+        <button id="cancel-start-modal" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer">Cancel</button>
+        <button id="submit-start-workflow" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-opacity-90 shadow-xs transition cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">bolt</span>
+          <span>Start Workflow</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- WORKFLOW DETAILS MODAL / DRAWER                          -->
+  <!-- ======================================================== -->
+  <div id="modal-workflow-details" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-slate-900/40 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-base">info</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900" id="details-modal-title">Workflow Details</h3>
+            <p class="text-[10px] text-slate-400">Process Name: Unified P&amp;L Financial Workflow</p>
+          </div>
+        </div>
+        <button id="close-details-modal" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto custom-scroll space-y-4 text-xs">
+        <!-- Instance Metadata Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400">Status</span>
+            <p class="font-bold text-slate-900 mt-0.5" id="details-status">—</p>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400">Current Step</span>
+            <p class="font-bold text-primary mt-0.5" id="details-current-step">—</p>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400">Started At</span>
+            <p class="font-medium text-slate-700 mt-0.5" id="details-started">—</p>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400">Duration</span>
+            <p class="font-medium text-slate-700 mt-0.5" id="details-duration">—</p>
+          </div>
+        </div>
+
+        <!-- 3 Financial Metrics Callout -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 bg-amber-50/70 rounded-xl border border-amber-200">
+            <span class="text-[10px] font-bold text-amber-900 uppercase">Anomalies Found</span>
+            <h4 class="text-base font-bold text-amber-900 mt-0.5" id="details-anomalies">—</h4>
+          </div>
+          <div class="p-3 bg-blue-50/70 rounded-xl border border-blue-200">
+            <span class="text-[10px] font-bold text-blue-900 uppercase">Forecast Status</span>
+            <h4 class="text-base font-bold text-blue-900 mt-0.5" id="details-forecast-status">—</h4>
+          </div>
+          <div class="p-3 bg-indigo-50/70 rounded-xl border border-indigo-200">
+            <span class="text-[10px] font-bold text-indigo-900 uppercase">Risk Level</span>
+            <h4 class="text-base font-bold text-indigo-900 mt-0.5" id="details-risk-level">—</h4>
+          </div>
+        </div>
+
+        <!-- Execution Timeline -->
+        <div>
+          <h4 class="font-bold text-slate-900 mb-2">Execution Timeline</h4>
+          <div class="space-y-2" id="details-timeline-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end px-6 py-3.5 bg-slate-50 border-t border-slate-100">
+        <button id="close-details-modal-btn" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition cursor-pointer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- BPMN XML MODAL                                           -->
+  <!-- ======================================================== -->
+  <div id="modal-bpmn-xml" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-slate-900/40 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">code</span>
+          <span>Camunda BPMN 2.0 Process Definition XML</span>
+        </h3>
+        <button id="close-bpmn-modal" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto custom-scroll bg-slate-900 text-emerald-400 font-mono text-[10px] leading-relaxed select-all">
+        <pre id="bpmn-xml-content">Loading XML definition...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/workflow.js"></script>
+  <script type="module" src="js/shell.js"></script>
+</body>
+</html>

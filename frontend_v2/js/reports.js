@@ -1,7 +1,8 @@
 /**
  * reports.js - Financial Reporting Suite & Decision Support
  * ========================================================
- * Powers the redesigned Report page with dynamic data from active dataset.
+ * Enterprise financial analytics, dynamic data visualization,
+ * sorting, filtering, and export capabilities.
  */
 import { api } from './api.js';
 import { initEchart, safeSetOption } from './chart-engine.js';
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return `${sign}${abs}`;
   };
 
-  // ── Global Chart Instances ──────────────────────────────────────
+  // ── Chart Instances ─────────────────────────────────────────────
   const pnlChartEl = document.getElementById('chart-pnl-trend');
   const pnlChart = pnlChartEl ? initEchart(pnlChartEl) : null;
 
@@ -50,15 +51,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resetBtn = document.getElementById(resetBtnId);
 
     if (inBtn) {
-      inBtn.addEventListener('click', () => {
-        zoomSpan = Math.max(20, zoomSpan - 25);
+      inBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        zoomSpan = Math.max(15, zoomSpan - 25);
         const start = Math.max(0, 50 - zoomSpan / 2);
         const end = Math.min(100, 50 + zoomSpan / 2);
         chart.dispatchAction({ type: 'dataZoom', start, end });
       });
     }
     if (outBtn) {
-      outBtn.addEventListener('click', () => {
+      outBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         zoomSpan = Math.min(100, zoomSpan + 25);
         const start = Math.max(0, 50 - zoomSpan / 2);
         const end = Math.min(100, 50 + zoomSpan / 2);
@@ -66,7 +69,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
+      resetBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         zoomSpan = 100;
         chart.dispatchAction({ type: 'dataZoom', start: 0, end: 100 });
         chart.dispatchAction({ type: 'restore' });
@@ -144,6 +148,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dept = document.getElementById('report-dept-select')?.value || 'all';
     const period = document.getElementById('report-period-select')?.value || 'all';
     const agg = document.getElementById('report-agg-select')?.value || 'monthly';
+    const generateBtn = document.getElementById('btn-generate-report');
+    const generateIcon = document.getElementById('generate-icon');
+
+    if (generateIcon) generateIcon.textContent = 'hourglass_top';
 
     try {
       const res = await api.get(`/api/v1/reports/data?report_type=all&dept=${encodeURIComponent(dept)}&period=${encodeURIComponent(period)}&agg=${encodeURIComponent(agg)}`);
@@ -163,30 +171,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
 
-      // 2. Render Section B: Executive KPIs
+      // 2. Render Section 5: Executive Summary KPIs (4 Cards)
       renderExecutiveKpis(res.kpis);
 
-      // 3. Render Section C: P&L Performance Trend Chart
-      renderPnlTrendChart(res.pnl_trend);
+      // 3. Render Section 6 & 7: P&L Performance Trend Chart
+      renderPnlTrendChart(res.pnl_trend || res.trend);
 
-      // 4. Render Section D: Department Performance Chart
-      renderDepartmentChart(res.department_performance, currentDeptMetric);
+      // 4. Render Section 8 & 9: Department Performance & Profitability
+      renderDepartmentChart(res.department_performance || res.departments || [], currentDeptMetric);
 
-      // 5. Render Section E: Budget vs Actual Variance
-      renderBudgetSection(res.budget_vs_actual);
+      // 5. Render Section 10: Financial Details Statement Table
+      renderSummaryTable(res.financial_summary || res.department_performance || res.departments || []);
 
-      // 6. Render Section F: Financial Summary Table
-      renderSummaryTable(res.financial_summary || res.department_performance || []);
-
-      // 7. Render Section G: Management Insights
+      // 6. Render Section 11: Financial Management Insights
       renderManagementInsights(res.management_insights || []);
 
     } catch (err) {
       console.error('Failed to load report data:', err);
+    } finally {
+      if (generateIcon) generateIcon.textContent = 'play_arrow';
     }
   }
 
-  // ── Section B: Executive KPIs ───────────────────────────────────
+  // ── Section 5: Executive Summary KPIs ───────────────────────────
   function renderExecutiveKpis(kpis) {
     if (!kpis) return;
 
@@ -194,46 +201,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const expEl = document.getElementById('kpi-total-expense');
     const profEl = document.getElementById('kpi-net-profit');
     const marginEl = document.getElementById('kpi-net-margin');
-    const budgetStatusEl = document.getElementById('kpi-budget-status');
-    const budgetVarEl = document.getElementById('kpi-budget-variance');
-    const budgetIcon = document.getElementById('kpi-budget-icon');
 
     if (revEl) revEl.textContent = formatCurrency(kpis.total_revenue);
     if (expEl) expEl.textContent = formatCurrency(kpis.total_expense);
     if (profEl) {
       profEl.textContent = formatCurrency(kpis.net_profit);
-      profEl.className = `text-lg font-bold mt-1 ${kpis.net_profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+      profEl.className = `text-xl font-bold tracking-tight ${kpis.net_profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
     }
     if (marginEl) {
       marginEl.textContent = `${(kpis.net_margin || 0).toFixed(1)}%`;
-      marginEl.className = `text-lg font-bold mt-1 ${(kpis.net_margin || 0) >= 0 ? 'text-slate-900' : 'text-rose-600'}`;
-    }
-
-    if (budgetStatusEl) {
-      if (kpis.has_budget && kpis.total_budget) {
-        budgetStatusEl.textContent = kpis.budget_status;
-        budgetStatusEl.className = `text-lg font-bold mt-1 ${kpis.budget_status === 'On Budget' ? 'text-emerald-600' : 'text-rose-600'}`;
-        if (budgetVarEl) {
-          const sign = kpis.budget_variance > 0 ? '+' : '';
-          budgetVarEl.textContent = `${sign}${formatCurrency(kpis.budget_variance)} (${Math.abs(kpis.budget_variance_pct).toFixed(1)}%)`;
-        }
-        if (budgetIcon) {
-          budgetIcon.textContent = kpis.budget_status === 'On Budget' ? 'check_circle' : 'warning';
-          budgetIcon.className = `material-symbols-outlined text-xs ${kpis.budget_status === 'On Budget' ? 'text-emerald-600' : 'text-rose-600'}`;
-        }
-      } else {
-        budgetStatusEl.textContent = 'Actuals Only';
-        budgetStatusEl.className = 'text-lg font-bold text-slate-700 mt-1';
-        if (budgetVarEl) budgetVarEl.textContent = 'Budget Baseline Unset';
-        if (budgetIcon) {
-          budgetIcon.textContent = 'info';
-          budgetIcon.className = 'material-symbols-outlined text-xs text-slate-400';
-        }
-      }
+      marginEl.className = `text-xl font-bold tracking-tight ${(kpis.net_margin || 0) >= 0 ? 'text-slate-900' : 'text-rose-600'}`;
     }
   }
 
-  // ── Section C: P&L Performance Trend Chart ──────────────────────
+  // ── Section 6 & 7: Financial Performance Trend Chart ────────────
   function renderPnlTrendChart(trendData) {
     if (!pnlChart) return;
     const emptyEl = document.getElementById('pnl-trend-empty');
@@ -253,7 +234,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeSetOption(pnlChart, {
       tooltip: {
         trigger: 'axis',
-        axisPointer: { type: 'cross' },
+        axisPointer: { type: 'cross', lineStyle: { color: '#94a3b8', type: 'dashed' } },
         backgroundColor: '#ffffff',
         borderColor: '#e2e8f0',
         borderWidth: 1,
@@ -274,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           return html;
         }
       },
-      grid: { left: '3%', right: '3%', top: '10%', bottom: '12%', containLabel: true },
+      grid: { left: '2%', right: '2%', top: '10%', bottom: '10%', containLabel: true },
       dataZoom: [{ type: 'inside' }],
       xAxis: {
         type: 'category',
@@ -306,7 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           areaStyle: {
             color: {
               type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [{ offset: 0, color: '#3B82F622' }, { offset: 1, color: '#3B82F600' }]
+              colorStops: [{ offset: 0, color: 'rgba(59, 130, 246, 0.2)' }, { offset: 1, color: 'rgba(59, 130, 246, 0.0)' }]
             }
           }
         },
@@ -322,7 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           areaStyle: {
             color: {
               type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [{ offset: 0, color: '#EF444422' }, { offset: 1, color: '#EF444400' }]
+              colorStops: [{ offset: 0, color: 'rgba(239, 68, 68, 0.18)' }, { offset: 1, color: 'rgba(239, 68, 68, 0.0)' }]
             }
           }
         },
@@ -338,15 +319,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           areaStyle: {
             color: {
               type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [{ offset: 0, color: '#10B98122' }, { offset: 1, color: '#10B98100' }]
+              colorStops: [{ offset: 0, color: 'rgba(16, 185, 129, 0.2)' }, { offset: 1, color: 'rgba(16, 185, 129, 0.0)' }]
             }
           }
         }
       ]
-    });
+    }, true);
   }
 
-  // ── Section D: Department Performance Chart ─────────────────────
+  // ── Section 8 & 9: Department Performance & Profitability Breakdown ──
   function renderDepartmentChart(deptList, metric = 'all') {
     if (!deptChart) return;
     const emptyEl = document.getElementById('dept-chart-empty');
@@ -423,7 +404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       },
       legend: { top: 0, icon: 'circle', textStyle: { fontSize: 10, color: '#64748B' } },
-      grid: { left: '3%', right: '3%', top: '35px', bottom: '15%', containLabel: true },
+      grid: { left: '2%', right: '2%', top: '35px', bottom: '15%', containLabel: true },
       xAxis: {
         type: 'category',
         data: names,
@@ -431,8 +412,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         axisTick: { show: false },
         axisLabel: {
           color: '#64748B',
-          fontSize: 9,
-          rotate: names.length > 6 ? 30 : 0,
+          fontSize: 9.5,
+          rotate: names.length > 6 ? 25 : 0,
           interval: 0
         }
       },
@@ -446,7 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         splitLine: { lineStyle: { color: '#F1F5F9' } }
       },
       series
-    });
+    }, true);
   }
 
   // Department Metric Switch Handlers
@@ -455,107 +436,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     metricSwitchContainer.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
         metricSwitchContainer.querySelectorAll('button').forEach(b => {
-          b.className = 'px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer';
+          b.className = 'px-2.5 py-1 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer';
         });
-        btn.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-900 shadow-xs cursor-pointer';
+        btn.className = 'px-2.5 py-1 rounded-md text-[10px] font-bold bg-white text-slate-900 shadow-xs cursor-pointer';
         currentDeptMetric = btn.getAttribute('data-metric') || 'all';
-        if (cachedReportData && cachedReportData.department_performance) {
-          renderDepartmentChart(cachedReportData.department_performance, currentDeptMetric);
+        if (cachedReportData && (cachedReportData.department_performance || cachedReportData.departments)) {
+          renderDepartmentChart(cachedReportData.department_performance || cachedReportData.departments, currentDeptMetric);
         }
       });
     });
   }
 
-  // ── Section E: Budget vs Actual ─────────────────────────────────
-  function renderBudgetSection(budgetData) {
-    const wrapper = document.getElementById('budget-content-wrapper');
-    const badge = document.getElementById('budget-summary-badge');
-    if (!wrapper) return;
-
-    if (!budgetData || !budgetData.has_budget || !budgetData.total_budget) {
-      if (badge) badge.textContent = 'Actuals Baseline';
-      wrapper.innerHTML = `
-        <div class="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-50/80 rounded-xl border border-slate-100">
-          <div class="w-10 h-10 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 mb-2.5">
-            <span class="material-symbols-outlined text-xl">balance</span>
-          </div>
-          <h4 class="text-xs font-bold text-slate-800">Budget data unavailable for this dataset</h4>
-          <p class="text-[11px] text-slate-500 max-w-xs mt-1 leading-relaxed">
-            The active dataset contains real transaction actuals without a mapped budget column. All financial metrics accurately reflect actual inflows and spend.
-          </p>
-          <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200/70 text-slate-600">
-            Historical Actuals Reporting
-          </span>
-        </div>
-      `;
-      return;
-    }
-
-    if (badge) badge.textContent = budgetData.status || 'Audited';
-
-    const items = (budgetData.departments || []).filter(d => d.budget && d.budget > 0);
-    const topOver = items.filter(d => (d.variance || 0) > 0).slice(0, 3);
-    const topUnder = items.filter(d => (d.variance || 0) <= 0).slice(0, 3);
-
-    let html = `
-      <div class="space-y-3">
-        <!-- Top Stats Row -->
-        <div class="grid grid-cols-2 gap-2">
-          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Allocated Budget</span>
-            <div class="text-sm font-bold text-slate-900 mt-0.5">${formatCurrency(budgetData.total_budget)}</div>
-          </div>
-          <div class="p-2.5 ${budgetData.total_variance > 0 ? 'bg-rose-50/60 border-rose-100' : 'bg-emerald-50/60 border-emerald-100'} rounded-xl border">
-            <span class="text-[10px] font-bold ${budgetData.total_variance > 0 ? 'text-rose-600' : 'text-emerald-600'} uppercase">Net Variance</span>
-            <div class="text-sm font-bold ${budgetData.total_variance > 0 ? 'text-rose-700' : 'text-emerald-700'} mt-0.5">
-              ${budgetData.total_variance > 0 ? '+' : ''}${formatCurrency(budgetData.total_variance)}
-            </div>
-          </div>
-        </div>
-
-        <!-- Department Variance Progress Bars -->
-        <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
-    `;
-
-    items.slice(0, 5).forEach(item => {
-      const pct = item.budget > 0 ? Math.min(100, Math.round((item.expense / item.budget) * 100)) : 0;
-      const isOver = item.variance > 0;
-      html += `
-        <div>
-          <div class="flex items-center justify-between text-[11px] mb-0.5">
-            <span class="font-semibold text-slate-800">${item.department}</span>
-            <span class="text-[10px] ${isOver ? 'text-rose-600 font-bold' : 'text-emerald-600 font-semibold'}">
-              ${formatCurrency(item.expense)} / ${formatCurrency(item.budget)} (${isOver ? '+' : ''}${item.variance_pct ? item.variance_pct.toFixed(0) : 0}%)
-            </span>
-          </div>
-          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div class="${isOver ? 'bg-rose-500' : 'bg-emerald-500'} h-1.5 rounded-full" style="width: ${pct}%"></div>
-          </div>
-        </div>
-      `;
-    });
-
-    html += `
-        </div>
-      </div>
-    `;
-
-    wrapper.innerHTML = html;
-  }
-
-  // ── Section F: Financial Summary Statement (Sortable Table) ────
+  // ── Section 10: Report Details Statement (Sortable Table) ────────
   function renderSummaryTable(rows) {
     const tbody = document.getElementById('summary-table-body');
     const countEl = document.getElementById('table-row-count');
     if (!tbody) return;
 
     if (!rows || rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-400 text-xs">No financial records found for the active filter criteria.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400 text-xs">No financial records found for the active filter criteria.</td></tr>`;
       if (countEl) countEl.textContent = '0 departments';
       return;
     }
 
     if (countEl) countEl.textContent = `${rows.length} operating divisions`;
+
+    // Calculate max profit for contribution progress bars
+    const totalPosProfit = rows.reduce((acc, r) => acc + (r.profit > 0 ? r.profit : 0), 0) || 1;
 
     // Sort rows
     const sorted = [...rows].sort((a, b) => {
@@ -564,19 +471,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (typeof valA === 'string') {
         return sortAscending ? valA.localeCompare(valB) : valB.localeCompare(valA);
       }
-      valA = valA || 0;
-      valB = valB || 0;
+      valA = valA !== undefined ? valA : 0;
+      valB = valB !== undefined ? valB : 0;
       return sortAscending ? valA - valB : valB - valA;
     });
 
     let html = '';
     sorted.forEach((row, idx) => {
-      const margin = row.margin !== undefined && row.margin !== null ? row.margin : ((row.profit / row.revenue) * 100);
+      const margin = row.margin !== undefined && row.margin !== null ? row.margin : ((row.profit / (row.revenue || 1)) * 100);
       const isProfitable = (row.profit || 0) >= 0;
-      const marginColor = margin >= 20 ? 'text-emerald-600 bg-emerald-50' : (margin >= 0 ? 'text-blue-600 bg-blue-50' : 'text-rose-600 bg-rose-50');
+      const marginColor = margin >= 20 ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : (margin >= 0 ? 'text-blue-700 bg-blue-50 border-blue-100' : 'text-rose-700 bg-rose-50 border-rose-100');
+      
+      const contribPct = isProfitable ? Math.min(100, Math.round((row.profit / totalPosProfit) * 100)) : 0;
 
-      let statusBadge = '<span class="text-slate-400 text-[10px]">—</span>';
-      if (row.has_budget && row.status) {
+      let statusBadge = '';
+      if (row.has_budget && row.status && row.status !== '—') {
         const isOver = row.status === 'Over Budget';
         statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${isOver ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">${row.status}</span>`;
       } else if (isProfitable) {
@@ -586,25 +495,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       html += `
-        <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="px-4 py-2.5 font-semibold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] flex items-center justify-center">${idx + 1}</span>
-            <span>${row.department}</span>
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="px-4 py-3 font-semibold text-slate-900">
+            <span class="w-6 h-6 rounded-md bg-slate-100 text-slate-700 font-bold text-[10px] inline-flex items-center justify-center">${idx + 1}</span>
           </td>
-          <td class="px-4 py-2.5 text-right font-medium text-slate-900">${formatCurrency(row.revenue)}</td>
-          <td class="px-4 py-2.5 text-right font-medium text-slate-600">${formatCurrency(row.expense)}</td>
-          <td class="px-4 py-2.5 text-right font-bold ${isProfitable ? 'text-emerald-600' : 'text-rose-600'}">${formatCurrency(row.profit)}</td>
-          <td class="px-4 py-2.5 text-right">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${marginColor}">${margin.toFixed(1)}%</span>
+          <td class="px-4 py-3 font-semibold text-slate-900">
+            ${row.department}
           </td>
-          <td class="px-4 py-2.5 text-right text-slate-600">${row.has_budget ? formatCurrency(row.budget) : '—'}</td>
-          <td class="px-4 py-2.5 text-right font-medium ${(row.variance || 0) > 0 ? 'text-rose-600' : 'text-emerald-600'}">
-            ${row.has_budget ? `${(row.variance || 0) > 0 ? '+' : ''}${formatCurrency(row.variance)}` : '—'}
+          <td class="px-4 py-3 text-right font-medium text-slate-900">${formatCurrency(row.revenue)}</td>
+          <td class="px-4 py-3 text-right font-medium text-slate-600">${formatCurrency(row.expense)}</td>
+          <td class="px-4 py-3 text-right font-bold ${isProfitable ? 'text-emerald-600' : 'text-rose-600'}">${formatCurrency(row.profit)}</td>
+          <td class="px-4 py-3 text-right">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${marginColor}">${margin.toFixed(1)}%</span>
           </td>
-          <td class="px-4 py-2.5 text-right font-semibold ${(row.variance_pct || 0) > 0 ? 'text-rose-600' : 'text-emerald-600'}">
-            ${row.has_budget ? `${(row.variance_pct || 0) > 0 ? '+' : ''}${(row.variance_pct || 0).toFixed(1)}%` : '—'}
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="${isProfitable ? 'bg-emerald-500' : 'bg-rose-400'} h-1.5 rounded-full" style="width: ${contribPct}%"></div>
+              </div>
+              <span class="text-[10px] font-semibold text-slate-500 w-8 text-right">${contribPct}%</span>
+            </div>
           </td>
-          <td class="px-4 py-2.5 text-center">${statusBadge}</td>
+          <td class="px-4 py-3 text-center">${statusBadge}</td>
         </tr>
       `;
     });
@@ -623,12 +535,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         sortAscending = false;
       }
       if (cachedReportData) {
-        renderSummaryTable(cachedReportData.financial_summary || cachedReportData.department_performance || []);
+        renderSummaryTable(cachedReportData.financial_summary || cachedReportData.department_performance || cachedReportData.departments || []);
       }
     });
   });
 
-  // ── Section G: Management Insights ──────────────────────────────
+  // ── Section 11: Financial Management Insights ───────────────────
   function renderManagementInsights(insights) {
     const container = document.getElementById('management-insights-container');
     if (!container) return;
@@ -657,12 +569,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const deptSelect = document.getElementById('report-dept-select');
   const periodSelect = document.getElementById('report-period-select');
   const aggSelect = document.getElementById('report-agg-select');
-  const refreshBtn = document.getElementById('btn-refresh-report');
+  const generateBtn = document.getElementById('btn-generate-report');
 
   if (deptSelect) deptSelect.addEventListener('change', loadReport);
   if (periodSelect) periodSelect.addEventListener('change', loadReport);
   if (aggSelect) aggSelect.addEventListener('change', loadReport);
-  if (refreshBtn) refreshBtn.addEventListener('click', loadReport);
+  if (generateBtn) generateBtn.addEventListener('click', loadReport);
 
   // Resize charts on window resize
   window.addEventListener('resize', () => {

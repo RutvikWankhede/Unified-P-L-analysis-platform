@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Financial Reports - Unified P&amp;L Intelligence Platform</title>
+  <title>Reports - Unified P&amp;L Intelligence Platform</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <script>
@@ -33,6 +33,9 @@
     body {
       background-color: #F8FAFC;
       font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
     .custom-shadow {
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
@@ -42,368 +45,366 @@
       border: 1px solid #EEF2F6;
       border-radius: 14px;
       padding: 18px 20px;
+      box-sizing: border-box;
+    }
+    .dash-kpi {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 104px;
+      box-sizing: border-box;
     }
     .sortable-th {
       cursor: pointer;
       user-select: none;
-      transition: background-color 0.1s;
+      transition: background-color 0.15s ease;
     }
     .sortable-th:hover {
       background-color: #F1F5F9;
+    }
+    /* Custom Scrollbar */
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
     }
   </style>
   <link rel="stylesheet" href="css/sidebar.css">
 </head>
 <body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <!-- Canonical Unified Sidebar Container -->
   <div id="sidebar-container"></div>
 
-  <!-- Main Content Wrapper -->
-  <main class="ml-[240px] min-h-screen p-6 pb-20 flex flex-col gap-5">
-    
-    <!-- ======================================================== -->
-    <!-- A. TOP HEADER & CONTROLS                                 -->
-    <!-- ======================================================== -->
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <div class="flex items-center gap-2.5">
-          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Financial Reports</h1>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="active-dataset-pill">Active Dataset</span>
-          </span>
-        </div>
-        <p class="text-[11px] text-slate-500 mt-0.5">Executive financial performance, profitability and variance analysis</p>
-      </div>
-
-      <!-- Action Controls Bar -->
-      <div class="flex items-center flex-wrap gap-2.5">
-        <!-- Department Selector -->
-        <div class="relative">
-          <select id="report-dept-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
-            <option value="all" selected>All Departments</option>
-          </select>
-          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
-        </div>
-
-        <!-- Date / Fiscal Period Selector -->
-        <div class="relative">
-          <select id="report-period-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
-            <option value="all" selected>All Periods</option>
-          </select>
-          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
-        </div>
-
-        <!-- Aggregation Selector -->
-        <div class="relative">
-          <select id="report-agg-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
-            <option value="monthly" selected>Monthly Aggregation</option>
-            <option value="quarterly">Quarterly Aggregation</option>
-            <option value="yearly">Yearly Aggregation</option>
-            <option value="weekly">Weekly Aggregation</option>
-            <option value="daily">Daily Aggregation</option>
-          </select>
-          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
-        </div>
-
-        <!-- Refresh Button -->
-        <button id="btn-refresh-report" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-xs hover:bg-slate-50 transition-all cursor-pointer" title="Refresh Report Data">
-          <span class="material-symbols-outlined text-sm">refresh</span>
-          <span>Refresh</span>
-        </button>
-
-        <!-- Export Dropdown -->
-        <div class="relative" id="export-dropdown-container">
-          <button id="btn-export-report" class="bg-primary text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-opacity-90 transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">download</span>
-            <span>Export Report</span>
-            <span class="material-symbols-outlined text-xs">expand_more</span>
-          </button>
-          
-          <div id="export-menu" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 text-xs">
-            <button id="export-action-csv" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
-              <span class="material-symbols-outlined text-emerald-600 text-sm">table_view</span>
-              <span>Export as CSV</span>
-            </button>
-            <button id="export-action-pdf" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
-              <span class="material-symbols-outlined text-rose-500 text-sm">picture_as_pdf</span>
-              <span>Export as PDF</span>
-            </button>
-            <button id="export-action-print" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
-              <span class="material-symbols-outlined text-indigo-500 text-sm">print</span>
-              <span>Print Statement</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- ======================================================== -->
-    <!-- B. EXECUTIVE FINANCIAL KPI ROW (5 Cards)                -->
-    <!-- ======================================================== -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-      <!-- 1. Total Revenue -->
-      <div class="dash-card custom-shadow">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Total Revenue</span>
-          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
-            <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
-          </div>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 mt-1" id="kpi-total-revenue">₹0</h3>
-        <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
-          <span class="material-symbols-outlined text-xs">trending_up</span>
-          <span id="kpi-revenue-status">Top-Line Inflow</span>
-        </div>
-      </div>
-
-      <!-- 2. Total Expense -->
-      <div class="dash-card custom-shadow">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Total Expense</span>
-          <div class="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center text-rose-500">
-            <span class="material-symbols-outlined text-sm">payments</span>
-          </div>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 mt-1" id="kpi-total-expense">₹0</h3>
-        <div class="flex items-center gap-1 text-[10px] text-slate-500 font-medium mt-1">
-          <span class="material-symbols-outlined text-xs">receipt_long</span>
-          <span id="kpi-expense-status">Operating Expenditures</span>
-        </div>
-      </div>
-
-      <!-- 3. Net Profit -->
-      <div class="dash-card custom-shadow">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Net Profit</span>
-          <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <span class="material-symbols-outlined text-sm">monetization_on</span>
-          </div>
-        </div>
-        <h3 class="text-lg font-bold text-emerald-600 mt-1" id="kpi-net-profit">₹0</h3>
-        <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
-          <span class="material-symbols-outlined text-xs">check_circle</span>
-          <span id="kpi-profit-status">Bottom-Line Return</span>
-        </div>
-      </div>
-
-      <!-- 4. Net Margin -->
-      <div class="dash-card custom-shadow">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Net Margin</span>
-          <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-            <span class="material-symbols-outlined text-sm">pie_chart</span>
-          </div>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 mt-1" id="kpi-net-margin">0.0%</h3>
-        <div class="flex items-center gap-1 text-[10px] text-indigo-600 font-semibold mt-1">
-          <span class="material-symbols-outlined text-xs">percent</span>
-          <span id="kpi-margin-status">Operating Efficiency</span>
-        </div>
-      </div>
-
-      <!-- 5. Budget Status / Variance -->
-      <div class="dash-card custom-shadow">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Budget Status</span>
-          <div class="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
-            <span class="material-symbols-outlined text-sm">balance</span>
-          </div>
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 mt-1" id="kpi-budget-status">—</h3>
-        <div class="flex items-center gap-1 text-[10px] text-slate-500 font-medium mt-1">
-          <span class="material-symbols-outlined text-xs" id="kpi-budget-icon">info</span>
-          <span id="kpi-budget-variance">Variance Track</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======================================================== -->
-    <!-- C. P&L PERFORMANCE OVERVIEW (Large Primary Chart)        -->
-    <!-- ======================================================== -->
-    <section class="dash-card custom-shadow flex flex-col justify-between">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-        <div>
-          <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-sm text-primary">show_chart</span>
-            <span>Revenue vs Expense vs Net Profit</span>
-          </h2>
-          <p class="text-[10px] text-slate-500 mt-0.5">Historical financial trajectory, expense burdens, and profit generation over time</p>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <!-- Legend -->
-          <div class="flex items-center gap-2.5 text-[10px] font-medium text-slate-600">
-            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3B82F6]"></span> Revenue</span>
-            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#EF4444]"></span> Expense</span>
-            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#10B981]"></span> Net Profit</span>
-          </div>
-
-          <!-- Chart Controls -->
-          <div class="flex items-center gap-0.5 border-l border-slate-200 pl-2 text-slate-400">
-            <button id="zoom-in-pnl" title="Zoom In" class="p-1 hover:text-slate-700 transition"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
-            <button id="zoom-out-pnl" title="Zoom Out" class="p-1 hover:text-slate-700 transition"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
-            <button id="zoom-reset-pnl" title="Reset View" class="p-1 hover:text-slate-700 transition"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chart Canvas Container -->
-      <div class="w-full h-72 relative" id="chart-pnl-trend-container">
-        <div id="chart-pnl-trend" class="w-full h-72"></div>
-        <div id="pnl-trend-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/90 text-slate-400 text-xs">
-          <span class="material-symbols-outlined text-2xl mb-1 text-slate-300">query_stats</span>
-          <span>No data available for the selected period.</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======================================================== -->
-    <!-- D. DEPARTMENT PERFORMANCE & E. BUDGET VS ACTUAL (2 Col)  -->
-    <!-- ======================================================== -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+  <!-- Main Content Shell (Explicit ml-[240px] matching standard platform shell) -->
+  <main class="ml-[240px] min-h-screen p-6 pb-16 bg-[#F8FAFC]">
+    <div class="w-full space-y-5">
       
-      <!-- D. Department Performance Visualization (Col 7/12) -->
-      <section class="lg:col-span-7 dash-card custom-shadow flex flex-col justify-between">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-          <div>
-            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm text-blue-600">corporate_fare</span>
-              <span>Department Performance</span>
-            </h3>
-            <p class="text-[10px] text-slate-500 mt-0.5">Comparative division breakdown of revenue, expenses, and profitability</p>
+      <!-- ======================================================== -->
+      <!-- SECTION 4: PAGE HEADER & GLOBAL CONTROLS                 -->
+      <!-- ======================================================== -->
+      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Reports</h1>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="active-dataset-pill">Active Dataset</span>
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-0.5">Generate, review and export financial performance reports</p>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="flex items-center flex-wrap gap-2.5">
+          <!-- Department Selector -->
+          <div class="relative">
+            <select id="report-dept-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+              <option value="all" selected>All Departments</option>
+            </select>
+            <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
           </div>
 
-          <!-- Metric Switch Buttons -->
-          <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg" id="dept-metric-switch">
-            <button data-metric="all" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-900 shadow-xs cursor-pointer">All</button>
-            <button data-metric="profit" class="px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Profit</button>
-            <button data-metric="revenue" class="px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Revenue</button>
-            <button data-metric="expense" class="px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Expense</button>
-            <button data-metric="margin" class="px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Margin %</button>
+          <!-- Fiscal Year / Date Period Selector -->
+          <div class="relative">
+            <select id="report-period-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+              <option value="all" selected>All Periods</option>
+            </select>
+            <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+          </div>
+
+          <!-- Report Period / Aggregation Selector -->
+          <div class="relative">
+            <select id="report-agg-select" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+              <option value="monthly" selected>Monthly Aggregation</option>
+              <option value="quarterly">Quarterly Aggregation</option>
+              <option value="yearly">Yearly Aggregation</option>
+              <option value="weekly">Weekly Aggregation</option>
+              <option value="daily">Daily Aggregation</option>
+            </select>
+            <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+          </div>
+
+          <!-- Generate Report Button -->
+          <button id="btn-generate-report" class="bg-slate-900 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-slate-800 transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-sm" id="generate-icon">play_arrow</span>
+            <span>Generate Report</span>
+          </button>
+
+          <!-- Export Dropdown -->
+          <div class="relative" id="export-dropdown-container">
+            <button id="btn-export-report" class="bg-primary text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-opacity-90 transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-sm">download</span>
+              <span>Export</span>
+              <span class="material-symbols-outlined text-xs">expand_more</span>
+            </button>
+            
+            <div id="export-menu" class="hidden absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 text-xs">
+              <button id="export-action-csv" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
+                <span class="material-symbols-outlined text-emerald-600 text-sm">table_view</span>
+                <span>Export CSV / Excel</span>
+              </button>
+              <button id="export-action-pdf" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
+                <span class="material-symbols-outlined text-rose-500 text-sm">picture_as_pdf</span>
+                <span>Export PDF Report</span>
+              </button>
+              <button id="export-action-print" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700">
+                <span class="material-symbols-outlined text-indigo-500 text-sm">print</span>
+                <span>Print Statement</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 5: REPORT EXECUTIVE SUMMARY (4 KPI CARDS)        -->
+      <!-- ======================================================== -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Total Revenue -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Total Revenue</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+              <span class="material-symbols-outlined text-base">savings</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-total-revenue">₹0</h3>
+            <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+              <span class="material-symbols-outlined text-xs">trending_up</span>
+              <span id="kpi-revenue-status">Top-Line Inflow</span>
+            </div>
           </div>
         </div>
 
-        <div class="w-full h-64 relative">
-          <div id="chart-department-performance" class="w-full h-64"></div>
-          <div id="dept-chart-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/90 text-slate-400 text-xs">
-            <span class="material-symbols-outlined text-2xl mb-1 text-slate-300">bar_chart</span>
+        <!-- 2. Total Expenses -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Total Expenses</span>
+            <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+              <span class="material-symbols-outlined text-base">payments</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-total-expense">₹0</h3>
+            <div class="flex items-center gap-1 text-[10px] text-slate-500 font-medium mt-1">
+              <span class="material-symbols-outlined text-xs">receipt_long</span>
+              <span id="kpi-expense-status">Operating Expenditures</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Net Profit -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Net Profit</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+              <span class="material-symbols-outlined text-base">monetization_on</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-emerald-600 tracking-tight" id="kpi-net-profit">₹0</h3>
+            <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
+              <span class="material-symbols-outlined text-xs">check_circle</span>
+              <span id="kpi-profit-status">Bottom-Line Return</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Profit Margin -->
+        <div class="dash-kpi custom-shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Profit Margin</span>
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+              <span class="material-symbols-outlined text-base">percent</span>
+            </div>
+          </div>
+          <div class="mt-2">
+            <h3 class="text-xl font-bold text-slate-900 tracking-tight" id="kpi-net-margin">0.0%</h3>
+            <div class="flex items-center gap-1 text-[10px] text-indigo-600 font-semibold mt-1">
+              <span class="material-symbols-outlined text-xs">pie_chart</span>
+              <span id="kpi-margin-status">Operating Margin</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 6 & 7: MAIN FINANCIAL PERFORMANCE REPORT CHART   -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow w-full">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-base text-primary">show_chart</span>
+              <span>Financial Performance Trajectory</span>
+            </h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Historical trend of Revenue, Operating Expenses, and Net Profit across time periods</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Custom Legend -->
+            <div class="flex items-center gap-3 text-[11px] font-medium text-slate-600">
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span> Revenue</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span> Expense</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span> Net Profit</span>
+            </div>
+
+            <!-- Interactive Zoom Controls -->
+            <div class="flex items-center gap-1 border-l border-slate-200 pl-2 text-slate-400">
+              <button id="zoom-in-pnl" title="Zoom In" class="p-1 rounded hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                <span class="material-symbols-outlined text-sm">zoom_in</span>
+              </button>
+              <button id="zoom-out-pnl" title="Zoom Out" class="p-1 rounded hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                <span class="material-symbols-outlined text-sm">zoom_out</span>
+              </button>
+              <button id="zoom-reset-pnl" title="Reset View" class="p-1 rounded hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer">
+                <span class="material-symbols-outlined text-sm">restart_alt</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary ECharts Trend Canvas -->
+        <div class="w-full relative" style="height: 320px;" id="chart-pnl-trend-container">
+          <div id="chart-pnl-trend" style="width: 100%; height: 320px;"></div>
+          <div id="pnl-trend-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/95 text-slate-400 text-xs">
+            <span class="material-symbols-outlined text-3xl mb-1 text-slate-300">query_stats</span>
+            <span>No financial data available for the selected parameters.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 8 & 9: DEPARTMENT PERFORMANCE & PROFITABILITY    -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow w-full">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-base text-blue-600">corporate_fare</span>
+              <span>Department Performance &amp; Profitability Contribution</span>
+            </h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">Comparative division breakdown of revenue, operating expenses, profitability, and margins</p>
+          </div>
+
+          <!-- Metric Switcher -->
+          <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg" id="dept-metric-switch">
+            <button data-metric="all" class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-white text-slate-900 shadow-xs cursor-pointer">All Metrics</button>
+            <button data-metric="profit" class="px-2.5 py-1 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Net Profit</button>
+            <button data-metric="revenue" class="px-2.5 py-1 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Revenue</button>
+            <button data-metric="expense" class="px-2.5 py-1 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Expense</button>
+            <button data-metric="margin" class="px-2.5 py-1 rounded-md text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">Margin %</button>
+          </div>
+        </div>
+
+        <!-- Department Bar Chart Canvas -->
+        <div class="w-full relative" style="height: 300px;">
+          <div id="chart-department-performance" style="width: 100%; height: 300px;"></div>
+          <div id="dept-chart-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/95 text-slate-400 text-xs">
+            <span class="material-symbols-outlined text-3xl mb-1 text-slate-300">bar_chart</span>
             <span>No department records available.</span>
           </div>
         </div>
       </section>
 
-      <!-- E. Budget vs Actual Section (Col 5/12) -->
-      <section class="lg:col-span-5 dash-card custom-shadow flex flex-col justify-between">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm text-purple-600">balance</span>
-              <span>Budget vs. Actual Variance</span>
-            </h3>
-            <p class="text-[10px] text-slate-500 mt-0.5">Budget discipline, over-spend alerts, and variance distribution</p>
+      <!-- ======================================================== -->
+      <!-- SECTION 10: REPORT DETAILS FINANCIAL TABLE               -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow w-full">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-slate-700">table_chart</span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Financial Details Statement</h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Departmental rankings, gross revenue, operating expense, net profit, and margin performance</p>
+            </div>
           </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-100" id="budget-summary-badge">Audit</span>
+          <span class="text-[11px] text-slate-500 font-medium" id="table-row-count">Showing active records</span>
         </div>
 
-        <!-- Budget Content / Graceful Fallback Container -->
-        <div id="budget-content-wrapper" class="flex-1 flex flex-col justify-between">
-          <!-- Populated dynamically: either budget comparison bars or graceful unavailable card -->
+        <div class="overflow-x-auto w-full border border-slate-200 rounded-xl custom-scroll">
+          <table class="w-full text-left border-collapse text-xs" id="table-financial-summary">
+            <thead>
+              <tr class="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200 bg-slate-50/80">
+                <th class="px-4 py-3 font-bold sortable-th w-16" data-col="rank">
+                  <div class="flex items-center gap-1">
+                    <span>Rank</span>
+                    <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
+                  </div>
+                </th>
+                <th class="px-4 py-3 font-bold sortable-th" data-col="department">
+                  <div class="flex items-center gap-1">
+                    <span>Department</span>
+                    <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
+                  </div>
+                </th>
+                <th class="px-4 py-3 font-bold text-right sortable-th" data-col="revenue">
+                  <div class="flex items-center justify-end gap-1">
+                    <span>Revenue</span>
+                    <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
+                  </div>
+                </th>
+                <th class="px-4 py-3 font-bold text-right sortable-th" data-col="expense">
+                  <div class="flex items-center justify-end gap-1">
+                    <span>Expenses</span>
+                    <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
+                  </div>
+                </th>
+                <th class="px-4 py-3 font-bold text-right sortable-th" data-col="profit">
+                  <div class="flex items-center justify-end gap-1">
+                    <span>Net Profit</span>
+                    <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
+                  </div>
+                </th>
+                <th class="px-4 py-3 font-bold text-right sortable-th" data-col="margin">
+                  <div class="flex items-center justify-end gap-1">
+                    <span>Margin %</span>
+                    <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
+                  </div>
+                </th>
+                <th class="px-4 py-3 font-bold text-left min-w-[140px]">Profit Contribution</th>
+                <th class="px-4 py-3 font-bold text-center w-28">Status</th>
+              </tr>
+            </thead>
+            <tbody id="summary-table-body" class="divide-y divide-slate-100 text-slate-700 bg-white">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
         </div>
       </section>
-    </div>
 
-    <!-- ======================================================== -->
-    <!-- F. FINANCIAL SUMMARY STATEMENT (Sortable Table)          -->
-    <!-- ======================================================== -->
-    <section class="dash-card custom-shadow">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-base text-slate-700">table_chart</span>
-          <div>
-            <h3 class="text-xs font-bold text-slate-900">Financial Summary Statement</h3>
-            <p class="text-[10px] text-slate-500 mt-0.5">Comprehensive departmental line items, operating margins, and variance percentages</p>
-          </div>
+      <!-- ======================================================== -->
+      <!-- SECTION 11: FINANCIAL MANAGEMENT INSIGHTS                -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow w-full bg-gradient-to-r from-white via-white to-indigo-50/20">
+        <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+          <span class="material-symbols-outlined text-primary text-base">auto_awesome</span>
+          <h3 class="text-sm font-bold text-slate-900">Financial Insights</h3>
+          <span class="text-[11px] text-slate-400 font-normal hidden sm:inline">| Grounded executive takeaways from active report data</span>
         </div>
-        <span class="text-[10px] text-slate-400 font-medium" id="table-row-count">Showing active records</span>
-      </div>
 
-      <div class="overflow-x-auto border border-slate-100 rounded-xl">
-        <table class="w-full text-left border-collapse text-xs" id="table-financial-summary">
-          <thead>
-            <tr class="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200 bg-slate-50/70">
-              <th class="px-4 py-2.5 font-bold sortable-th" data-col="department">
-                <div class="flex items-center gap-1">
-                  <span>Department</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-right sortable-th" data-col="revenue">
-                <div class="flex items-center justify-end gap-1">
-                  <span>Revenue</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-right sortable-th" data-col="expense">
-                <div class="flex items-center justify-end gap-1">
-                  <span>Expense</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-right sortable-th" data-col="profit">
-                <div class="flex items-center justify-end gap-1">
-                  <span>Net Profit</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-right sortable-th" data-col="margin">
-                <div class="flex items-center justify-end gap-1">
-                  <span>Margin %</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-right sortable-th" data-col="budget">
-                <div class="flex items-center justify-end gap-1">
-                  <span>Budget</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-right sortable-th" data-col="variance">
-                <div class="flex items-center justify-end gap-1">
-                  <span>Variance</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-right sortable-th" data-col="variance_pct">
-                <div class="flex items-center justify-end gap-1">
-                  <span>Variance %</span>
-                  <span class="material-symbols-outlined text-[10px] text-slate-400">unfold_more</span>
-                </div>
-              </th>
-              <th class="px-4 py-2.5 font-bold text-center">Status</th>
-            </tr>
-          </thead>
-          <tbody id="summary-table-body" class="divide-y divide-slate-100 text-slate-700">
-            <!-- Populated dynamically -->
-          </tbody>
-        </table>
-      </div>
-    </section>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs" id="management-insights-container">
+          <!-- Populated dynamically from actual calculations -->
+        </div>
+      </section>
 
-    <!-- ======================================================== -->
-    <!-- G. KEY FINANCIAL MANAGEMENT INSIGHTS                     -->
-    <!-- ======================================================== -->
-    <section class="dash-card custom-shadow bg-gradient-to-r from-white to-indigo-50/30">
-      <div class="flex items-center gap-2 mb-3">
-        <span class="material-symbols-outlined text-primary text-base">auto_awesome</span>
-        <h3 class="text-xs font-bold text-slate-900">Key Financial Insights</h3>
-        <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">| Grounded executive takeaways from active report data</span>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs" id="management-insights-container">
-        <!-- Populated dynamically from actual calculations -->
-      </div>
-    </section>
-
+    </div>
   </main>
 
   <script type="module" src="js/reports.js"></script>

@@ -778,6 +778,8 @@ def main() -> None:
         "--log-level",
         "info",
     ]
+    creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+
     info(f"Spawning backend: {' '.join(backend_cmd)}")
     manager.backend_proc = subprocess.Popen(
         backend_cmd,
@@ -786,6 +788,7 @@ def main() -> None:
         stdin=subprocess.DEVNULL,
         stdout=manager.backend_log_file,
         stderr=subprocess.STDOUT,
+        creationflags=creation_flags,
     )
     write_pid("backend", manager.backend_proc.pid)
     ok(f"Backend process spawned (PID {manager.backend_proc.pid})")
@@ -819,6 +822,7 @@ def main() -> None:
         stdin=subprocess.DEVNULL,
         stdout=manager.frontend_log_file,
         stderr=subprocess.STDOUT,
+        creationflags=creation_flags,
     )
     write_pid("frontend", manager.frontend_proc.pid)
     ok(f"Frontend process spawned (PID {manager.frontend_proc.pid})")
