@@ -31,36 +31,56 @@ router = APIRouter()
 
 @router.get("/data")
 def get_report_data(
-    report_type: str = Query("executive", description="executive | department | variance | anomaly | forecast"),
+    report_type: str = Query("executive", description="executive | department | variance | anomaly | forecast | all"),
     dept: str = Query("all", description="Department filter or 'all'"),
-    period: str = Query("monthly", description="monthly | weekly | quarterly | yearly"),
+    period: str = Query("all", description="Fiscal year, period filter, or 'all'"),
+    agg: str = Query("monthly", description="daily | weekly | monthly | quarterly | yearly"),
     db: Session = Depends(get_db)
 ):
     """
     Produce live, canonical dataset metrics and structured tables for interactive report previews.
+    Supports dynamic department filtering, aggregation frequency, and time-range filtering.
     """
+    from services.metric_engine import MetricEngine
+    from routers.datasets_router import get_active_dataset_id
+    from services.pl_service import ensure_demo_data
+
+    ensure_demo_data(db)
     ctx = get_financial_context_and_calc(db)
     ent = ctx["enterprise"]
     depts: Dict[str, Dict[str, Any]] = ctx["departments"]
     dataset_name = ctx["dataset_name"]
     fc = ctx["forecast"]
-    summary_df = ctx.get("summary_df")
+    active_id = ctx.get("dataset_id") or get_active_dataset_id(db)
 
     now_str = datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
 
-    # Filter departments if specified
-    filtered_depts = depts
-    if dept and dept != "all" and dept in depts:
-        filtered_depts = {dept: depts[dept]}
-
-    # Build trend periods from summary_df or active records
-    from services.metric_engine import MetricEngine
-    active_id = ctx.get("dataset_id")
     me = MetricEngine(db, active_id)
-    agg_dept = None if dept == "all" else dept
-    df = me.aggregate_data(period, dept=agg_dept)
+    profile = me.get_active_profile()
 
-    periods: List[str] = []
+    # Determine resolved department
+    resolved_dept = me._resolve_dept_name(dept)
+    agg_dept = resolved_dept if resolved_dept else None
+
+    # Filter departments list
+    departments_list = sorted(list(depts.keys())) if depts else []
+    if resolved_dept and resolved_dept in depts:
+        filtered_depts = {resolved_dept: depts[resolved_dept]}
+    elif resolved_dept:
+        # Match case-insensitively
+        match_k = next((k for k in depts if k.lower() == resolved_dept.lower()), None)
+        filtered_depts = {match_k: depts[match_k]} if match_k else depts
+    else:
+        filtered_depts = depts
+
+    # ── Trend Series from MetricEngine ────────────────────────────
+    df = me.aggregate_data(agg, dept=agg_dept)
+    
+    # Filter by period if specific year provided (e.g., '2024')
+    if period and period.lower() not in ["all", "overall", "all periods"] and not df.empty and "period" in df.columns:
+        df = df[df["period"].astype(str).str.startswith(period)]
+
+    trend_periods: List[str] = []
     rev_series: List[float] = []
     exp_series: List[float] = []
     prof_series: List[float] = []
@@ -70,218 +90,179 @@ def get_report_data(
             p_val = str(row.get("period", ""))
             r_val = float(row.get("revenue", 0.0))
             e_val = float(row.get("expense", 0.0))
-            periods.append(p_val)
+            trend_periods.append(p_val)
             rev_series.append(r_val)
             exp_series.append(e_val)
             prof_series.append(r_val - e_val)
 
-    # ─────────────────────────────────────────────────────────────
-    # 1. EXECUTIVE P&L REPORT
-    # ─────────────────────────────────────────────────────────────
-    if report_type == "executive":
-        dept_rows = sorted(filtered_depts.values(), key=lambda x: x["profit"], reverse=True)
-        top_d = dept_rows[0] if dept_rows else {}
-        low_d = dept_rows[-1] if dept_rows else {}
-
-        narrative = (
-            f"The enterprise generated {format_inr(ent['revenue'])} in total revenue against {format_inr(ent['expense'])} "
-            f"in operating expenditures, yielding a Net Profit of {format_inr(ent['profit'])} ({ent['margin']:.2f}% operating margin). "
-            f"{top_d.get('department', 'Top unit')} is the leading profitability contributor with {format_inr(top_d.get('profit'))}."
-        )
-
-        return {
-            "report_type": "executive",
-            "title": "Executive P&L Performance Report",
-            "description": "Comprehensive top-line, cost structure, and net margin analysis across operating divisions.",
-            "dataset_name": dataset_name,
-            "generated_at": now_str,
-            "kpis": {
-                "primary_metric": "Total Revenue",
-                "primary_value": ent["revenue"],
-                "secondary_metric": "Total Expenses",
-                "secondary_value": ent["expense"],
-                "net_profit": ent["profit"],
-                "operating_margin": ent["margin"],
-                "total_anomalies": ent["total_anomalies"],
-            },
-            "trend": {
-                "periods": periods,
-                "revenue": rev_series,
-                "expenses": exp_series,
-                "profit": prof_series,
-            },
-            "departments": dept_rows,
-            "drivers": [
-                f"Operating margin across the enterprise averages {ent['margin']:.1f}%.",
-                f"Leading profit contributor is {top_d.get('department')} ({format_inr(top_d.get('profit'))}).",
-                f"{ent['critical_anomalies']} critical ledger anomalies identified in ML surveillance.",
-            ],
-            "narrative_summary": narrative,
-        }
-
-    # ─────────────────────────────────────────────────────────────
-    # 2. DEPARTMENT PERFORMANCE REPORT
-    # ─────────────────────────────────────────────────────────────
-    elif report_type == "department":
-        dept_rows = sorted(filtered_depts.values(), key=lambda x: x["profit"], reverse=True)
-        top_prof = dept_rows[0] if dept_rows else {}
-        top_rev = max(filtered_depts.values(), key=lambda x: x["revenue"]) if filtered_depts else {}
-
-        narrative = (
-            f"Department performance review across {len(filtered_depts)} operating units. "
-            f"{top_prof.get('department')} leads all departments with {format_inr(top_prof.get('profit'))} Net Profit ({top_prof.get('margin', 0):.1f}% margin), "
-            f"while {top_rev.get('department')} generated the highest gross revenue at {format_inr(top_rev.get('revenue'))}."
-        )
-
-        return {
-            "report_type": "department",
-            "title": "Department Financial Performance & Contribution",
-            "description": "Detailed departmental breakdown of revenue, OPEX allocation, net margin, and profitability ranks.",
-            "dataset_name": dataset_name,
-            "generated_at": now_str,
-            "kpis": {
-                "tracked_departments": len(filtered_depts),
-                "top_performing_dept": top_prof.get("department", "N/A"),
-                "top_dept_profit": top_prof.get("profit", 0.0),
-                "top_revenue_dept": top_rev.get("department", "N/A"),
-                "top_dept_revenue": top_rev.get("revenue", 0.0),
-            },
-            "trend": {
-                "periods": periods,
-                "revenue": rev_series,
-                "expenses": exp_series,
-                "profit": prof_series,
-            },
-            "departments": dept_rows,
-            "drivers": [
-                f"{top_prof.get('department')} delivers the highest profit margin in the enterprise.",
-                f"Revenue distribution is diversified across {len(filtered_depts)} operating units.",
-                f"Margin spread ranges from {min((d['margin'] for d in dept_rows), default=0):.1f}% to {max((d['margin'] for d in dept_rows), default=0):.1f}%.",
-            ],
-            "narrative_summary": narrative,
-        }
-
-    # ─────────────────────────────────────────────────────────────
-    # 3. VARIANCE REPORT (BUDGET VS ACTUAL)
-    # ─────────────────────────────────────────────────────────────
-    elif report_type == "variance":
-        dept_rows = sorted(filtered_depts.values(), key=lambda x: x["variance"], reverse=True)
-        over_budget = [d for d in dept_rows if d["budget"] > 0 and d["variance"] > 0]
-        tot_budget = sum(d["budget"] for d in dept_rows)
-        tot_spend = sum(d["expense"] for d in dept_rows)
-        net_variance = tot_spend - tot_budget
-        net_var_pct = (net_variance / tot_budget * 100) if tot_budget > 0 else 0.0
-
-        narrative = (
-            f"Budget variance audit reflects {len(over_budget)} departments currently operating over budget. "
-            f"Total actual expenditure of {format_inr(tot_spend)} compares against an allocated budget baseline of {format_inr(tot_budget)} "
-            f"({abs(net_var_pct):.1f}% {'over' if net_variance > 0 else 'under'} budget)."
-        )
-
-        return {
-            "report_type": "variance",
-            "title": "Budget vs. Actual Variance Audit Report",
-            "description": "Comparative analysis of departmental spend against allocated budget targets with variance percentages.",
-            "dataset_name": dataset_name,
-            "generated_at": now_str,
-            "kpis": {
-                "total_budget": tot_budget,
-                "total_actual_spend": tot_spend,
-                "net_variance": net_variance,
-                "variance_percentage": net_var_pct,
-                "over_budget_count": len(over_budget),
-            },
-            "trend": {
-                "periods": periods,
-                "expenses": exp_series,
-            },
-            "departments": dept_rows,
-            "drivers": [
-                f"{len(over_budget)} departments require budgetary remediation or target realignment." if over_budget else "All departments operating within allocated targets.",
-                f"Highest cost department is {dept_rows[0].get('department') if dept_rows else 'N/A'}.",
-            ],
-            "narrative_summary": narrative,
-        }
-
-    # ─────────────────────────────────────────────────────────────
-    # 4. ANOMALY & RISK REPORT
-    # ─────────────────────────────────────────────────────────────
-    elif report_type == "anomaly":
-        dept_rows = sorted(filtered_depts.values(), key=lambda x: x["anomalies_count"], reverse=True)
-        top_risk = dept_rows[0] if dept_rows else {}
-
-        narrative = (
-            f"Automated risk surveillance detected {ent['total_anomalies']} ledger anomalies across active records, "
-            f"including {ent['critical_anomalies']} critical and {ent['high_anomalies']} high-severity outliers. "
-            f"{top_risk.get('department')} exhibits the highest concentration with {top_risk.get('anomalies_count')} flagged items."
-        )
-
-        return {
-            "report_type": "anomaly",
-            "title": "Machine Learning Anomaly & Audit Risk Report",
-            "description": "Risk distribution, severity breakdown, and department vulnerability assessment from ML surveillance.",
-            "dataset_name": dataset_name,
-            "generated_at": now_str,
-            "kpis": {
-                "total_anomalies": ent["total_anomalies"],
-                "critical_count": ent["critical_anomalies"],
-                "high_count": ent["high_anomalies"],
-                "medium_count": ent["medium_anomalies"],
-                "low_count": ent["low_anomalies"],
-            },
-            "trend": {
-                "periods": periods,
-            },
-            "departments": dept_rows,
-            "drivers": [
-                f"{top_risk.get('department')} has the highest anomaly exposure ({top_risk.get('anomalies_count')} outliers).",
-                f"{ent['critical_anomalies']} critical severity entries require immediate financial controller verification.",
-            ],
-            "narrative_summary": narrative,
-        }
-
-    # ─────────────────────────────────────────────────────────────
-    # 5. FORECAST & PREDICTIVE TRAJECTORY REPORT
-    # ─────────────────────────────────────────────────────────────
+    # ── Calculate Aggregated KPIs ─────────────────────────────────
+    if resolved_dept and resolved_dept in depts:
+        d_info = depts[resolved_dept]
+        total_rev = d_info["revenue"]
+        total_exp = d_info["expense"]
+        net_prof = d_info["profit"]
+        net_margin = d_info["margin"]
+        total_anom = d_info["anomalies_count"]
+    elif not df.empty:
+        total_rev = sum(rev_series)
+        total_exp = sum(exp_series)
+        net_prof = total_rev - total_exp
+        net_margin = (net_prof / total_rev * 100) if total_rev > 0 else 0.0
+        total_anom = ent.get("total_anomalies", 0)
     else:
-        dept_rows = sorted(filtered_depts.values(), key=lambda x: x["profit"], reverse=True)
-        exp_case = fc.get("expected_case", ent["profit"]) if fc else ent["profit"]
-        best_case = fc.get("best_case", exp_case * 1.15) if fc else exp_case * 1.15
-        worst_case = fc.get("worst_case", exp_case * 0.85) if fc else exp_case * 0.85
-        conf_score = (fc.get("confidence_score", 0.95) * 100) if fc else 95.0
-        trend_dir = fc.get("trend_direction", "stable") if fc else "stable"
+        total_rev = ent["revenue"]
+        total_exp = ent["expense"]
+        net_prof = ent["profit"]
+        net_margin = ent["margin"]
+        total_anom = ent.get("total_anomalies", 0)
 
-        narrative = (
-            f"Predictive modeling projects an expected net profit trajectory of {format_inr(exp_case)} over the forward 12-period horizon "
-            f"(Confidence: {conf_score:.1f}%, Trend: {trend_dir.capitalize()}). Multi-scenario projections range between {format_inr(worst_case)} (downside) "
-            f"and {format_inr(best_case)} (optimistic upside)."
+    # ── Budget Analysis (Dataset-grounded) ─────────────────────────
+    db_budgets = db.query(DepartmentBudget).all()
+    has_budget = bool(profile.get("capabilities", {}).get("budget", False)) or (len(db_budgets) > 0)
+
+    total_budget = None
+    budget_variance = None
+    budget_variance_pct = 0.0
+    budget_status = "Budget data unavailable for this dataset"
+
+    if has_budget:
+        if resolved_dept:
+            b_val = sum(b.budget_amount for b in db_budgets if b.department.lower() == resolved_dept.lower())
+            total_budget = b_val if b_val > 0 else None
+        else:
+            b_val = sum(b.budget_amount for b in db_budgets)
+            total_budget = b_val if b_val > 0 else None
+
+        if total_budget and total_budget > 0:
+            budget_variance = total_exp - total_budget
+            budget_variance_pct = (budget_variance / total_budget * 100)
+            budget_status = "On Budget" if budget_variance <= 0 else "Over Budget"
+
+    # ── Department Performance Rows ───────────────────────────────
+    dept_rows = []
+    for d_name, d_val in sorted(filtered_depts.items(), key=lambda x: x[1]["profit"], reverse=True):
+        d_budget = d_val.get("budget", 0.0)
+        d_has_budget = has_budget and d_budget > 0
+        d_var = (d_val["expense"] - d_budget) if d_has_budget else None
+        d_var_pct = ((d_var / d_budget) * 100) if d_has_budget and d_budget > 0 else None
+        d_status = "On Budget" if (d_has_budget and d_var <= 0) else ("Over Budget" if d_has_budget else "—")
+        
+        dept_rows.append({
+            "department": d_name,
+            "revenue": d_val["revenue"],
+            "expense": d_val["expense"],
+            "profit": d_val["profit"],
+            "margin": d_val["margin"],
+            "has_budget": d_has_budget,
+            "budget": d_budget if d_has_budget else None,
+            "variance": d_var,
+            "variance_pct": d_var_pct,
+            "status": d_status,
+            "anomalies_count": d_val.get("anomalies_count", 0),
+            "critical_anomalies": d_val.get("critical_anomalies", 0),
+        })
+
+    # Available Periods for dropdown
+    all_period_query = me._base_query().with_entities(PLRecord.period).distinct().all()
+    years_set = sorted(list({str(p[0])[:4] for p in all_period_query if p[0] and len(str(p[0])) >= 4}))
+    periods_list = ["All Periods"] + years_set
+
+    # ── Management Insights ───────────────────────────────────────
+    top_profit_dept = dept_rows[0] if dept_rows else {}
+    top_rev_dept = max(dept_rows, key=lambda x: x["revenue"]) if dept_rows else {}
+    low_margin_dept = min(dept_rows, key=lambda x: x["margin"]) if dept_rows else {}
+    
+    insights = []
+    insights.append(
+        f"Total enterprise revenue reached {format_inr(total_rev)} with an aggregate operating margin of {net_margin:.1f}%."
+    )
+    if top_profit_dept:
+        insights.append(
+            f"{top_profit_dept.get('department')} is the primary profit anchor, generating {format_inr(top_profit_dept.get('profit', 0))} in net profitability ({top_profit_dept.get('margin', 0):.1f}% margin)."
+        )
+    if top_rev_dept and top_rev_dept.get("department") != top_profit_dept.get("department"):
+        insights.append(
+            f"{top_rev_dept.get('department')} drove the highest gross revenue volume at {format_inr(top_rev_dept.get('revenue', 0))}."
+        )
+    if low_margin_dept and low_margin_dept.get("margin", 100) < net_margin:
+        insights.append(
+            f"{low_margin_dept.get('department')} operates at the narrowest margin ({low_margin_dept.get('margin', 0):.1f}%), presenting an opportunity for cost rationalization."
+        )
+    if has_budget and total_budget:
+        insights.append(
+            f"Budget variance across tracked units stands at {format_inr(abs(budget_variance))} ({abs(budget_variance_pct):.1f}% {'over' if budget_variance > 0 else 'under'} budget)."
+        )
+    else:
+        insights.append(
+            "Budget baseline data is not defined for the active dataset; calculations reflect actual historical revenue and spend."
+        )
+    if ent.get("critical_anomalies", 0) > 0:
+        insights.append(
+            f"Machine learning surveillance flagged {ent.get('critical_anomalies')} critical ledger outliers requiring audit verification."
         )
 
-        return {
-            "report_type": "forecast",
-            "title": "Predictive Forecast & Horizon Trajectory Report",
-            "description": "Statistical time-series forecasting, confidence intervals, and sensitivity scenarios.",
-            "dataset_name": dataset_name,
-            "generated_at": now_str,
-            "kpis": {
-                "expected_profit": exp_case,
-                "best_case_profit": best_case,
-                "worst_case_profit": worst_case,
-                "confidence_score": conf_score,
-                "trend_direction": trend_dir,
-            },
-            "trend": {
-                "periods": periods,
-                "actual": prof_series,
-                "forecast": [exp_case / len(periods) if periods else 0] * len(periods),
-            },
+    narrative = (
+        f"Executive Financial Report for {dataset_name}. The enterprise generated {format_inr(total_rev)} in revenue "
+        f"and {format_inr(total_exp)} in expenditures, delivering {format_inr(net_prof)} Net Profit ({net_margin:.2f}% operating margin). "
+        f"{top_profit_dept.get('department', 'Top Unit')} leads departmental profitability."
+    )
+
+    return {
+        "report_type": report_type,
+        "title": "Executive Financial Performance & Variance Report",
+        "description": "Executive financial performance, profitability and variance analysis across operating units.",
+        "dataset_name": dataset_name,
+        "generated_at": now_str,
+        "active_filters": {
+            "dept": dept,
+            "period": period,
+            "agg": agg,
+        },
+        "departments_list": departments_list,
+        "periods_list": periods_list,
+        "kpis": {
+            "total_revenue": total_rev,
+            "total_expense": total_exp,
+            "net_profit": net_prof,
+            "net_margin": net_margin,
+            "has_budget": has_budget,
+            "total_budget": total_budget,
+            "budget_variance": budget_variance,
+            "budget_variance_pct": budget_variance_pct,
+            "budget_status": budget_status,
+            "total_anomalies": total_anom,
+            "tracked_departments": len(filtered_depts),
+        },
+        "pnl_trend": {
+            "periods": trend_periods,
+            "revenue": rev_series,
+            "expenses": exp_series,
+            "profit": prof_series,
+        },
+        # Backwards compatible key for trend
+        "trend": {
+            "periods": trend_periods,
+            "revenue": rev_series,
+            "expenses": exp_series,
+            "profit": prof_series,
+        },
+        "department_performance": dept_rows,
+        "departments": dept_rows,
+        "budget_vs_actual": {
+            "has_budget": has_budget,
+            "message": "Budget data unavailable for this dataset" if not has_budget else "",
+            "total_actual": total_exp,
+            "total_budget": total_budget,
+            "total_variance": budget_variance,
+            "total_variance_pct": budget_variance_pct,
+            "status": budget_status,
             "departments": dept_rows,
-            "drivers": [
-                f"Prediction model: {fc.get('model_used', 'Linear Regression (OLS)') if fc else 'Linear Regression'}.",
-                f"Historical baseline indicates {format_inr(ent['profit'])} Net Profit with {ent['margin']:.1f}% margin.",
-            ],
-            "narrative_summary": narrative,
-        }
+        },
+        "financial_summary": dept_rows,
+        "management_insights": insights,
+        "drivers": insights,
+        "narrative_summary": narrative,
+    }
 
 @router.get("/csv")
 def get_csv_report(

@@ -235,12 +235,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function loadRevExpChart(dept = 'all', agg = 'monthly') {
     if (!revExpChart) return;
     try {
-      const data = await api.get(`/api/v1/pl/charts?dept=${dept}&agg=${agg}`);
-      if (data && data.periods && data.periods.length > 0) {
-        const periods = data.periods;
-        const revVals = (data.revenue_trend || []).map(r => r.value);
-        const expVals = (data.expense_trend || []).map(r => r.value);
-        const profVals = (data.profit_trend || []).map(r => r.value);
+      const data = await api.get(`/api/v1/pl/charts?dept=${encodeURIComponent(dept)}&agg=${encodeURIComponent(agg)}`);
+      if (!data || !data.periods || data.periods.length === 0) {
+        revExpChart.clear();
+        return;
+      }
+      const periods = data.periods;
+      const revVals = (data.revenue_trend || []).map(r => r.value);
+      const expVals = (data.expense_trend || []).map(r => r.value);
+      const profVals = (data.profit_trend || []).map(r => r.value);
 
         safeSetOption(revExpChart, {
           tooltip: {

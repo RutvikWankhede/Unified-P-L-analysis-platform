@@ -131,8 +131,9 @@ class MetricEngine:
 
     def aggregate_data(self, aggregation="monthly", dept=None):
         query = self._base_query()
-        if dept and dept.lower() not in ["all", "all departments", "overall"]:
-            query = query.filter(PLRecord.domain == dept)
+        resolved_dept = self._resolve_dept_name(dept)
+        if resolved_dept:
+            query = query.filter(func.lower(PLRecord.domain) == resolved_dept.lower())
             
         records = query.all()
         if not records:
@@ -252,6 +253,51 @@ class MetricEngine:
         return pd.DataFrame(result_rows)
 
 
+    def _resolve_dept_name(self, dept: str | None) -> str | None:
+        if not dept or str(dept).strip().lower() in ["all", "all departments", "overall", "total", "none"]:
+            return None
+        d_clean = str(dept).strip().lower()
+        
+        # Get all distinct domains currently in active dataset
+        domains = [d[0] for d in self._base_query().with_entities(PLRecord.domain).distinct().all() if d[0]]
+        
+        # 1. Exact case-insensitive match
+        for d in domains:
+            if d.lower() == d_clean:
+                return d
+                
+        # 2. Known synonym dictionary
+        synonyms = {
+            "commercial": ["sales", "marketing & sales", "sales & marketing", "commercial"],
+            "sales": ["commercial", "sales & marketing", "sales"],
+            "technology": ["it", "information technology", "engineering", "tech", "technology", "r&d"],
+            "it": ["technology", "information technology", "tech", "engineering", "it"],
+            "engineering": ["it", "technology", "tech", "r&d", "engineering"],
+            "hr": ["human resources", "people", "talent", "hr"],
+            "human resources": ["hr", "people", "talent", "human resources"],
+            "logistics": ["supply chain", "operations", "warehouse", "logistics"],
+            "supply chain": ["logistics", "operations", "procurement", "supply chain"],
+            "r&d": ["research & development", "research and development", "technology", "engineering", "r&d"],
+            "research & development": ["r&d", "research and development", "technology"],
+            "support": ["customer support", "customer service", "support"],
+            "customer support": ["support", "customer service", "customer support"],
+            "admin": ["administration", "admin"],
+            "administration": ["admin", "administration"],
+        }
+        
+        candidates = synonyms.get(d_clean, [])
+        for cand in candidates:
+            for d in domains:
+                if d.lower() == cand.lower() or cand.lower() in d.lower():
+                    return d
+                    
+        # 3. Substring match
+        for d in domains:
+            if d_clean in d.lower() or d.lower() in d_clean:
+                return d
+                
+        return dept
+
     def _base_query(self):
         query = self.db.query(PLRecord)
         if self.active_dataset_id:
@@ -337,9 +383,11 @@ class MetricEngine:
         dept_filter = None
         if filters:
             for k, v in filters.items():
-                if k == "domain" and v and v.lower() not in ["all", "all departments", "overall"]:
-                    dept_filter = v
-                    query = query.filter(PLRecord.domain == v)
+                if k == "domain" and v:
+                    resolved = self._resolve_dept_name(v)
+                    if resolved:
+                        dept_filter = resolved
+                        query = query.filter(func.lower(PLRecord.domain) == resolved.lower())
                 elif k == "period" and v:
                     query = query.filter(PLRecord.period == v)
 
@@ -571,8 +619,9 @@ class MetricEngine:
 
     def get_time_series(self, dept=None):
         query = self._base_query()
-        if dept and dept.lower() not in ["all", "all departments", "overall"]:
-            query = query.filter(PLRecord.domain == dept)
+        resolved_dept = self._resolve_dept_name(dept)
+        if resolved_dept:
+            query = query.filter(func.lower(PLRecord.domain) == resolved_dept.lower())
 
         caps = self.get_capabilities()
         rev_cond = or_(PLRecord.line_item.ilike("%revenue%"), PLRecord.line_item.ilike("%sales%"), PLRecord.line_item.ilike("%income%"))

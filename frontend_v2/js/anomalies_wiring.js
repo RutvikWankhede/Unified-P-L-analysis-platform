@@ -23,6 +23,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   const trendContainer = document.getElementById('chart-anomaly-trend');
   let trendChart = trendContainer ? initEchart(trendContainer) : null;
 
+  function setupZoomControls(chart, inBtnId, outBtnId, resetBtnId) {
+    if (!chart) return;
+    let zoomSpan = 100;
+    const inBtn = document.getElementById(inBtnId);
+    const outBtn = document.getElementById(outBtnId);
+    const resetBtn = document.getElementById(resetBtnId);
+
+    if (inBtn) {
+      inBtn.addEventListener('click', () => {
+        zoomSpan = Math.max(20, zoomSpan - 25);
+        const start = Math.max(0, 50 - zoomSpan / 2);
+        const end = Math.min(100, 50 + zoomSpan / 2);
+        chart.dispatchAction({ type: 'dataZoom', start, end });
+      });
+    }
+    if (outBtn) {
+      outBtn.addEventListener('click', () => {
+        zoomSpan = Math.min(100, zoomSpan + 25);
+        const start = Math.max(0, 50 - zoomSpan / 2);
+        const end = Math.min(100, 50 + zoomSpan / 2);
+        chart.dispatchAction({ type: 'dataZoom', start, end });
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        zoomSpan = 100;
+        chart.dispatchAction({ type: 'dataZoom', start: 0, end: 100 });
+        chart.dispatchAction({ type: 'restore' });
+      });
+    }
+  }
+  setupZoomControls(trendChart, 'zoom-in-anom', 'zoom-out-anom', 'zoom-reset-anom');
+
   async function loadActiveDataset() {
     try {
       const active = await api.get('/api/v1/datasets/active').catch(() => null);
@@ -366,6 +399,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderAnomalyTrend(filtered) {
     if (!trendChart) return;
+    const emptyEl = document.getElementById('anom-trend-empty');
+
+    if (!filtered || filtered.length === 0) {
+      trendChart.clear();
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+    if (emptyEl) emptyEl.classList.add('hidden');
 
     // Group anomalies by normalized period (YYYY-MM)
     const periodMap = {};
@@ -444,6 +485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       },
       legend: { show: false },
       grid: { left: 4, right: 12, top: 10, bottom: 20, containLabel: true },
+      dataZoom: [{ type: 'inside' }],
       xAxis: {
         type: 'category',
         boundaryGap: false,
