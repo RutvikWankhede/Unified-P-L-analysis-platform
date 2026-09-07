@@ -5,20 +5,9 @@
  * sorting, filtering, and export capabilities.
  */
 import { api } from './api.js';
-import { initEchart, safeSetOption } from './chart-engine.js';
+import { initEchart, safeSetOption, formatCurrency } from './chart-engine.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // ── Currency and Number Formatters ──────────────────────────────
-  const formatCurrency = (val) => {
-    if (val === null || val === undefined || isNaN(val)) return '—';
-    const abs = Math.abs(val);
-    const sign = val < 0 ? '-' : '';
-    if (abs >= 1000000000) return `${sign}₹${(abs / 1000000000).toFixed(2)} B`;
-    if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(2)} Cr`;
-    if (abs >= 100000) return `${sign}₹${(abs / 100000).toFixed(2)} L`;
-    if (abs >= 1000) return `${sign}₹${(abs / 1000).toFixed(1)} K`;
-    return `${sign}₹${abs.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
-  };
+async function initReportsPage() {
 
   const formatShort = (val) => {
     if (val === null || val === undefined || isNaN(val)) return '0';
@@ -202,15 +191,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const profEl = document.getElementById('kpi-net-profit');
     const marginEl = document.getElementById('kpi-net-margin');
 
-    if (revEl) revEl.textContent = formatCurrency(kpis.total_revenue);
-    if (expEl) expEl.textContent = formatCurrency(kpis.total_expense);
+    const totalRev = kpis.total_revenue !== undefined ? kpis.total_revenue : (kpis.revenue || 0);
+    const totalExp = kpis.total_expense !== undefined ? kpis.total_expense : (kpis.total_expenses !== undefined ? kpis.total_expenses : (kpis.expense || 0));
+    const netProf = kpis.net_profit !== undefined ? kpis.net_profit : (kpis.profit || 0);
+    const netMargin = kpis.net_margin !== undefined ? kpis.net_margin : (kpis.margin || 0);
+
+    if (revEl) revEl.textContent = formatCurrency(totalRev);
+    if (expEl) expEl.textContent = formatCurrency(totalExp);
     if (profEl) {
-      profEl.textContent = formatCurrency(kpis.net_profit);
-      profEl.className = `text-xl font-bold tracking-tight ${kpis.net_profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+      profEl.textContent = formatCurrency(netProf);
+      profEl.className = `text-xl font-bold tracking-tight ${netProf >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
     }
     if (marginEl) {
-      marginEl.textContent = `${(kpis.net_margin || 0).toFixed(1)}%`;
-      marginEl.className = `text-xl font-bold tracking-tight ${(kpis.net_margin || 0) >= 0 ? 'text-slate-900' : 'text-rose-600'}`;
+      marginEl.textContent = `${Number(netMargin).toFixed(1)}%`;
+      marginEl.className = `text-xl font-bold tracking-tight ${Number(netMargin) >= 0 ? 'text-slate-900' : 'text-rose-600'}`;
     }
   }
 
@@ -585,4 +579,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initial Load
   await initFilters();
   await loadReport();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initReportsPage);
+} else {
+  initReportsPage();
+}

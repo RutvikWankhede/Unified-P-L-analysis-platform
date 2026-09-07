@@ -107,9 +107,10 @@ async function request(method, path, body = null, options = {}) {
  let response;
  try {
  response = await fetch(url, fetchOptions);
- } catch (err) {
- throw { type: 'network', message: 'Network error. Is the backend running?' };
- }
+  } catch (err) {
+    console.warn('API Fetch failed for url:', url, err);
+    throw { type: 'network', message: err && err.message ? err.message : 'Network error. Is the backend running?', error: err };
+  }
 
  // Handle 401 with token refresh
  if (response.status === 401 && !options._isRetry) {

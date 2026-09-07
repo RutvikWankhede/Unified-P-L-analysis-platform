@@ -339,7 +339,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
           ]
         });
-      }
     } catch (err) {
       console.warn('RevExp chart error:', err);
     }

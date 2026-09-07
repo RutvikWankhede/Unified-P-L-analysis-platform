@@ -7,7 +7,7 @@
 
 import { api } from './api.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function initWorkflowPage() {
   let activeInstanceId = null;
   let cachedInstances = [];
   let pollInterval = null;
@@ -596,4 +596,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── Initial Load ────────────────────────────────────────────────
   await loadKpis();
   await loadInstances(true);
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initWorkflowPage);
+} else {
+  initWorkflowPage();
+}
