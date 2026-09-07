@@ -31,5 +31,5 @@ def get_explanation(anomaly_id: int, db: Session = Depends(get_db)):
 
 @router.post("/copilot", response_model=CopilotResponse)
 def copilot_chat(req: CopilotRequest, db: Session = Depends(get_db)):
-    ans = ask_copilot(db, req.question)
+    ans = ask_copilot(db, req.question, session_id=req.session_id or "default")
     return {"answer": ans}

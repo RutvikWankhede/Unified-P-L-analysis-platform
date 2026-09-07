@@ -39,29 +39,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await api.get('/api/v1/pl/departments').catch(() => null);
       if (res && res.departments && Array.isArray(res.departments)) {
-        departments = res.departments.filter(d => d && d !== 'All Departments' && d !== 'Unknown');
-        const deptSelect = document.getElementById('filter-anom-dept');
-        if (deptSelect) {
-          deptSelect.innerHTML = '<option value="all" selected>All Departments</option>';
-          departments.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d;
-            opt.textContent = d;
-            deptSelect.appendChild(opt);
-          });
-        }
+        departments = res.departments.filter(d => d && d !== 'All Departments' && d !== 'Unknown' && d !== 'All');
+      } else {
+        departments = [];
       }
+      populateDeptDropdown();
     } catch (e) {
       console.warn('Departments fetch error:', e);
     }
   }
 
+  function populateDeptDropdown() {
+    const deptSelect = document.getElementById('filter-anom-dept');
+    if (!deptSelect) return;
+
+    // Gather any additional departments present in anomalies
+    const deptSet = new Set(departments);
+    allAnomalies.forEach(a => {
+      const d = a.department || a.domain || (a.pl_record && a.pl_record.domain);
+      if (d && d !== 'All Departments' && d !== 'Unknown' && d !== 'All') deptSet.add(d);
+    });
+
+    const sortedDepts = Array.from(deptSet).sort();
+    deptSelect.innerHTML = '<option value="all" selected>All Departments</option>';
+    sortedDepts.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      deptSelect.appendChild(opt);
+    });
+  }
+
   async function fetchAnomalies() {
     try {
-      const res = await api.get('/api/v1/anomalies/?limit=500').catch(() => null);
+      const res = await api.get('/api/v1/anomalies/?limit=5000').catch(() => null);
       if (res) {
         allAnomalies = Array.isArray(res) ? res : (res.anomalies || res.items || []);
       }
+      populateDeptDropdown();
       updateUI();
     } catch (err) {
       console.warn('Failed to fetch anomalies:', err);
@@ -75,20 +90,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  function normalizePeriod(pStr) {
+    if (!pStr) return '2026-01';
+    const str = String(pStr).trim();
+    // Match YYYY-MM or YYYY/MM
+    const match = str.match(/(\d{4})[-/](\d{1,2})/);
+    if (match) {
+      const month = parseInt(match[2], 10);
+      return `${match[1]}-${month < 10 ? '0' : ''}${month}`;
+    }
+    // Match DD-MM-YYYY or MM-DD-YYYY
+    const dateMatch = str.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (dateMatch) {
+      const yr = dateMatch[3];
+      const m = parseInt(dateMatch[1] > 12 ? dateMatch[2] : dateMatch[1], 10);
+      return `${yr}-${m < 10 ? '0' : ''}${m}`;
+    }
+    return str.slice(0, 7);
+  }
+
   function updateUI() {
     const filtered = getFilteredAnomalies();
 
-    // 1. KPI Cards (Exact 5 cards matching reference)
+    // 1. KPI Cards (Total, Critical, High, Medium, Low)
     const totalCount = filtered.length;
     const criticalCount = filtered.filter(a => (a.severity || '').toLowerCase() === 'critical').length;
     const highCount = filtered.filter(a => (a.severity || '').toLowerCase() === 'high').length;
     const mediumCount = filtered.filter(a => (a.severity || '').toLowerCase() === 'medium').length;
     const lowCount = filtered.filter(a => (a.severity || '').toLowerCase() === 'low').length;
 
-    // Previous period variance calculation
+    // Previous period variance calculation based on real transaction period
     const periodMap = {};
     filtered.forEach(a => {
-      const p = a.period || (a.pl_record && a.pl_record.period) || (a.detected_at ? a.detected_at.slice(0, 7) : 'curr');
+      const p = normalizePeriod(a.period || a.date || (a.pl_record && a.pl_record.period) || a.detected_at);
       if (!periodMap[p]) periodMap[p] = { total: 0, critical: 0, high: 0, medium: 0, low: 0 };
       periodMap[p].total += 1;
       const s = (a.severity || 'medium').toLowerCase();
@@ -111,11 +145,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
     } else {
       prevStats = {
-        totalDiff: { text: '↓ 12%', isPos: false },
-        critDiff: { text: '0%', isPos: null },
-        highDiff: { text: '↑ 25%', isPos: true },
-        medDiff: { text: '↓ 30%', isPos: false },
-        lowDiff: { text: '↓ 18%', isPos: false }
+        totalDiff: { text: 'Active Baseline', isPos: null },
+        critDiff: { text: 'Active Baseline', isPos: null },
+        highDiff: { text: 'Active Baseline', isPos: null },
+        medDiff: { text: 'Active Baseline', isPos: null },
+        lowDiff: { text: 'Active Baseline', isPos: null }
       };
     }
 
@@ -169,6 +203,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. Render Anomaly Trend Chart (Right ~25%)
     renderAnomalyTrend(filtered);
+
+    // 4. Render AI Anomaly Insights
+    renderAnomalyInsights(filtered, totalCount, criticalCount, highCount);
   }
 
   function renderRiskHeatmap(filtered) {
@@ -176,31 +213,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!container) return;
 
     // Dynamic departments list from active dataset
-    let activeDepts = departments.length > 0 ? [...departments] : [];
-    if (activeDepts.length === 0) {
-      const set = new Set();
-      allAnomalies.forEach(a => {
-        const d = a.department || a.domain || (a.pl_record && a.pl_record.domain);
-        if (d && d !== 'All Departments') set.add(d);
-      });
-      activeDepts = Array.from(set);
-    }
-    if (activeDepts.length === 0) {
-      activeDepts = ['Logistics', 'R&D', 'Marketing', 'HR', 'IT', 'Procurement', 'Admin', 'Legal', 'Finance', 'Customer Support', 'Operations'];
+    const deptSet = new Set();
+    allAnomalies.forEach(a => {
+      const d = a.department || a.domain || (a.pl_record && a.pl_record.domain);
+      if (d && d !== 'All Departments' && d !== 'Unknown' && d !== 'All') deptSet.add(d);
+    });
+    if (departments.length > 0) {
+      departments.forEach(d => deptSet.add(d));
     }
 
-    // If a specific department is filtered, highlight or restrict
-    const displayDepts = currentDept === 'all' ? activeDepts : activeDepts.filter(d => d.toLowerCase() === currentDept.toLowerCase());
+    let activeDepts = Array.from(deptSet).sort();
+    if (activeDepts.length === 0) {
+      activeDepts = ['Sales', 'Operations', 'Finance', 'IT', 'R&D', 'Marketing', 'Procurement', 'Logistics'];
+    }
 
-    // Matrix rows: Low, Medium, High, Critical (top-to-bottom exactly as in reference)
+    const displayDepts = currentDept === 'all'
+      ? activeDepts
+      : activeDepts.filter(d => d.toLowerCase() === currentDept.toLowerCase());
+
+    // Matrix rows: Critical, High, Medium, Low (top-to-bottom)
     const severityLevels = [
-      { key: 'low', label: 'Low' },
-      { key: 'medium', label: 'Medium' },
+      { key: 'critical', label: 'Critical' },
       { key: 'high', label: 'High' },
-      { key: 'critical', label: 'Critical' }
+      { key: 'medium', label: 'Medium' },
+      { key: 'low', label: 'Low' }
     ];
 
-    // Build counts matrix: matrix[sev][dept] -> { count, amount, items }
+    // Build matrix: matrix[sev][dept] -> { count, amount, items }
     const matrix = {};
     severityLevels.forEach(s => {
       matrix[s.key] = {};
@@ -215,7 +254,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const d = a.department || a.domain || (a.pl_record && a.pl_record.domain) || 'General';
       const amt = Math.abs(a.impact_amount || a.amount || (a.pl_record && a.pl_record.amount) || 0);
 
-      // Find matching department
       const matchDept = displayDepts.find(dept => dept.toLowerCase() === d.toLowerCase());
       if (matchDept && matrix[s] && matrix[s][matchDept]) {
         matrix[s][matchDept].count += 1;
@@ -232,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       legendMax.textContent = currentHeatmapMetric === 'amount' ? formatCurrency(maxVal) : Math.max(10, maxVal);
     }
 
-    // Color mapper based on value intensity gradient (white -> light red -> dark crimson)
+    // Dynamic color gradient based on value intensity
     function getCellColor(count, amount) {
       const val = currentHeatmapMetric === 'amount' ? amount : count;
       if (val === 0) {
@@ -254,11 +292,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    // Format department column labels
     const formatDeptName = (name) => {
       if (name.length <= 11) return name;
       if (name.toLowerCase() === 'customer support') return 'Cust. Support';
       if (name.toLowerCase() === 'administration') return 'Admin';
+      if (name.toLowerCase() === 'human resources') return 'HR';
       return name;
     };
 
@@ -316,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     container.innerHTML = tableHtml;
 
-    // Cell click opens drilldown modal
+    // Drilldown modal on cell click
     container.querySelectorAll('.heatmap-cell').forEach(cell => {
       cell.addEventListener('click', () => {
         const d = cell.getAttribute('data-dept');
@@ -329,10 +367,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderAnomalyTrend(filtered) {
     if (!trendChart) return;
 
-    // Collect all unique periods chronologically
+    // Group anomalies by normalized period (YYYY-MM)
     const periodMap = {};
     filtered.forEach(a => {
-      let p = a.period || (a.pl_record && a.pl_record.period) || (a.detected_at ? a.detected_at.slice(0, 7) : '2025-01');
+      let p = normalizePeriod(a.period || a.date || (a.pl_record && a.pl_record.period) || a.detected_at);
       if (!periodMap[p]) {
         periodMap[p] = { total: 0, critical: 0, high: 0, medium: 0, low: 0 };
       }
@@ -345,7 +383,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let periods = Object.keys(periodMap).sort();
     if (periods.length === 0) {
-      periods = ['2024-06', '2024-07', '2024-08', '2024-09', '2024-10', '2024-11', '2024-12', '2025-01', '2025-02', '2025-03', '2025-04', '2025-05'];
+      periods = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'];
       periods.forEach(p => {
         periodMap[p] = { total: 0, critical: 0, high: 0, medium: 0, low: 0 };
       });
@@ -358,6 +396,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       periods = periods.slice(-6);
     } else if (currentTimeRange === '12m') {
       periods = periods.slice(-12);
+    } else if (currentTimeRange === '24m') {
+      periods = periods.slice(-24);
     }
 
     const formatMonth = (p) => {
@@ -387,24 +427,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         textStyle: { color: '#0f172a', fontSize: 11, fontFamily: 'Inter, sans-serif' },
         formatter: (params) => {
           if (!params || !params.length) return '';
-          const p = displayPeriods[params[0].dataIndex] || params[0].axisValue;
-          let html = `<div style="padding:2px 4px;font-size:11px">
-            <div style="font-weight:700;margin-bottom:4px;border-bottom:1px solid #f1f5f9;padding-bottom:2px">${p}</div>`;
-          params.forEach(item => {
-            html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0">
-              <span style="display:flex;align-items:center;gap:4px">
-                ${item.marker} ${item.seriesName}
-              </span>
-              <b style="font-size:11px">${item.value}</b>
-            </div>`;
-          });
-          html += `</div>`;
-          return html;
+          const pKey = periods[params[0].dataIndex] || params[0].name;
+          const pDisp = displayPeriods[params[0].dataIndex] || params[0].axisValue;
+          const pObj = periodMap[pKey] || { total: 0, critical: 0, high: 0, medium: 0, low: 0 };
+          return `
+            <div style="padding:2px 4px;font-size:11px;min-width:140px">
+              <div style="font-weight:700;margin-bottom:4px;border-bottom:1px solid #f1f5f9;padding-bottom:2px">${pDisp}</div>
+              <div style="display:flex;justify-content:space-between;margin:2px 0"><span style="color:#5B5CEB font-weight:600">Total</span><b>${pObj.total}</b></div>
+              <div style="display:flex;justify-content:space-between;margin:2px 0"><span style="color:#E11D48">Critical</span><b>${pObj.critical}</b></div>
+              <div style="display:flex;justify-content:space-between;margin:2px 0"><span style="color:#EF4444">High</span><b>${pObj.high}</b></div>
+              <div style="display:flex;justify-content:space-between;margin:2px 0"><span style="color:#F59E0B">Medium</span><b>${pObj.medium}</b></div>
+              <div style="display:flex;justify-content:space-between;margin:2px 0"><span style="color:#38BDF8">Low</span><b>${pObj.low}</b></div>
+            </div>
+          `;
         }
       },
-      legend: {
-        show: false
-      },
+      legend: { show: false },
       grid: { left: 4, right: 12, top: 10, bottom: 20, containLabel: true },
       xAxis: {
         type: 'category',
@@ -474,6 +512,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, true);
   }
 
+  function renderAnomalyInsights(filtered, total, crit, high) {
+    const container = document.getElementById('anomaly-insights-container');
+    if (!container) return;
+
+    // Find top outlier department
+    const deptCount = {};
+    filtered.forEach(a => {
+      const d = a.department || a.domain || (a.pl_record && a.pl_record.domain) || 'General';
+      deptCount[d] = (deptCount[d] || 0) + 1;
+    });
+    const topDept = Object.entries(deptCount).sort((a, b) => b[1] - a[1])[0];
+
+    const cards = [
+      {
+        title: 'Severity & Exposure Triage',
+        desc: crit > 0
+          ? `Detected <b>${crit} Critical</b> and <b>${high} High</b> severity ledger outliers requiring expedited review.`
+          : `No critical ledger threats flagged. <b>${high} High</b> and <b>${total - high} Moderate/Low</b> variances under observation.`,
+        icon: crit > 0 ? 'error' : 'verified_user',
+        color: crit > 0 ? 'text-rose-600' : 'text-emerald-600',
+        bg: crit > 0 ? 'bg-rose-50/40 border-rose-100' : 'bg-emerald-50/40 border-emerald-100'
+      },
+      {
+        title: 'Department Outlier Concentration',
+        desc: topDept
+          ? `<b>${topDept[0]}</b> exhibits the highest concentration with <b>${topDept[1]} flagged entries</b> (${Math.round((topDept[1]/Math.max(1, total))*100)}% of total).`
+          : 'Anomalies are evenly distributed across all tracked business units.',
+        icon: 'domain',
+        color: 'text-indigo-600',
+        bg: 'bg-indigo-50/40 border-indigo-100'
+      },
+      {
+        title: 'Algorithmic Surveillance Action',
+        desc: `Isolation Forest & Z-Score models continuously monitor ${currentDept === 'all' ? 'all departments' : currentDept} against historical variance boundaries.`,
+        icon: 'radar',
+        color: 'text-primary',
+        bg: 'bg-slate-50 border-slate-100'
+      }
+    ];
+
+    container.innerHTML = cards.map(c => `
+      <div class="p-3.5 rounded-xl border ${c.bg} flex items-start gap-3">
+        <span class="material-symbols-outlined text-lg ${c.color} mt-0.5 shrink-0">${c.icon}</span>
+        <div>
+          <h5 class="text-xs font-bold text-slate-900">${c.title}</h5>
+          <p class="text-[11px] text-slate-600 leading-relaxed mt-1">${c.desc}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
   function openAnomaliesModal(filterDept = null, filterSev = null) {
     let list = getFilteredAnomalies();
     if (filterDept && filterDept !== 'all') {
@@ -487,12 +576,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const data = list.map(a => ({
-      'Date': a.date || a.period || (a.detected_at ? new Date(a.detected_at).toLocaleDateString() : 'Active Period'),
+      'Period': a.period || a.date || (a.pl_record && a.pl_record.period) || 'Active Period',
       'Department': a.department || a.domain || (a.pl_record && a.pl_record.domain) || 'General',
-      'Line Item': a.account || a.line_item || (a.pl_record && a.pl_record.line_item) || 'Expense',
+      'Line Item': a.line_item || (a.pl_record && a.pl_record.line_item) || 'Expense',
       'Severity': a.severity || 'Medium',
       'Amount': formatCurrency(Math.abs(a.impact_amount || a.amount || (a.pl_record && a.pl_record.amount) || 0)),
-      'Description': a.description || a.explanation || 'Statistical variance detected',
+      'Description': a.description || 'Statistical variance detected by surveillance engine',
       'Status': a.status || 'Open'
     }));
 
@@ -500,7 +589,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? `Anomalies — ${filterDept} ${filterSev ? `(${filterSev})` : ''}`
       : 'All Detected Anomaly Records';
 
-    showModal(title, ['Date', 'Department', 'Line Item', 'Severity', 'Amount', 'Description', 'Status'], data);
+    showModal(title, ['Period', 'Department', 'Line Item', 'Severity', 'Amount', 'Description', 'Status'], data);
   }
 
   // Event Listeners

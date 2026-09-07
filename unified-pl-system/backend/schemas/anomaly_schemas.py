@@ -24,6 +24,8 @@ class AnomalyResponse(AnomalyBase):
     description: Optional[str] = None
     department: Optional[str] = None
     impact_amount: Optional[float] = None
+    period: Optional[str] = None
+    date: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -81,6 +83,7 @@ class RecommendationResponse(BaseModel):
 
 class CopilotRequest(BaseModel):
     question: str
+    session_id: Optional[str] = "default"
 
 
 class CopilotResponse(BaseModel):

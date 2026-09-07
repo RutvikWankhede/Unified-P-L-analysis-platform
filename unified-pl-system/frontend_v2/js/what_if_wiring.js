@@ -60,11 +60,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadBaselineData() {
         try {
             const [summary, charts] = await Promise.all([
-                api.get('/api/v1/pl/summary').catch(() => null),
+                api.get('/api/v1/pl/summary?dept=all').catch(() => null),
                 api.get('/api/v1/pl/charts?agg=monthly').catch(() => null)
             ]);
 
-            if (summary) {
+            if (summary && summary.kpis) {
+                baselineData.revenue = summary.kpis.revenue || 0;
+                baselineData.expense = summary.kpis.expense || 0;
+                baselineData.profit = summary.kpis.profit !== undefined ? summary.kpis.profit : (baselineData.revenue - baselineData.expense);
+                baselineData.margin = (baselineData.revenue > 0) ? ((baselineData.profit / baselineData.revenue) * 100) : 0;
+            } else if (summary) {
                 baselineData.revenue = summary.total_revenue || 0;
                 baselineData.expense = summary.total_expense || 0;
                 baselineData.profit = summary.net_profit || (baselineData.revenue - baselineData.expense);
@@ -106,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let scenExp = 0;
         const deptImpacts = [];
 
-        if (targetDept === 'all') {
+        if (targetDept === 'all' || targetDept.toLowerCase() === 'overall') {
             scenRev = baselineData.revenue * (1 + revGrowthPct / 100);
             scenExp = baselineData.expense * (1 + expGrowthPct / 100);
 
@@ -125,10 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             });
         } else {
-            // Department-specific adjustment
-            let nonTargetRev = 0;
-            let nonTargetExp = 0;
-
+            // Apply adjustment ONLY to the selected department's contribution
             baselineData.departments.forEach(d => {
                 if (d.name.toLowerCase() === targetDept.toLowerCase()) {
                     const dScenRev = d.revenue * (1 + revGrowthPct / 100);
@@ -169,37 +171,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         const marginDiff = scenMargin - baselineData.margin;
 
         // 1. Update KPI comparison cards
-        document.getElementById('kpi-base-rev').textContent = formatCurrency(baselineData.revenue);
-        document.getElementById('kpi-scen-rev').textContent = formatCurrency(scenRev);
+        const baseRevEl = document.getElementById('kpi-base-rev');
+        const scenRevEl = document.getElementById('kpi-scen-rev');
         const revDiffEl = document.getElementById('kpi-diff-rev');
+
+        if (baseRevEl) baseRevEl.textContent = formatCurrency(baselineData.revenue);
+        if (scenRevEl) scenRevEl.textContent = formatCurrency(scenRev);
         if (revDiffEl) {
             const isPos = revDiff >= 0;
             revDiffEl.className = isPos ? 'font-bold text-emerald-600' : 'font-bold text-rose-500';
-            revDiffEl.textContent = `${isPos ? '+' : ''}${formatCurrency(revDiff)} (${revGrowthPct >= 0 ? '+' : ''}${revGrowthPct.toFixed(1)}%)`;
+            const pctText = baselineData.revenue > 0 ? ((revDiff / baselineData.revenue) * 100).toFixed(1) : '0.0';
+            revDiffEl.textContent = `${isPos ? '+' : ''}${formatCurrency(revDiff)} (${revDiff >= 0 ? '+' : ''}${pctText}%)`;
         }
 
-        document.getElementById('kpi-base-exp').textContent = formatCurrency(baselineData.expense);
-        document.getElementById('kpi-scen-exp').textContent = formatCurrency(scenExp);
+        const baseExpEl = document.getElementById('kpi-base-exp');
+        const scenExpEl = document.getElementById('kpi-scen-exp');
         const expDiffEl = document.getElementById('kpi-diff-exp');
+
+        if (baseExpEl) baseExpEl.textContent = formatCurrency(baselineData.expense);
+        if (scenExpEl) scenExpEl.textContent = formatCurrency(scenExp);
         if (expDiffEl) {
             const isPos = expDiff <= 0; // lower expense is positive
             expDiffEl.className = isPos ? 'font-bold text-emerald-600' : 'font-bold text-rose-500';
-            expDiffEl.textContent = `${expDiff >= 0 ? '+' : ''}${formatCurrency(expDiff)} (${expGrowthPct >= 0 ? '+' : ''}${expGrowthPct.toFixed(1)}%)`;
+            const pctText = baselineData.expense > 0 ? ((expDiff / baselineData.expense) * 100).toFixed(1) : '0.0';
+            expDiffEl.textContent = `${expDiff >= 0 ? '+' : ''}${formatCurrency(expDiff)} (${expDiff >= 0 ? '+' : ''}${pctText}%)`;
         }
 
-        document.getElementById('kpi-base-prof').textContent = formatCurrency(baselineData.profit);
-        document.getElementById('kpi-scen-prof').textContent = formatCurrency(scenProf);
+        const baseProfEl = document.getElementById('kpi-base-prof');
+        const scenProfEl = document.getElementById('kpi-scen-prof');
         const profDiffEl = document.getElementById('kpi-diff-prof');
+
+        if (baseProfEl) baseProfEl.textContent = formatCurrency(baselineData.profit);
+        if (scenProfEl) scenProfEl.textContent = formatCurrency(scenProf);
         if (profDiffEl) {
             const isPos = profDiff >= 0;
             profDiffEl.className = isPos ? 'font-bold text-emerald-600' : 'font-bold text-rose-500';
             const profPct = baselineData.profit !== 0 ? ((profDiff / Math.abs(baselineData.profit)) * 100) : 0;
-            profDiffEl.textContent = `${isPos ? '+' : ''}${formatCurrency(profDiff)} (${profPct >= 0 ? '+' : ''}${profPct.toFixed(1)}%)`;
+            profDiffEl.textContent = `${isPos ? '+' : ''}${formatCurrency(profDiff)} (${profDiff >= 0 ? '+' : ''}${profPct.toFixed(1)}%)`;
         }
 
-        document.getElementById('kpi-base-mrg').textContent = `${baselineData.margin.toFixed(1)}%`;
-        document.getElementById('kpi-scen-mrg').textContent = `${scenMargin.toFixed(1)}%`;
+        const baseMrgEl = document.getElementById('kpi-base-mrg');
+        const scenMrgEl = document.getElementById('kpi-scen-mrg');
         const mrgDiffEl = document.getElementById('kpi-diff-mrg');
+
+        if (baseMrgEl) baseMrgEl.textContent = `${baselineData.margin.toFixed(1)}%`;
+        if (scenMrgEl) scenMrgEl.textContent = `${scenMargin.toFixed(1)}%`;
         if (mrgDiffEl) {
             const isPos = marginDiff >= 0;
             mrgDiffEl.className = isPos ? 'font-bold text-emerald-600' : 'font-bold text-rose-500';
@@ -213,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderDepartmentImpact(deptImpacts);
 
         // 4. Render Dynamic What-If Insights
-        renderWhatIfInsights(revGrowthPct, expGrowthPct, profDiff, marginDiff, deptImpacts);
+        renderWhatIfInsights(revGrowthPct, expGrowthPct, profDiff, marginDiff, deptImpacts, targetDept);
     }
 
     function renderComparativeChart(bRev, sRev, bExp, sExp, bProf, sProf) {
@@ -241,9 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return html;
                 }
             },
-            legend: {
-                show: false
-            },
+            legend: { show: false },
             grid: { left: 8, right: 16, top: 16, bottom: 20, containLabel: true },
             xAxis: {
                 type: 'category',
@@ -306,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.innerHTML = `
                 <div>
                     <p class="text-xs font-bold text-slate-800">${d.name}</p>
-                    <p class="text-[10px] text-slate-400">Baseline Profit: ${formatCurrency(d.baseProfit)} → Scenario: ${formatCurrency(d.scenProfit)}</p>
+                    <p class="text-[10px] text-slate-400">Baseline: ${formatCurrency(d.baseProfit)} → Scenario: ${formatCurrency(d.scenProfit)}</p>
                 </div>
                 <div class="text-right">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">
@@ -318,32 +332,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function renderWhatIfInsights(revGrowth, expGrowth, profDiff, marginDiff, deptImpacts) {
+    function renderWhatIfInsights(revGrowth, expGrowth, profDiff, marginDiff, deptImpacts, targetDept) {
         const container = document.getElementById('whatif-insights-container');
         if (!container) return;
 
         container.innerHTML = '';
-
         const topDept = [...deptImpacts].sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))[0];
+        const scopeDesc = targetDept === 'all' ? 'Enterprise-wide' : `${targetDept} Department`;
 
         const insights = [
             {
                 title: 'Bottom-Line Net Sensitivity',
-                desc: `Simulating a ${revGrowth >= 0 ? '+' : ''}${revGrowth}% revenue shift alongside a ${expGrowth >= 0 ? '+' : ''}${expGrowth}% expense change results in a <b>${profDiff >= 0 ? '+' : ''}${formatCurrency(profDiff)}</b> bottom-line profit movement.`,
+                desc: `Applying a <b>${revGrowth >= 0 ? '+' : ''}${revGrowth}%</b> revenue shift with a <b>${expGrowth >= 0 ? '+' : ''}${expGrowth}%</b> expense change (${scopeDesc}) creates a <b>${profDiff >= 0 ? '+' : ''}${formatCurrency(profDiff)}</b> bottom-line variance.`,
                 icon: 'trending_up',
                 color: profDiff >= 0 ? 'text-emerald-600' : 'text-rose-500',
                 bg: profDiff >= 0 ? 'bg-emerald-50/50 border-emerald-100' : 'bg-rose-50/50 border-rose-100'
             },
             {
-                title: 'Operating Margin Expansion / Contraction',
-                desc: `Net operating margin shifts by <b>${marginDiff >= 0 ? '+' : ''}${marginDiff.toFixed(1)} percentage points</b>, reflecting the difference between revenue velocity and operating expense elasticity.`,
+                title: 'Operating Margin Elasticity',
+                desc: `Projected operating margin shifts by <b>${marginDiff >= 0 ? '+' : ''}${marginDiff.toFixed(1)} percentage points</b>, demonstrating the leverage difference between topline growth and fixed cost discipline.`,
                 icon: 'percent',
                 color: marginDiff >= 0 ? 'text-indigo-600' : 'text-amber-600',
                 bg: 'bg-slate-50 border-slate-100'
             },
             {
-                title: 'Primary Department Driver',
-                desc: topDept ? `<b>${topDept.name}</b> delivers the largest scenario impact with a projected <b>${topDept.diff >= 0 ? '+' : ''}${formatCurrency(topDept.diff)}</b> variance.` : 'Enterprise wide department impact balanced.',
+                title: 'Primary Scenario Driver',
+                desc: topDept ? `<b>${topDept.name}</b> experiences the largest impact with a projected <b>${topDept.diff >= 0 ? '+' : ''}${formatCurrency(topDept.diff)}</b> variance.` : 'Enterprise wide department impact balanced.',
                 icon: 'domain',
                 color: 'text-primary',
                 bg: 'bg-indigo-50/40 border-indigo-100/60'
@@ -367,19 +381,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Two-way sync controls
     sliderRev.addEventListener('input', (e) => {
         inputRev.value = e.target.value;
+        selectPreset.value = 'custom';
         recalculateScenario();
     });
     inputRev.addEventListener('input', (e) => {
         sliderRev.value = e.target.value;
+        selectPreset.value = 'custom';
         recalculateScenario();
     });
 
     sliderExp.addEventListener('input', (e) => {
         inputExp.value = e.target.value;
+        selectPreset.value = 'custom';
         recalculateScenario();
     });
     inputExp.addEventListener('input', (e) => {
         sliderExp.value = e.target.value;
+        selectPreset.value = 'custom';
         recalculateScenario();
     });
 
@@ -387,18 +405,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     selectPreset.addEventListener('change', (e) => {
         const val = e.target.value;
-        if (val === 'growth') {
+        if (val === 'best_case') {
+            sliderRev.value = 10; inputRev.value = 10;
+            sliderExp.value = -5; inputExp.value = -5;
+        } else if (val === 'expected_case') {
+            sliderRev.value = 0; inputRev.value = 0;
+            sliderExp.value = 0; inputExp.value = 0;
+        } else if (val === 'worst_case') {
+            sliderRev.value = -10; inputRev.value = -10;
+            sliderExp.value = 5;  inputExp.value = 5;
+        } else if (val === 'growth') {
             sliderRev.value = 15; inputRev.value = 15;
             sliderExp.value = 5;  inputExp.value = 5;
         } else if (val === 'cost_cut') {
             sliderRev.value = 0;  inputRev.value = 0;
             sliderExp.value = -10; inputExp.value = -10;
-        } else if (val === 'downside') {
-            sliderRev.value = -15; inputRev.value = -15;
-            sliderExp.value = 8;   inputExp.value = 8;
-        } else if (val === 'balanced') {
-            sliderRev.value = 10; inputRev.value = 10;
-            sliderExp.value = 4;  inputExp.value = 4;
         }
         recalculateScenario();
     });
@@ -407,7 +428,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sliderRev.value = 0; inputRev.value = 0;
         sliderExp.value = 0; inputExp.value = 0;
         selectDept.value = 'all';
-        selectPreset.value = 'custom';
+        selectPreset.value = 'expected_case';
         recalculateScenario();
     });
 

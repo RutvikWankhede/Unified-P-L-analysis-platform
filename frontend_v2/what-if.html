@@ -79,10 +79,11 @@
         <div class="relative">
           <select id="scenario-preset" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
             <option value="custom" selected>Custom Scenario</option>
+            <option value="best_case">Best Case (+10% Rev, -5% Exp)</option>
+            <option value="expected_case">Expected Case (0% Rev, 0% Exp)</option>
+            <option value="worst_case">Worst Case (-10% Rev, +5% Exp)</option>
             <option value="growth">Aggressive Growth (+15% Rev, +5% Exp)</option>
             <option value="cost_cut">Cost Optimization (-10% Exp)</option>
-            <option value="downside">Downside Stress (-15% Rev, +8% Exp)</option>
-            <option value="balanced">Balanced Expansion (+10% Rev, +4% Exp)</option>
           </select>
           <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
         </div>

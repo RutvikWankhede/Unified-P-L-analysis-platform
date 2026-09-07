@@ -50,7 +50,7 @@ def copilot_chat_endpoint(
     status = "SUCCESS"
     response_text = ""
     try:
-        response_text = ask_copilot(db, query_text)
+        response_text = ask_copilot(db, query_text, session_id=session_id)
     except Exception as e:
         status = "FAILED"
         response_text = f"An unexpected error occurred: {str(e)}"

@@ -1101,3 +1101,136 @@ def set_budget(budget: BudgetUpdate, db: Session = Depends(get_db)):
     db.commit()
     invalidate_global_cache()
     return {"message": "Budget updated", "department": budget.department, "budget_amount": amt}
+
+
+class WhatIfRequest(BaseModel):
+    revenue_change_pct: float = 0.0
+    expense_change_pct: float = 0.0
+    department: Optional[str] = "all"
+    preset: Optional[str] = "custom"
+
+
+@router.post("/what-if")
+def calculate_what_if_scenario(
+    req: WhatIfRequest,
+    db: Session = Depends(get_db),
+):
+    from services.metric_engine import MetricEngine
+    from routers.datasets_router import get_active_dataset_id
+
+    active_id = get_active_dataset_id(db)
+    me = MetricEngine(db, active_id)
+    summary_df = me.aggregate_data("monthly", dept=None)
+
+    # Get department breakdown
+    dept_query = db.query(PLRecord.domain).distinct()
+    if active_id:
+        dept_query = dept_query.filter(PLRecord.upload_id == active_id)
+    all_depts = sorted([d[0] for d in dept_query.all() if d[0] and d[0] not in ["All Departments", "Unknown", "All"]])
+
+    # Calculate baseline numbers
+    dept_data = []
+    base_rev_total = 0.0
+    base_exp_total = 0.0
+
+    for d in all_depts:
+        d_df = me.aggregate_data("monthly", dept=d)
+        d_rev = float(d_df["revenue"].sum()) if not d_df.empty and "revenue" in d_df.columns else 0.0
+        d_exp = float(d_df["expense"].sum()) if not d_df.empty and "expense" in d_df.columns else 0.0
+        d_prof = d_rev - d_exp
+        base_rev_total += d_rev
+        base_exp_total += d_exp
+        dept_data.append({
+            "name": d,
+            "revenue": d_rev,
+            "expense": d_exp,
+            "profit": d_prof
+        })
+
+    if not summary_df.empty:
+        base_rev = float(summary_df["revenue"].sum()) if "revenue" in summary_df.columns else base_rev_total
+        base_exp = float(summary_df["expense"].sum()) if "expense" in summary_df.columns else base_exp_total
+    else:
+        base_rev = base_rev_total
+        base_exp = base_exp_total
+
+    base_prof = base_rev - base_exp
+    base_margin = (base_prof / base_rev * 100) if base_rev > 0 else 0.0
+
+    rev_pct = req.revenue_change_pct
+    exp_pct = req.expense_change_pct
+    target_dept = (req.department or "all").strip()
+
+    dept_impacts = []
+    if target_dept.lower() in ["all", "overall", "all departments"]:
+        scen_rev = base_rev * (1.0 + rev_pct / 100.0)
+        scen_exp = base_exp * (1.0 + exp_pct / 100.0)
+        for d in dept_data:
+            d_scen_rev = d["revenue"] * (1.0 + rev_pct / 100.0)
+            d_scen_exp = d["expense"] * (1.0 + exp_pct / 100.0)
+            d_scen_prof = d_scen_rev - d_scen_exp
+            dept_impacts.append({
+                "department": d["name"],
+                "baseline_profit": round(d["profit"], 2),
+                "scenario_profit": round(d_scen_prof, 2),
+                "profit_diff": round(d_scen_prof - d["profit"], 2),
+                "baseline_revenue": round(d["revenue"], 2),
+                "scenario_revenue": round(d_scen_rev, 2)
+            })
+    else:
+        scen_rev = 0.0
+        scen_exp = 0.0
+        for d in dept_data:
+            if d["name"].lower() == target_dept.lower():
+                d_scen_rev = d["revenue"] * (1.0 + rev_pct / 100.0)
+                d_scen_exp = d["expense"] * (1.0 + exp_pct / 100.0)
+                d_scen_prof = d_scen_rev - d_scen_exp
+                scen_rev += d_scen_rev
+                scen_exp += d_scen_exp
+                dept_impacts.append({
+                    "department": d["name"],
+                    "baseline_profit": round(d["profit"], 2),
+                    "scenario_profit": round(d_scen_prof, 2),
+                    "profit_diff": round(d_scen_prof - d["profit"], 2),
+                    "baseline_revenue": round(d["revenue"], 2),
+                    "scenario_revenue": round(d_scen_rev, 2)
+                })
+            else:
+                scen_rev += d["revenue"]
+                scen_exp += d["expense"]
+                dept_impacts.append({
+                    "department": d["name"],
+                    "baseline_profit": round(d["profit"], 2),
+                    "scenario_profit": round(d["profit"], 2),
+                    "profit_diff": 0.0,
+                    "baseline_revenue": round(d["revenue"], 2),
+                    "scenario_revenue": round(d["revenue"], 2)
+                })
+
+    scen_prof = scen_rev - scen_exp
+    scen_margin = (scen_prof / scen_rev * 100) if scen_rev > 0 else 0.0
+
+    return {
+        "baseline": {
+            "revenue": round(base_rev, 2),
+            "expense": round(base_exp, 2),
+            "profit": round(base_prof, 2),
+            "margin": round(base_margin, 2)
+        },
+        "scenario": {
+            "revenue": round(scen_rev, 2),
+            "expense": round(scen_exp, 2),
+            "profit": round(scen_prof, 2),
+            "margin": round(scen_margin, 2)
+        },
+        "delta": {
+            "revenue_diff": round(scen_rev - base_rev, 2),
+            "revenue_diff_pct": rev_pct,
+            "expense_diff": round(scen_exp - base_exp, 2),
+            "expense_diff_pct": exp_pct,
+            "profit_diff": round(scen_prof - base_prof, 2),
+            "margin_diff_pp": round(scen_margin - base_margin, 2)
+        },
+        "department_impacts": dept_impacts
+    }
+

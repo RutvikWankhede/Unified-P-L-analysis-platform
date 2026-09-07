@@ -40,32 +40,195 @@ def detect_anomalies_endpoint(upload_id: str, db: Session = Depends(get_db)):
     }
 
 
-@router.get("/trend")
-def get_anomaly_trend(db: Session = Depends(get_db)):
-    from sqlalchemy import func
+@router.get("/summary")
+def get_anomaly_summary(dept: str = "all", db: Session = Depends(get_db)):
     from models.pl_record import PLRecord
-    
-    # We want anomalies count per month. Let's group by detected_at month, or pl_record period.
-    # Since anomalies are usually current, maybe group by date(detected_at).
-    query = db.query(
-        func.date(Anomaly.detected_at).label("date"),
-        func.count(Anomaly.id).label("count")
-    )
     from routers.datasets_router import get_active_dataset_id
+    from collections import defaultdict
+    import re
+
     active_id = get_active_dataset_id(db)
+    query = db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
     if active_id:
-        query = query.join(PLRecord, PLRecord.id == Anomaly.pl_record_id).filter(PLRecord.upload_id == active_id)
+        query = query.filter(PLRecord.upload_id == active_id)
+    if dept and dept.lower() not in ["all", "all departments", "overall"]:
+        query = query.filter(PLRecord.domain == dept)
+
+    anomalies = query.all()
+
+    total = len(anomalies)
+    critical = sum(1 for a in anomalies if (a.severity or "").lower() == "critical")
+    high = sum(1 for a in anomalies if (a.severity or "").lower() == "high")
+    medium = sum(1 for a in anomalies if (a.severity or "").lower() == "medium")
+    low = sum(1 for a in anomalies if (a.severity or "").lower() == "low")
+
+    # Group by period to calculate previous period diff
+    period_counts = defaultdict(lambda: {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0})
+    for a in anomalies:
+        p = (a.pl_record.period if a.pl_record else "") or ""
+        # normalize to YYYY-MM
+        match = re.search(r"(\d{4})[-/](\d{1,2})", p)
+        if match:
+            norm_p = f"{match.group(1)}-{int(match.group(2)):02d}"
+        else:
+            norm_p = p[:7] if len(p) >= 7 else p
+        if not norm_p:
+            norm_p = "Current"
+        period_counts[norm_p]["total"] += 1
+        s = (a.severity or "medium").lower()
+        if s in period_counts[norm_p]:
+            period_counts[norm_p][s] += 1
+
+    sorted_periods = sorted(period_counts.keys())
+    diffs = {}
+    if len(sorted_periods) >= 2:
+        curr = period_counts[sorted_periods[-1]]
+        prev = period_counts[sorted_periods[-2]]
+        for key in ["total", "critical", "high", "medium", "low"]:
+            c_val = curr[key]
+            p_val = prev[key]
+            if p_val == 0 and c_val == 0:
+                diffs[key] = {"pct": 0, "text": "0%", "is_pos": None}
+            elif p_val == 0:
+                diffs[key] = {"pct": 100, "text": "↑ 100%", "is_pos": True}
+            else:
+                pct = round(((c_val - p_val) / p_val) * 100)
+                diffs[key] = {
+                    "pct": pct,
+                    "text": f"{'↑' if pct > 0 else '↓'} {abs(pct)}%",
+                    "is_pos": pct > 0
+                }
+    else:
+        for key in ["total", "critical", "high", "medium", "low"]:
+            diffs[key] = {"pct": 0, "text": "0%", "is_pos": None}
+
+    return {
+        "total": total,
+        "critical": critical,
+        "high": high,
+        "medium": medium,
+        "low": low,
+        "diffs": diffs,
+    }
+
+
+@router.get("/trend")
+def get_anomaly_trend(dept: str = "all", range: str = "12m", db: Session = Depends(get_db)):
+    from models.pl_record import PLRecord
+    from routers.datasets_router import get_active_dataset_id
+    from collections import defaultdict
+    import re
     
-    results = query.group_by(func.date(Anomaly.detected_at)).order_by("date").all()
-    
-    # Format as list of dicts
-    trend = [{"date": str(r.date), "count": r.count} for r in results]
-    
-    # If no data, return mock 6 months for UI visual testing (as instructed not to fake numbers, but if DB is empty we might just return empty)
+    active_id = get_active_dataset_id(db)
+    query = db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
+    if active_id:
+        query = query.filter(PLRecord.upload_id == active_id)
+    if dept and dept.lower() not in ["all", "all departments", "overall"]:
+        query = query.filter(PLRecord.domain == dept)
+
+    anomalies = query.all()
+
+    # Aggregate by financial period (e.g. YYYY-MM)
+    period_map = defaultdict(lambda: {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0})
+    for a in anomalies:
+        p = (a.pl_record.period if a.pl_record else "") or ""
+        match = re.search(r"(\d{4})[-/](\d{1,2})", p)
+        if match:
+            norm_p = f"{match.group(1)}-{int(match.group(2)):02d}"
+        else:
+            norm_p = p[:7] if len(p) >= 7 else (p or "2026-01")
+        
+        period_map[norm_p]["total"] += 1
+        s = (a.severity or "medium").lower()
+        if s in period_map[norm_p]:
+            period_map[norm_p][s] += 1
+
+    sorted_periods = sorted(period_map.keys())
+
+    # Filter by range
+    r_lower = (range or "12m").lower()
+    if r_lower == "3m":
+        selected_periods = sorted_periods[-3:]
+    elif r_lower == "6m":
+        selected_periods = sorted_periods[-6:]
+    elif r_lower == "12m":
+        selected_periods = sorted_periods[-12:]
+    elif r_lower == "24m":
+        selected_periods = sorted_periods[-24:]
+    else:
+        selected_periods = sorted_periods
+
+    trend = [
+        {
+            "period": p,
+            "date": p,
+            "count": period_map[p]["total"],
+            "total": period_map[p]["total"],
+            "critical": period_map[p]["critical"],
+            "high": period_map[p]["high"],
+            "medium": period_map[p]["medium"],
+            "low": period_map[p]["low"],
+        }
+        for p in selected_periods
+    ]
+
     return {"trend": trend}
 
+
+@router.get("/heatmap")
+def get_anomaly_heatmap(dept: str = "all", metric: str = "count", db: Session = Depends(get_db)):
+    from models.pl_record import PLRecord
+    from routers.datasets_router import get_active_dataset_id
+    from collections import defaultdict
+
+    active_id = get_active_dataset_id(db)
+
+    # Fetch all active departments dynamically
+    dept_query = db.query(PLRecord.domain).distinct()
+    if active_id:
+        dept_query = dept_query.filter(PLRecord.upload_id == active_id)
+    all_depts = sorted([d[0] for d in dept_query.all() if d[0] and d[0] not in ["All Departments", "Unknown", "All"]])
+
+    if dept and dept.lower() not in ["all", "all departments", "overall"]:
+        display_depts = [d for d in all_depts if d.lower() == dept.lower()] or all_depts
+    else:
+        display_depts = all_depts
+
+    query = db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
+    if active_id:
+        query = query.filter(PLRecord.upload_id == active_id)
+
+    anomalies = query.all()
+
+    # Matrix: severity -> department -> { count, amount }
+    severities = ["Critical", "High", "Medium", "Low"]
+    matrix = {s: {d: {"count": 0, "amount": 0.0} for d in display_depts} for s in severities}
+
+    max_val = 1
+    for a in anomalies:
+        s_raw = (a.severity or "Medium").capitalize()
+        s = s_raw if s_raw in severities else "Medium"
+        d = a.pl_record.domain if a.pl_record else "General"
+        amt = abs(a.pl_record.amount if a.pl_record else 0.0)
+
+        if d in matrix[s]:
+            matrix[s][d]["count"] += 1
+            matrix[s][d]["amount"] += amt
+            val = matrix[s][d]["amount"] if metric == "amount" else matrix[s][d]["count"]
+            if val > max_val:
+                max_val = val
+
+    return {
+        "departments": display_depts,
+        "severities": severities,
+        "matrix": matrix,
+        "metric": metric,
+        "max_value": max_val
+    }
+
+
 @router.get("/", response_model=List[AnomalyResponse])
-async def get_anomalies_list(skip: int = 0, limit: int = 100, agg: str = None, db: Session = Depends(get_db)):
+async def get_anomalies_list(skip: int = 0, limit: int = 5000, agg: str = None, db: Session = Depends(get_db)):
     import asyncio
     from services.pl_service import ensure_demo_data
     from services.cache_service import get_cached_item, set_cached_item
@@ -87,6 +250,8 @@ async def get_anomalies_list(skip: int = 0, limit: int = 100, agg: str = None, d
                     anomaly.line_item = anomaly.pl_record.line_item
                     anomaly.department = anomaly.pl_record.domain
                     anomaly.impact_amount = anomaly.pl_record.amount
+                    anomaly.period = anomaly.pl_record.period
+                    anomaly.date = anomaly.pl_record.period
                     anomaly.description = (
                         f"{anomaly.pl_record.line_item} is {anomaly.severity.lower()} severity "
                         f"({anomaly.percentile_rank * 100:.1f}th percentile) due to unexpected "

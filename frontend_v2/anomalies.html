@@ -263,7 +263,23 @@
       </section>
 
       <!-- ======================================================== -->
-      <!-- 3. VIEW ALL ANOMALIES & AUDIT DRILLDOWN BUTTON            -->
+      <!-- 3. AI ANOMALY INSIGHTS & RECOMMENDATIONS                 -->
+      <!-- ======================================================== -->
+      <section class="dash-card custom-shadow">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-primary">auto_awesome</span>
+            <h4 class="font-bold text-slate-900 text-xs">AI Anomaly Insights &amp; Risk Recommendations</h4>
+          </div>
+          <span class="text-[10px] text-slate-400 font-medium">Dataset-grounded anomaly intelligence</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="anomaly-insights-container">
+          <!-- Dynamically populated from active anomaly dataset -->
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 4. VIEW ALL ANOMALIES & AUDIT DRILLDOWN BUTTON            -->
       <!-- ======================================================== -->
       <section class="bg-white rounded-2xl border border-[#EEF2F6] custom-shadow p-3 text-center">
         <button id="btn-view-all-anomalies" class="w-full py-1 text-primary text-xs font-bold hover:underline flex items-center justify-center gap-1.5 cursor-pointer">

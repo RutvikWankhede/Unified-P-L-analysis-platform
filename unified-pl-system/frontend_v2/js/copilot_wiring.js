@@ -1,6 +1,8 @@
 import { api } from './api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const sessionId = 'session_' + Math.random().toString(36).substring(2, 9);
+
     const formatCurrency = (val) => {
         if (val === null || val === undefined || isNaN(val)) return '₹0 Cr';
         const abs = Math.abs(val);
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const input = document.getElementById('copilot-input');
     const sendBtn = document.getElementById('copilot-send-btn');
 
-    // Load active dataset and KPIs into context panel
+    // Load active dataset and live KPIs into context panel
     async function loadCopilotContext() {
         try {
             const active = await api.get('/api/v1/datasets/active').catch(() => null);
@@ -62,13 +64,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!chatHistory) return;
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const aiHtml = `
-        <div class="flex items-start gap-3 max-w-[85%]">
+        <div class="flex items-start gap-3 max-w-[90%]">
             <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-600">
                 <span class="material-symbols-outlined text-base">smart_toy</span>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-1 w-full">
                 <div class="bg-slate-50 border border-slate-100 p-3.5 rounded-2xl rounded-tl-none shadow-xs">
-                    <p class="text-xs leading-relaxed text-slate-700">${formatAiResponse(text)}</p>
+                    <div class="text-xs leading-relaxed text-slate-700">${formatAiResponse(text)}</div>
                 </div>
                 <span class="text-[9px] text-slate-400 ml-1">${timeStr}</span>
             </div>
@@ -78,11 +80,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function formatAiResponse(text) {
-        let escaped = escapeHtml(text);
+        if (!text) return '';
+
+        // Check if text has markdown tables
+        if (text.includes('|') && text.includes('\n')) {
+            const lines = text.split('\n');
+            let inTable = false;
+            let tableHtml = '';
+            let outLines = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('|') && line.endsWith('|')) {
+                    if (!inTable) {
+                        inTable = true;
+                        tableHtml = '<div class="overflow-x-auto my-2"><table class="w-full text-[11px] border-collapse border border-slate-200 rounded-lg"><tbody>';
+                    }
+                    if (line.includes('---')) {
+                        continue; // skip separator row
+                    }
+                    const cells = line.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+                    const isHeader = (i === 0 || (i > 0 && lines[i-1].includes('---')));
+                    const rowClass = isHeader ? 'bg-indigo-50/60 font-bold text-slate-800' : 'hover:bg-slate-100/50';
+                    tableHtml += `<tr class="${rowClass}">` + cells.map(c => `<td class="border border-slate-200 px-2 py-1">${c.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</td>`).join('') + '</tr>';
+                } else {
+                    if (inTable) {
+                        inTable = false;
+                        tableHtml += '</tbody></table></div>';
+                        outLines.push(tableHtml);
+                    }
+                    outLines.push(line);
+                }
+            }
+            if (inTable) {
+                tableHtml += '</tbody></table></div>';
+                outLines.push(tableHtml);
+            }
+            text = outLines.join('\n');
+        }
+
+        let escaped = text;
         // Replace markdown bold **text** with <strong>text</strong>
         escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        // Replace newlines with <br/>
-        escaped = escaped.replace(/\n/g, '<br/>');
+        // Replace bullet points
+        escaped = escaped.replace(/^[•\-\*]\s*(.*?)$/gm, '<div class="flex items-start gap-1.5 my-1"><span class="text-primary font-bold">•</span><span>$1</span></div>');
+        // Replace numbered list 1. 2.
+        escaped = escaped.replace(/^(\d+)\.\s*(.*?)$/gm, '<div class="flex items-start gap-1.5 my-1"><span class="font-bold text-slate-700">$1.</span><span>$2</span></div>');
+        // Replace newlines with <br/> except around tables
+        escaped = escaped.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>');
         return escaped;
     }
 
@@ -115,14 +160,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatHistory.scrollTop = chatHistory.scrollHeight;
 
         try {
-            const res = await api.post('/api/v1/explanations/copilot', { question: text });
+            const res = await api.post('/api/v1/copilot/chat', { 
+                prompt: text, 
+                question: text, 
+                session_id: sessionId 
+            });
             document.getElementById(typingId)?.remove();
             const answer = res.answer || res.response || res.explanation || 'Analyzed financial dataset based on active P&L records.';
             appendAiMessage(answer);
         } catch (e) {
             document.getElementById(typingId)?.remove();
-            // Intelligent fallback from local metrics
-            appendAiMessage(`Based on the active dataset:\n- **Total Revenue**: ₹27.80 Cr\n- **Total Expenses**: ₹19.81 Cr\n- **Net Profit**: ₹7.99 Cr (28.75% margin)\n- **Top Margin Units**: Sales (39.1%) & Operations (30.3%)\n- **Budget Variance**: R&D is 6.8% over budget.`);
+            appendAiMessage("I couldn't process that question right now. Please ensure the backend server is running and a dataset is active.");
         }
     }
 
