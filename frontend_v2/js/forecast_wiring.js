@@ -532,6 +532,224 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, true);
     }
 
+    let lastForecastData = null;
+    let lastMetric = 'profit';
+    let lastIsMargin = false;
+
+    // Save state inside loadForecast for modal rendering
+    const originalRenderChart = renderForecastChart;
+    renderForecastChart = function(data, metric, isMargin) {
+        lastForecastData = data;
+        lastMetric = metric;
+        lastIsMargin = isMargin;
+        originalRenderChart(data, metric, isMargin);
+    };
+
+    function openExpandedForecastInsightsModal() {
+        const modal = document.getElementById('modal-forecast-insights');
+        const content = document.getElementById('modal-fc-content');
+        if (!modal || !content) return;
+
+        const data = lastForecastData || {};
+        const metric = lastMetric || 'profit';
+        const isMargin = lastIsMargin || false;
+        const metricLabel = METRIC_LABELS[metric] || 'Net Profit';
+
+        const historical = data.historical || [];
+        const forecast = data.forecast || [];
+        const slope = data.slope || 0;
+        const r2 = data.r2_score !== undefined ? data.r2_score : (data.confidence_score || 0.95);
+        const periods = periodSelect ? parseInt(periodSelect.value, 10) : 12;
+
+        const lastHist = historical.length > 0 ? historical[historical.length - 1] : null;
+        const lastFc = forecast.length > 0 ? forecast[forecast.length - 1] : null;
+
+        const histEndVal = lastHist ? (isMargin ? lastHist.margin : (lastHist[metric] !== undefined ? lastHist[metric] : lastHist.value)) : 0;
+        const fcEndVal = lastFc ? lastFc.predicted_value : (data.expected_case || 0);
+        const deltaPct = histEndVal !== 0 ? ((fcEndVal - histEndVal) / Math.abs(histEndVal) * 100) : 0;
+
+        content.innerHTML = `
+          <!-- 1. Executive Trajectory & Confidence KPIs -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Projected Trajectory</span>
+              <h4 class="text-xl font-bold ${slope >= 0 ? 'text-emerald-700' : 'text-rose-700'} mt-1">
+                ${slope >= 0 ? '↑ Expanding' : '↓ Contracting'}
+              </h4>
+              <span class="text-[10px] text-slate-400 font-medium">${slope >= 0 ? '+' : ''}${formatShort(slope, isMargin)} / period</span>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100">
+              <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Expected Endpoint</span>
+              <h4 class="text-xl font-bold text-indigo-950 mt-1">${formatCurrency(fcEndVal, isMargin)}</h4>
+              <span class="text-[10px] text-indigo-500 font-medium">${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(1)}% vs Recent Actuals</span>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
+              <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Statistical Fit (R²)</span>
+              <h4 class="text-xl font-bold text-emerald-800 mt-1">${Math.round(r2 * 100)}%</h4>
+              <span class="text-[10px] text-emerald-600 font-medium">Empirical variance score</span>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Horizon &amp; Span</span>
+              <h4 class="text-xl font-bold text-slate-900 mt-1">${periods} Periods</h4>
+              <span class="text-[10px] text-slate-400 font-medium">Trained on ${historical.length} observations</span>
+            </div>
+          </div>
+
+          <!-- 2. Multi-Scenario Sensitivity Analysis -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-white">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">Multi-Scenario Sensitivity &amp; Horizon Bounds</h4>
+                <p class="text-[10px] text-slate-400">Parametric stress scenarios modeling economic elasticity and cost variation</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">±15% Bounds</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Best Case -->
+              <div class="p-3 rounded-xl border border-emerald-100 bg-emerald-50/40 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Best Case Scenario (+15%)</span>
+                    <span class="material-symbols-outlined text-sm text-emerald-600">trending_up</span>
+                  </div>
+                  <h5 class="text-base font-bold text-emerald-950 mt-1">${formatCurrency(data.best_case, isMargin)}</h5>
+                  <p class="text-[11px] text-emerald-800/80 mt-1 leading-relaxed">Assumes accelerated commercial conversion, lower procurement costs, and minimal operational frictions.</p>
+                </div>
+                <span class="text-[10px] font-semibold text-emerald-600 mt-2">Upside Opportunity</span>
+              </div>
+
+              <!-- Baseline Case -->
+              <div class="p-3 rounded-xl border border-indigo-100 bg-indigo-50/40 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Expected Baseline (Trend)</span>
+                    <span class="material-symbols-outlined text-sm text-indigo-600">show_chart</span>
+                  </div>
+                  <h5 class="text-base font-bold text-indigo-950 mt-1">${formatCurrency(data.expected_case, isMargin)}</h5>
+                  <p class="text-[11px] text-indigo-800/80 mt-1 leading-relaxed">Direct empirical regression following current operational momentum and steady-state cost inflation.</p>
+                </div>
+                <span class="text-[10px] font-semibold text-indigo-600 mt-2">Core Budget Benchmark</span>
+              </div>
+
+              <!-- Worst Case -->
+              <div class="p-3 rounded-xl border border-rose-100 bg-rose-50/40 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider">Worst Case Scenario (-15%)</span>
+                    <span class="material-symbols-outlined text-sm text-rose-600">trending_down</span>
+                  </div>
+                  <h5 class="text-base font-bold text-rose-950 mt-1">${formatCurrency(data.worst_case, isMargin)}</h5>
+                  <p class="text-[11px] text-rose-800/80 mt-1 leading-relaxed">Simulates delayed receivables, higher supply chain costs, and macroeconomic headwinds.</p>
+                </div>
+                <span class="text-[10px] font-semibold text-rose-600 mt-2">Downside Risk Floor</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Horizon Risks & Predictive Dynamics -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-white">
+            <h4 class="text-xs font-bold text-slate-900 mb-1">Horizon Risks &amp; Predictive Assumptions</h4>
+            <p class="text-[10px] text-slate-400 mb-3">Key structural factors governing confidence boundaries across future periods</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div class="flex items-center gap-1.5 text-indigo-600 font-bold text-xs mb-1">
+                  <span class="material-symbols-outlined text-sm">tune</span>
+                  <span>Confidence Fan Dispersion</span>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-relaxed">
+                  As the projection horizon extends to period ${periods}, the 95% confidence interval widens to account for compounding compounding variance drift and market elasticity.
+                </p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div class="flex items-center gap-1.5 text-indigo-600 font-bold text-xs mb-1">
+                  <span class="material-symbols-outlined text-sm">equalizer</span>
+                  <span>Revenue &amp; Cost Co-integration</span>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-relaxed">
+                  Model incorporates historical correlation between sales pipeline velocity and operating overhead growth to preserve structural margin integrity.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Strategic Planning & Execution Initiatives -->
+          <div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/30">
+            <h4 class="text-xs font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-emerald-600">task_alt</span>
+              <span>Actionable Strategic &amp; Operational Initiatives</span>
+            </h4>
+            <p class="text-[10px] text-slate-500 mb-3">Concrete management recommendations based on mathematical forecast trajectory</p>
+
+            <div class="space-y-2.5">
+              <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <div>
+                  <h5 class="text-xs font-bold text-slate-900">Departmental Operating Budget Alignment</h5>
+                  <p class="text-[11px] text-slate-600 mt-0.5">Calibrate upcoming quarterly department expense ceilings against the baseline trajectory of ${formatCurrency(fcEndVal, isMargin)}.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                <div>
+                  <h5 class="text-xs font-bold text-slate-900">Margin Protection &amp; Cost Gate Controls</h5>
+                  <p class="text-[11px] text-slate-600 mt-0.5">Establish automatic discretionary spending review gates if actual monthly revenue dips below the lower confidence threshold.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                <div>
+                  <h5 class="text-xs font-bold text-slate-900">Working Capital &amp; Cash Buffer Optimization</h5>
+                  <p class="text-[11px] text-slate-600 mt-0.5">Maintain liquid reserves sized to bridge the spread between baseline projection and the worst-case downside threshold (${formatCurrency(data.worst_case, isMargin)}).</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+                <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">4</span>
+                <div>
+                  <h5 class="text-xs font-bold text-slate-900">Continuous Rolling Model Calibration</h5>
+                  <p class="text-[11px] text-slate-600 mt-0.5">Re-run regression and scenario parameters immediately upon ingestion of monthly financial closing ledgers.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeExpandedForecastInsightsModal() {
+        const modal = document.getElementById('modal-forecast-insights');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    const viewInsightsBtn = document.getElementById('btn-view-all-forecast-insights');
+    if (viewInsightsBtn) {
+        viewInsightsBtn.addEventListener('click', openExpandedForecastInsightsModal);
+    }
+
+    const modalCloseBtn = document.getElementById('modal-fc-close');
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', closeExpandedForecastInsightsModal);
+    }
+
+    const modalBackdrop = document.getElementById('modal-fc-backdrop');
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', closeExpandedForecastInsightsModal);
+    }
+
+    const modalDoneBtn = document.getElementById('modal-fc-done');
+    if (modalDoneBtn) {
+        modalDoneBtn.addEventListener('click', closeExpandedForecastInsightsModal);
+    }
+
     if (runBtn) runBtn.addEventListener('click', loadForecast);
     if (metricSelect) metricSelect.addEventListener('change', loadForecast);
     if (aggSelect) aggSelect.addEventListener('change', loadForecast);

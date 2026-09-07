@@ -1,515 +1,279 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Unified P&amp;L - Reports</title>
-<!-- Google Fonts: Inter -->
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display
-=swap" rel="stylesheet"/>
-<!-- Tailwind CSS v3 CDN -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Custom Tailwind Config for Theme Colors -->
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-primary: '#5b5ceb',
-sidebar: '#f9fafc',
-'sidebar-active': '#eeefff',
-'status-green': '#e6f6f0',
-'status-green-text': '#1b8b6a',
-},
-fontFamily: {
-sans: ['Inter', 'sans-serif'],
-},
-borderRadius: {
-'card': '20px',
-}
-}
-}
-}
-</script>
-<style data-purpose="custom-layout">
-body {
-background-color: #f3f5f9;
-font-family: 'Inter', sans-serif;
-}
-.sidebar-width {
-width: 260px;
-min-width: 260px;
-}
-.custom-shadow {
-box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-.hide-scrollbar::-webkit-scrollbar {
-display: none;
-}
-</style>
-    <link rel="stylesheet" href="css/sidebar.css">
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Financial Reports Suite - Unified P&amp;L</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5B5CEB',
+            'card-border': '#EEF2F6',
+            success: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'card': '14px',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .dash-card {
+      background: #FFFFFF;
+      border: 1px solid #EEF2F6;
+      border-radius: 14px;
+      padding: 16px 20px;
+    }
+    .report-card {
+      transition: all 0.15s ease-in-out;
+      cursor: pointer;
+    }
+    .report-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(91, 92, 235, 0.08);
+    }
+    .report-card.active {
+      border-color: #5B5CEB;
+      background: #F5F6FF;
+      box-shadow: 0 0 0 1.5px #5B5CEB;
+    }
+  </style>
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
-<body class="flex min-h-screen text-slate-700">
-<div id="sidebar-container"></div>
-<!-- BEGIN: Main Content Area -->
-<main class="flex-1 flex flex-col min-w-0">
-<!-- BEGIN: Top Navigation -->
-<header class="h-20 flex items-center justify-between px-8 bg-transparent">
-<div data-purpose="breadcrumbs">
-<h2 class="text-xl font-bold text-gray-800">Reports</h2>
-<nav class="flex text-xs text-gray-400 font-medium">
-<span class="hover:text-primary cursor-pointer">Home</span>
-<span class="mx-2">&gt;</span>
-<span class="text-gray-500">Reports</span>
-</nav>
-</div>
-<div class="flex items-center gap-6">
-<!-- Search Bar -->
-<div class="relative w-80">
-<input class="w-full h-11 pl-4 pr-10 rounded-xl border-none bg-white custom-shadow focus:ring-
-1 focus:ring-primary text-sm :text-gray-400" ="Search anything..."
-type="text"/>
-<div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-
-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-</div>
-<!-- Icons -->
-<div class="flex items-center gap-4">
-<button class="relative p-2 text-gray-500 hover:bg-white hover:shadow-sm rounded-lg
-transition-all">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15
-17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4
-0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-
-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-<span class="absolute top-1.5 right-1.5 w-4 h-4 bg-pink-500 text-[10px] text-white flex items-
-center justify-center rounded-full border-2 border-white">4</span>
-</button>
-<button class="p-2 text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.228
-9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006
-2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-
-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-<!-- Mini Profile -->
-<div class="w-10 h-10 bg-primary text-white font-bold flex items-center justify-center rounded-
-full text-xs">RW</div>
-</div>
-</header>
-<!-- END: Top Navigation -->
-<div class="px-8 pb-8 flex-1 overflow-y-auto">
-<!-- BEGIN: Report Header -->
-<div class="flex items-center justify-between mt-4">
-<h3 class="text-lg font-bold text-gray-800">Report Overview</h3>
-<div class="flex items-center gap-0">
-<button class="bg-primary text-white px-5 py-2.5 rounded-l-xl text-sm font-semibold flex items-
-center gap-2 hover:bg-opacity-90">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
-6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="3"></path></svg>
-Generate Report
-</button>
-<button class="bg-primary text-white px-3 py-2.5 rounded-r-xl border-l border-white/20
-hover:bg-opacity-90">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7
-7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-</div>
-<!-- END: Report Header -->
-<!-- BEGIN: KPI Row -->
-<div class="grid grid-cols-4 gap-6 mt-6">
-<!-- Total Reports -->
-<div class="bg-white p-6 rounded-card custom-shadow flex items-center gap-4">
-<div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-primary">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9
-12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0
-01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs font-medium text-gray-400">Total Reports</p>
-<div class="flex items-baseline gap-2">
-<span class="text-2xl font-bold text-gray-800">128</span>
-<span class="text-[10px] text-green-500 font-bold flex items-center">
-<svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="3"></path></svg>
-12 <span class="text-gray-400 ml-1 font-normal">this month</span>
-</span>
-</div>
-</div>
-</div>
-<!-- Scheduled Reports -->
-<div class="bg-white p-6 rounded-card custom-shadow flex items-center gap-4">
-<div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-
-500">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12
-8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"
-stroke-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs font-medium text-gray-400">Scheduled Reports</p>
-<div class="flex items-baseline gap-2">
-<span class="text-2xl font-bold text-gray-800">24</span>
-<span class="text-[10px] text-green-500 font-bold flex items-center">
-<svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="3"></path></svg>
-3 <span class="text-gray-400 ml-1 font-normal">this month</span>
-</span>
-</div>
-</div>
-</div>
-<!-- Downloaded Reports -->
-<div class="bg-white p-6 rounded-card custom-shadow flex items-center gap-4">
-<div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-500">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4
-16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs font-medium text-gray-400">Downloaded Reports</p>
-<div class="flex items-baseline gap-2">
-<span class="text-2xl font-bold text-gray-800">89</span>
-<span class="text-[10px] text-green-500 font-bold flex items-center">
-<svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="3"></path></svg>
-15 <span class="text-gray-400 ml-1 font-normal">this month</span>
-</span>
-</div>
-</div>
-</div>
-<!-- Shared Reports -->
-<div class="bg-white p-6 rounded-card custom-shadow flex items-center gap-4">
-<div class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.684
-13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0
-2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0
-9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<div>
-<p class="text-xs font-medium text-gray-400">Shared Reports</p>
-<div class="flex items-baseline gap-2">
-<span class="text-2xl font-bold text-gray-800">16</span>
-<span class="text-[10px] text-green-500 font-bold flex items-center">
-<svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="3"></path></svg>
-2 <span class="text-gray-400 ml-1 font-normal">this month</span>
-</span>
-</div>
-</div>
-</div>
-</div>
-<!-- END: KPI Row -->
-<!-- BEGIN: Content Tabs -->
-<div class="mt-8 flex items-center gap-8 border-b border-gray-200 overflow-x-auto no-
-scrollbar">
-<button class="pb-4 text-sm font-bold text-primary border-b-2 border-primary whitespace-
-nowrap">All Reports</button>
-<button class="pb-4 text-sm font-medium text-gray-400 hover:text-gray-600 whitespace-
-nowrap">My Reports</button>
-<button class="pb-4 text-sm font-medium text-gray-400 hover:text-gray-600 whitespace-
-nowrap">Scheduled</button>
-<button class="pb-4 text-sm font-medium text-gray-400 hover:text-gray-600 whitespace-
-nowrap">Templates</button>
-<button class="pb-4 text-sm font-medium text-gray-400 hover:text-gray-600 whitespace-
-nowrap">AI Reports</button>
-</div>
-<!-- END: Content Tabs -->
-<!-- BEGIN: Filter Bar -->
-<div class="mt-6 flex items-center justify-between gap-4">
-<div class="flex items-center gap-4">
-<!-- Dropdown Category -->
-<div class="relative min-w-[180px]">
-<select class="w-full bg-white border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-
-medium text-gray-600 appearance-none custom-shadow focus:ring-1 focus:ring-primary">
-<option>All Categories</option>
-</select>
-<svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-
-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<!-- Dropdown Types -->
-<div class="relative min-w-[180px]">
-<select class="w-full bg-white border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-
-medium text-gray-600 appearance-none custom-shadow focus:ring-1 focus:ring-primary">
-<option>All Types</option>
-</select>
-<svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-
-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</div>
-<!-- Date Picker -->
-<div class="relative min-w-[220px]">
-<div class="w-full bg-white border border-gray-100 rounded-xl px-10 py-2.5 text-sm font-
-medium text-gray-600 custom-shadow flex items-center justify-between cursor-pointer">
-<span>May 13 - May 19, 2025</span>
-<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path
-d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
-stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0
-002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg>
-</div>
-</div>
-<!-- Filter Button -->
-<button class="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-100
-text-sm font-bold text-gray-700 custom-shadow hover:bg-gray-50">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 4a1 1
-0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-
-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg>
-Filter
-</button>
-</div>
-<!-- END: Filter Bar -->
-<!-- BEGIN: Data Table -->
-<div class="mt-6 bg-white rounded-card custom-shadow overflow-hidden">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="text-[11px] uppercase tracking-wider text-gray-400 border-b border-gray-50">
-<th class="px-6 py-4 font-semibold">Report Name</th>
-<th class="px-6 py-4 font-semibold">Category</th>
-<th class="px-6 py-4 font-semibold">Type</th>
-<th class="px-6 py-4 font-semibold whitespace-nowrap">Generated On</th>
-<th class="px-6 py-4 font-semibold whitespace-nowrap">Generated By</th>
-<th class="px-6 py-4 font-semibold">Format</th>
-<th class="px-6 py-4 font-semibold">Size</th>
-<th class="px-6 py-4 font-semibold text-center">Status</th>
-<th class="px-6 py-4 font-semibold text-right">Actions</th>
-</tr>
-</thead>
-<tbody class="text-sm">
-<!-- Row 1 -->
-<tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-<td class="px-6 py-4 flex items-center gap-3">
-<div class="w-8 h-8 bg-purple-50 text-purple-600 rounded flex items-center justify-center">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
-1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<span class="font-semibold text-gray-700">P&amp;L_May_2025</span>
-</td>
-<td class="px-6 py-4 text-gray-500">Financial</td>
-<td class="px-6 py-4 text-gray-500">P&amp;L Report</td>
-<td class="px-6 py-4 text-gray-500 whitespace-nowrap">May 19, 2025 10:30 AM</td>
-<td class="px-6 py-4 text-gray-700 font-medium whitespace-nowrap">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-gray-500">PDF</td>
-<td class="px-6 py-4 text-gray-500">2.4 MB</td>
-<td class="px-6 py-4 text-center">
-<span class="px-3 py-1 bg-status-green text-status-green-text text-[11px] font-bold rounded-
-full">Completed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex items-center justify-end gap-3 text-gray-400">
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12
-5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
-4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010
-2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg></button>
-</div>
-</td>
-</tr>
-<!-- Row 2 -->
-<tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-<td class="px-6 py-4 flex items-center gap-3">
-<div class="w-8 h-8 bg-red-50 text-red-600 rounded flex items-center justify-center">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
-1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<span class="font-semibold text-gray-700">Department_Performance_May</span>
-</td>
-<td class="px-6 py-4 text-gray-500">Department</td>
-<td class="px-6 py-4 text-gray-500">Performance Report</td>
-<td class="px-6 py-4 text-gray-500 whitespace-nowrap">May 18, 2025 03:15 PM</td>
-<td class="px-6 py-4 text-gray-700 font-medium whitespace-nowrap">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-gray-500">PDF</td>
-<td class="px-6 py-4 text-gray-500">1.8 MB</td>
-<td class="px-6 py-4 text-center">
-<span class="px-3 py-1 bg-status-green text-status-green-text text-[11px] font-bold rounded-
-full">Completed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex items-center justify-end gap-3 text-gray-400">
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12
-5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
-4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010
-2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg></button>
-</div>
-</td>
-</tr>
-<!-- Row 3 -->
-<tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-<td class="px-6 py-4 flex items-center gap-3">
-<div class="w-8 h-8 bg-blue-50 text-primary rounded flex items-center justify-center">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
-1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<span class="font-semibold text-gray-700">Anomaly_Report_May</span>
-</td>
-<td class="px-6 py-4 text-gray-500">Analytics</td>
-<td class="px-6 py-4 text-gray-500">Anomaly Report</td>
-<td class="px-6 py-4 text-gray-500 whitespace-nowrap">May 18, 2025 11:45 AM</td>
-<td class="px-6 py-4 text-gray-700 font-medium whitespace-nowrap">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-gray-500">PDF</td>
-<td class="px-6 py-4 text-gray-500">1.6 MB</td>
-<td class="px-6 py-4 text-center">
-<span class="px-3 py-1 bg-status-green text-status-green-text text-[11px] font-bold rounded-
-full">Completed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex items-center justify-end gap-3 text-gray-400">
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12
-5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
-4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010
-2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg></button>
-</div>
-</td>
-</tr>
-<!-- Row 4 -->
-<tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-<td class="px-6 py-4 flex items-center gap-3">
-<div class="w-8 h-8 bg-cyan-50 text-cyan-600 rounded flex items-center justify-center">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
-1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<span class="font-semibold text-gray-700">Forecast_Q2_2025</span>
-</td>
-<td class="px-6 py-4 text-gray-500">Forecasting</td>
-<td class="px-6 py-4 text-gray-500">Forecast Report</td>
-<td class="px-6 py-4 text-gray-500 whitespace-nowrap">May 17, 2025 01:20 PM</td>
-<td class="px-6 py-4 text-gray-700 font-medium whitespace-nowrap">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-gray-500">Excel</td>
-<td class="px-6 py-4 text-gray-500">2.1 MB</td>
-<td class="px-6 py-4 text-center">
-<span class="px-3 py-1 bg-status-green text-status-green-text text-[11px] font-bold rounded-
-full">Completed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex items-center justify-end gap-3 text-gray-400">
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12
-5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
-4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010
-2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg></button>
-</div>
-</td>
-</tr>
-<!-- Row 5 -->
-<tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-<td class="px-6 py-4 flex items-center gap-3">
-<div class="w-8 h-8 bg-pink-50 text-pink-600 rounded flex items-center justify-center">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-
-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1
-1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-
-width="2"></path></svg>
-</div>
-<span class="font-semibold text-gray-700">Budget_vs_Actual_April</span>
-</td>
-<td class="px-6 py-4 text-gray-500">Financial</td>
-<td class="px-6 py-4 text-gray-500">Variance Report</td>
-<td class="px-6 py-4 text-gray-500 whitespace-nowrap">May 16, 2025 05:10 PM</td>
-<td class="px-6 py-4 text-gray-700 font-medium whitespace-nowrap">Rutvik Wankhede</td>
-<td class="px-6 py-4 text-gray-500">PDF</td>
-<td class="px-6 py-4 text-gray-500">1.4 MB</td>
-<td class="px-6 py-4 text-center">
-<span class="px-3 py-1 bg-status-green text-status-green-text text-[11px] font-bold rounded-
-full">Completed</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex items-center justify-end gap-3 text-gray-400">
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12
-5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4
-4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
-<button class="hover:text-primary"><svg class="w-5 h-5" fill="none" stroke="currentColor"
-viewbox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010
-2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-
-linejoin="round" stroke-width="2"></path></svg></button>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<!-- END: Data Table -->
-<!-- BEGIN: Pagination Footer -->
-<div class="mt-6 flex items-center justify-between">
-<p class="text-xs font-medium text-gray-400">Showing 1 to 5 of 128 reports</p>
-<div class="flex items-center gap-2">
-<button class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white
-hover:shadow-sm">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 19l-
-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-
-bold text-xs">1</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 font-medium
-text-xs hover:bg-white hover:shadow-sm">2</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 font-medium
-text-xs hover:bg-white hover:shadow-sm">3</button>
-<span class="text-gray-400 text-xs px-1">...</span>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 font-medium
-text-xs hover:bg-white hover:shadow-sm">26</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white
-hover:shadow-sm">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-
-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-</div>
-<!-- END: Pagination Footer -->
-</div>
-</main>
-<!-- END: Main Content Area -->
-    <script type="module" src="js/shell.js"></script>
-</body></html>
+<body class="font-sans text-slate-800 bg-[#F8FAFC]">
+  <div id="sidebar-container"></div>
+
+  <!-- Main Content Wrapper -->
+  <main class="ml-[240px] min-h-screen p-6 pb-16 flex flex-col">
+    <!-- Top Header -->
+    <header class="flex items-center justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Financial Reports Suite</h1>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="active-dataset-pill">Active Dataset</span>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-0.5">Generate, explore, and export data-driven enterprise financial statements &amp; audit reports</p>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="flex items-center gap-2.5">
+        <!-- Department Filter -->
+        <div class="relative">
+          <select id="report-filter-dept" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+            <option value="all" selected>All Departments</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+
+        <!-- Period Selector -->
+        <div class="relative">
+          <select id="report-filter-period" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+            <option value="monthly" selected>Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+            <option value="overall">Overall</option>
+          </select>
+          <span class="material-symbols-outlined text-sm text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+        </div>
+
+        <!-- Refresh / Generate Button -->
+        <button id="btn-generate-report" class="bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-opacity-90 transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+          <span>Generate Report</span>
+        </button>
+
+        <!-- Export CSV Button -->
+        <button id="btn-export-csv" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-slate-50 transition-all cursor-pointer" title="Export CSV">
+          <span class="material-symbols-outlined text-sm text-emerald-600">table_view</span>
+          <span>CSV</span>
+        </button>
+
+        <!-- Export PDF Button -->
+        <button id="btn-export-pdf" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs hover:bg-slate-50 transition-all cursor-pointer" title="Export PDF">
+          <span class="material-symbols-outlined text-sm text-rose-500">picture_as_pdf</span>
+          <span>PDF</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- SECTION 1: 5 REPORT TYPE CARDS -->
+    <section class="grid grid-cols-5 gap-3.5 mb-5">
+      <!-- 1. Executive P&L -->
+      <div class="dash-card custom-shadow report-card active" data-report-type="executive" id="card-type-executive">
+        <div class="flex items-center justify-between mb-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+            <span class="material-symbols-outlined text-lg">assessment</span>
+          </div>
+          <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50/80 px-2 py-0.5 rounded-full border border-indigo-100">PRIMARY</span>
+        </div>
+        <h3 class="text-xs font-bold text-slate-900 leading-tight">Executive P&amp;L Report</h3>
+        <p class="text-[10px] text-slate-500 mt-1 leading-normal">Revenue, OPEX, Net Profit, Operating Margin &amp; Trajectory</p>
+      </div>
+
+      <!-- 2. Department Performance -->
+      <div class="dash-card custom-shadow report-card" data-report-type="department" id="card-type-department">
+        <div class="flex items-center justify-between mb-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <span class="material-symbols-outlined text-lg">corporate_fare</span>
+          </div>
+          <span class="text-[9px] font-bold text-blue-600 bg-blue-50/80 px-2 py-0.5 rounded-full border border-blue-100">DIVISIONS</span>
+        </div>
+        <h3 class="text-xs font-bold text-slate-900 leading-tight">Department Performance</h3>
+        <p class="text-[10px] text-slate-500 mt-1 leading-normal">Department ranking, contribution margins, and cost shares</p>
+      </div>
+
+      <!-- 3. Budget vs Actual Variance -->
+      <div class="dash-card custom-shadow report-card" data-report-type="variance" id="card-type-variance">
+        <div class="flex items-center justify-between mb-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+            <span class="material-symbols-outlined text-lg">balance</span>
+          </div>
+          <span class="text-[9px] font-bold text-purple-600 bg-purple-50/80 px-2 py-0.5 rounded-full border border-purple-100">AUDIT</span>
+        </div>
+        <h3 class="text-xs font-bold text-slate-900 leading-tight">Budget vs. Actual Variance</h3>
+        <p class="text-[10px] text-slate-500 mt-1 leading-normal">Target allocations, actual spend variances, and over-budget units</p>
+      </div>
+
+      <!-- 4. Anomaly Risk -->
+      <div class="dash-card custom-shadow report-card" data-report-type="anomaly" id="card-type-anomaly">
+        <div class="flex items-center justify-between mb-2">
+          <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+            <span class="material-symbols-outlined text-lg">radar</span>
+          </div>
+          <span class="text-[9px] font-bold text-rose-600 bg-rose-50/80 px-2 py-0.5 rounded-full border border-rose-100">RISK</span>
+        </div>
+        <h3 class="text-xs font-bold text-slate-900 leading-tight">Anomaly &amp; Risk Report</h3>
+        <p class="text-[10px] text-slate-500 mt-1 leading-normal">Outlier surveillance, critical ledger exceptions, and exposure</p>
+      </div>
+
+      <!-- 5. Forecast Report -->
+      <div class="dash-card custom-shadow report-card" data-report-type="forecast" id="card-type-forecast">
+        <div class="flex items-center justify-between mb-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <span class="material-symbols-outlined text-lg">trending_up</span>
+          </div>
+          <span class="text-[9px] font-bold text-amber-600 bg-amber-50/80 px-2 py-0.5 rounded-full border border-amber-100">PREDICTION</span>
+        </div>
+        <h3 class="text-xs font-bold text-slate-900 leading-tight">Forecast &amp; Trajectory</h3>
+        <p class="text-[10px] text-slate-500 mt-1 leading-normal">Statistical forward horizon projections and confidence intervals</p>
+      </div>
+    </section>
+
+    <!-- SECTION 2: LIVE REPORT WORKSPACE & PREVIEW -->
+    <div class="space-y-5 flex-1" id="report-workspace">
+      <!-- Report Header Banner -->
+      <div class="dash-card custom-shadow bg-gradient-to-r from-white to-slate-50/50">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-600 text-lg" id="report-icon">description</span>
+              <h2 class="text-base font-bold text-slate-900 tracking-tight" id="report-display-title">Executive P&amp;L Performance Report</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-1" id="report-display-desc">Comprehensive top-line, cost structure, and net margin analysis across operating divisions.</p>
+          </div>
+          <div class="text-right text-[11px] text-slate-400">
+            <div>Generated: <span class="font-semibold text-slate-600" id="report-timestamp">-</span></div>
+            <div>Dataset: <span class="font-semibold text-indigo-600" id="report-dataset-name">-</span></div>
+          </div>
+        </div>
+
+        <!-- Dynamic KPIs Row -->
+        <div class="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-100" id="report-kpi-grid">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Report Analytics Row: Visual Trend Chart (Left 65%) + Driver Narrative (Right 35%) -->
+      <div class="grid grid-cols-12 gap-4">
+        <!-- Visual Trend / Chart Area -->
+        <div class="col-span-12 lg:col-span-8 dash-card custom-shadow flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-xs text-slate-900" id="report-chart-title">Financial Trend Overview</h3>
+            <span class="text-[10px] text-slate-400 font-medium" id="report-chart-subtitle">Historical Trajectory</span>
+          </div>
+          <div class="w-full h-56" id="chart-report-trend"></div>
+        </div>
+
+        <!-- Data-Grounded Executive Narrative & Drivers -->
+        <div class="col-span-12 lg:col-span-4 dash-card custom-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-1.5 mb-2.5">
+              <span class="material-symbols-outlined text-base text-indigo-600">auto_awesome</span>
+              <h3 class="font-bold text-xs text-slate-900">Executive Summary</h3>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100" id="report-narrative-text">
+              Generating report intelligence...
+            </p>
+          </div>
+
+          <div class="mt-3 pt-3 border-t border-slate-100">
+            <h4 class="text-[11px] font-bold text-slate-900 mb-1.5 flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs text-emerald-600">check_circle</span>
+              Key Analytical Findings
+            </h4>
+            <ul class="space-y-1 text-[10px] text-slate-600" id="report-drivers-list">
+              <!-- Populated dynamically -->
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department Performance & Breakdown Table -->
+      <div class="dash-card custom-shadow">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-slate-600">table_chart</span>
+            <h3 class="font-bold text-xs text-slate-900">Department Performance &amp; Line Breakdown</h3>
+          </div>
+          <span class="text-[10px] text-slate-400 font-medium" id="report-table-count">Showing all records</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-100 bg-slate-50/50">
+                <th class="px-4 py-2.5 font-bold">Rank</th>
+                <th class="px-4 py-2.5 font-bold">Department</th>
+                <th class="px-4 py-2.5 font-bold text-right">Revenue</th>
+                <th class="px-4 py-2.5 font-bold text-right">Expenses</th>
+                <th class="px-4 py-2.5 font-bold text-right">Net Profit</th>
+                <th class="px-4 py-2.5 font-bold text-right">Margin %</th>
+                <th class="px-4 py-2.5 font-bold text-right">Budget Variance</th>
+                <th class="px-4 py-2.5 font-bold text-center">Anomalies</th>
+              </tr>
+            </thead>
+            <tbody id="report-table-body" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/reports.js"></script>
+  <script type="module" src="js/shell.js"></script>
+</body>
+</html>
