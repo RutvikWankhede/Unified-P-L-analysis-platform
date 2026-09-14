@@ -1,2 +1,0 @@
-export const api = {
-    get: (path, options = {}) => request('GET', path, null, options),

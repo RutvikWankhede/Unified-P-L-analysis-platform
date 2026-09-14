@@ -1,6 +1,0 @@
-            const dateRangeEl = document.getElementById('dashboard-date-range');
-            if (dateRangeEl && (caps.date_min || caps.date_max)) {
-                dateRangeEl.textContent = `${caps.date_min || ''} — ${caps.date_max || ''}`;
-            }
-        }
-    } catch (e) { console.warn('[pl_dashboard_wiring] KPI load failed:', e); }

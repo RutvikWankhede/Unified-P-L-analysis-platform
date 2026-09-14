@@ -1,3 +1,0 @@
-            setKpi('kpi-cash-flow', cfVal, null);
-        }
-    } catch (e) { console.warn('[pl_dashboard_wiring] KPI load failed:', e); }

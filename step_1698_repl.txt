@@ -1,2 +1,0 @@
-    trends = kpis.get("trends", {})
-    forecasted_profit = None

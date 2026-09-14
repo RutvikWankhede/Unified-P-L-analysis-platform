@@ -1,8 +1,0 @@
-            const caps = summary.capabilities || {};
-            const cfMode = caps.cashFlow?.mode || 'estimated';
-            const cfVal = k.cash_flow !== null && k.cash_flow !== undefined ? k.cash_flow : k.profit;
-            const cfLabelEl = document.getElementById('kpi-cash-flow-label');
-            const cfSubEl = document.getElementById('kpi-cash-flow-sub');
-            if (cfLabelEl) cfLabelEl.textContent = cfMode === 'actual' ? 'Cash Flow' : 'Estimated Cash Flow';
-            if (cfSubEl) cfSubEl.textContent = cfMode === 'actual' ? 'Actual cash inflow − outflow' : 'Derived from Revenue − Expense';
-            setKpi('kpi-cash-flow', cfVal, null);

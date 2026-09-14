@@ -805,7 +805,7 @@ def ensure_demo_data(db: Session):
             res = auto_ingest_dataset(
                 db,
                 content,
-                canonical_filename,
+                csv_file_path.name,
                 user_id=1,
                 upload_id=canonical_upload_id,
                 set_active=False

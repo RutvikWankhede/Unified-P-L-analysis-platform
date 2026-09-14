@@ -1,7 +1,0 @@
-        updateKpi('revenue', k.revenue, 3.8, true, hasRev);
-        updateKpi('expense', k.expense, -1.2, true, hasExp);
-        updateKpi('profit', k.profit, 5.4, true, hasProf);
-        updateKpi('margin', k.profit_margin, 1.8, false, hasMargin);
-        updateKpi('cash-flow', k.cash_flow, 2.1, true, caps.cashFlow?.mode !== 'unavailable');
-        updateKpi('forecast', k.forecasted_profit, 4.5, true, k.forecasted_profit !== null);
-        updateKpi('health', k.health_score || 85, 0.5, false, true);
