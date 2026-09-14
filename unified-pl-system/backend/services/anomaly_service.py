@@ -11,7 +11,7 @@ def run_anomaly_detection(db: Session, upload_id: str):
         return []
 
     # Run ML
-    anomalies_data = detect_anomalies(records)
+    anomalies_data = detect_anomalies(records, db=db)
 
     # Save anomalies
     if anomalies_data:

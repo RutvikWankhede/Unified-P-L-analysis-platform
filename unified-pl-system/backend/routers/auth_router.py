@@ -2,11 +2,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Request
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from config import settings
 from database import get_db
@@ -16,12 +16,37 @@ from core.security import get_current_user
 from models.audit_log import AuditLog
 
 auth_logger = logging.getLogger(__name__)
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+class _LazyCryptContext:
+    def __init__(self):
+        self._ctx = None
+
+    def _get_ctx(self):
+        if self._ctx is None:
+            from passlib.context import CryptContext
+            self._ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        return self._ctx
+
+    def hash(self, secret: str, **kwargs):
+        return self._get_ctx().hash(secret, **kwargs)
+
+    def verify(self, secret: str, hash: str, **kwargs):
+        return self._get_ctx().verify(secret, hash, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._get_ctx(), name)
+
+
+pwd_context = _LazyCryptContext()
 
 
 def create_access_token(data: dict):
+    from jose import jwt
+
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -29,6 +54,8 @@ def create_access_token(data: dict):
 
 
 def create_refresh_token(data: dict):
+    from jose import jwt
+
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire})
@@ -38,7 +65,8 @@ def create_refresh_token(data: dict):
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def register_user(request: Request, user: UserCreate, db: Session = Depends(get_db)):
     db_user = (
         db.query(User)
         .filter((User.username == user.username) | (User.email == user.email))
@@ -60,9 +88,14 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(user: LoginRequest, response: Response, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, user: LoginRequest, response: Response, db: Session = Depends(get_db)):
     """Authenticate with username + password. Returns JWT access and refresh tokens."""
-    db_user = db.query(User).filter(User.username == user.username).first()
+    db_user = (
+        db.query(User)
+        .filter((User.username == user.username) | (User.email == user.username))
+        .first()
+    )
     if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
@@ -102,11 +135,13 @@ def login(user: LoginRequest, response: Response, db: Session = Depends(get_db))
 
 
 @router.post("/refresh")
+@limiter.limit("20/minute")
 def refresh_token(
-    response: Response, refresh_token: str = Cookie(None), db: Session = Depends(get_db)
+    request: Request, response: Response, refresh_token: str = Cookie(None), db: Session = Depends(get_db)
 ):
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token missing")
+    from jose import JWTError, jwt
     try:
         payload = jwt.decode(
             refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -140,14 +175,17 @@ def refresh_token(
 
 
 @router.post("/forgot-password")
-def forgot_password(email: str, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def forgot_password(request: Request, email: EmailStr, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     if user:
         # In a production setting, integrate with SendGrid, SES, or similar to send the actual email.
         reset_token = create_access_token(data={"sub": user.username, "type": "reset"})
-        auth_logger.info(
-            f"Generated password reset link for {email}: /reset-password?token={reset_token}"
-        )
+        auth_logger.info(f"Generated password reset request for {email}")
+
+    return {
+        "message": "If the email is registered, a password reset link has been sent."
+    }
 
     return {
         "message": "If the email is registered, a password reset link has been sent."
@@ -156,6 +194,7 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
 
 @router.post("/verify-email")
 def verify_email(token: str, db: Session = Depends(get_db)):
+    from jose import JWTError, jwt
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -176,9 +215,9 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 
 
 class ProfileUpdateRequest(BaseModel):
-    email: str | None = None
-    username: str | None = None
-    password: str | None = None
+    email: Optional[EmailStr] = None
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    password: Optional[str] = Field(None, min_length=6, max_length=128)
     preferences: Optional[dict] = None
 
 

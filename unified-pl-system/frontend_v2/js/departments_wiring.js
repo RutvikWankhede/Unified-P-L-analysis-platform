@@ -1,7 +1,6 @@
 import { api } from './api.js';
 import { initEchart, safeSetOption } from './chart-engine.js';
-
-document.addEventListener('DOMContentLoaded', async () => {
+async function initDepartmentsWiring() {
   // =========================================================================
   // HELPER FORMATTERS & CENTRALIZED DETERMINISTIC COLOR SYSTEM
   // =========================================================================
@@ -618,7 +617,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // =========================================================================
   // 4. ROW 2: BUDGET VS ACTUAL (FULL WIDTH VISUAL REFERENCE ARCHITECTURE)
   // =========================================================================
-  async function loadBudgetActual(dept = 'all', range = 'all') {
+  async function loadBudgetActual(dept = 'all', range = 'top5') {
     const container = document.getElementById('budget-actual-chart-container');
     const rowsEl = document.getElementById('budget-actual-rows');
     const axisEl = document.getElementById('budget-actual-axis');
@@ -784,14 +783,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const triggerBudgetActual = () => {
     loadBudgetActual(
       ctrlBudgetDept ? ctrlBudgetDept.value : 'all',
-      ctrlBudgetRange ? ctrlBudgetRange.value : 'all'
+      ctrlBudgetRange ? ctrlBudgetRange.value : 'top5'
     );
   };
 
   if (ctrlBudgetRange) ctrlBudgetRange.addEventListener('change', triggerBudgetActual);
   if (ctrlBudgetDept) ctrlBudgetDept.addEventListener('change', triggerBudgetActual);
 
-  loadBudgetActual('all', 'all');
+  loadBudgetActual('all', 'top5');
 
   // =========================================================================
   // 5. ROW 3 LEFT: DEPARTMENT SUMMARY TABLE (DATA-DRIVEN & SORTABLE)
@@ -927,4 +926,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     deptPerfChart?.resize();
     deptTrendChart?.resize();
   });
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDepartmentsWiring);
+} else {
+  initDepartmentsWiring();
+}
+

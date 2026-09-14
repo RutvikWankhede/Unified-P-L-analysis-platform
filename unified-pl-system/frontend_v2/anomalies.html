@@ -235,15 +235,24 @@
               <span class="material-symbols-outlined text-sm text-slate-400 cursor-help" title="Historical anomaly frequency by severity">info</span>
             </div>
 
-            <!-- Time-Range Selector -->
-            <div class="relative">
-              <select id="trend-time-range" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
-                <option value="12m" selected>Last 12 Months</option>
-                <option value="6m">Last 6 Months</option>
-                <option value="3m">Last 3 Months</option>
-                <option value="all">All Time</option>
-              </select>
-              <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+            <div class="flex items-center gap-1.5">
+              <!-- Time-Range Selector -->
+              <div class="relative">
+                <select id="trend-time-range" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-xs">
+                  <option value="12m" selected>Last 12 Months</option>
+                  <option value="6m">Last 6 Months</option>
+                  <option value="3m">Last 3 Months</option>
+                  <option value="all">All Time</option>
+                </select>
+                <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              </div>
+
+              <!-- Zoom Controls -->
+              <div class="flex items-center gap-0.5 border-l border-slate-200 pl-1.5 text-slate-400">
+                <button id="zoom-in-anom" title="Zoom In" class="p-1 hover:text-slate-700 transition cursor-pointer"><span class="material-symbols-outlined text-xs">zoom_in</span></button>
+                <button id="zoom-out-anom" title="Zoom Out" class="p-1 hover:text-slate-700 transition cursor-pointer"><span class="material-symbols-outlined text-xs">zoom_out</span></button>
+                <button id="zoom-reset-anom" title="Reset View" class="p-1 hover:text-slate-700 transition cursor-pointer"><span class="material-symbols-outlined text-xs">restart_alt</span></button>
+              </div>
             </div>
           </div>
 
@@ -258,6 +267,10 @@
           <!-- Trend Chart Container -->
           <div class="w-full flex-1 min-h-[220px] relative">
             <div id="chart-anomaly-trend" class="w-full h-[220px]"></div>
+            <div id="anom-trend-empty" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white/90 text-slate-400 text-xs">
+              <span class="material-symbols-outlined text-2xl mb-1 text-slate-300">show_chart</span>
+              <span>No anomaly events recorded for the selected period.</span>
+            </div>
           </div>
         </div>
       </section>
@@ -266,12 +279,16 @@
       <!-- 3. AI ANOMALY INSIGHTS & RECOMMENDATIONS                 -->
       <!-- ======================================================== -->
       <section class="dash-card custom-shadow">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-base text-primary">auto_awesome</span>
             <h4 class="font-bold text-slate-900 text-xs">AI Anomaly Insights &amp; Risk Recommendations</h4>
+            <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">| Dataset-grounded surveillance intelligence</span>
           </div>
-          <span class="text-[10px] text-slate-400 font-medium">Dataset-grounded anomaly intelligence</span>
+          <button id="btn-view-all-anomaly-insights" class="px-2.5 py-1 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+            <span>View All Insights &amp; Recommendations</span>
+            <span class="material-symbols-outlined text-sm">open_in_new</span>
+          </button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="anomaly-insights-container">
           <!-- Dynamically populated from active anomaly dataset -->
@@ -288,6 +305,44 @@
       </section>
     </div>
   </main>
+
+  <!-- ======================================================== -->
+  <!-- EXPANDED ANOMALY INSIGHTS & RECOMMENDATIONS MODAL        -->
+  <!-- ======================================================== -->
+  <div id="modal-anomaly-insights" class="fixed inset-0 z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" id="modal-anom-backdrop"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
+            <span class="material-symbols-outlined text-xl">warning</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900">AI Anomaly Intelligence &amp; Risk Remediation</h3>
+            <p class="text-[11px] text-slate-500">Comprehensive ledger surveillance, severity distributions, and control recommendations</p>
+          </div>
+        </div>
+        <button id="modal-anom-close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto custom-scrollbar space-y-6" id="modal-anom-content">
+        <!-- Dynamically populated via anomalies_wiring.js -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <span class="text-[11px] text-slate-400 font-medium">Domain-specific surveillance context: Anomaly Detection Engine</span>
+        <button id="modal-anom-done" class="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition cursor-pointer">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="js/anomalies_wiring.js"></script>
   <script type="module" src="js/shell.js"></script>

@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 from repositories import pl_repository
 from services.data_quality_agent import check_data_quality
 from services.schema_mapping_agent import infer_schema, save_mapping_feedback
+from models.pl_record import PLRecord
+from models.uploaded_file import UploadedFile
+from models.recommendation import Setting
 
 MONTH_TRANSLATION = {
     "jan": 1,
@@ -288,7 +291,7 @@ def load_file_to_dataframe(file_content: bytes, filename: str) -> pd.DataFrame:
 def analyze_upload(
     file_content: bytes, filename: str, db: Session, user_id: int
 ) -> dict:
-    """Analyze and generate suggested mapping and quality scores for the uploaded file."""
+    """Analyze and generate suggested mapping, capabilities, and quality scores for the uploaded file."""
     df = load_file_to_dataframe(file_content, filename)
     cols = df.columns.tolist()
 
@@ -298,101 +301,130 @@ def analyze_upload(
     # Assess Data Quality
     dq = check_data_quality(df, mapping)
 
-    # Verify if confidence is sufficient for auto-ingest
-    has_date = False
-    has_dept = False
+    def _get_target(col_info):
+        return col_info.get("mapped_to") if isinstance(col_info, dict) else col_info
 
+    def _get_conf(col_info):
+        return col_info.get("confidence", 0.0) if isinstance(col_info, dict) else 80.0
+
+    # Identify mapped targets
+    detected_targets = {}
     for col, info in mapping.items():
-        if info["mapped_to"] == "date" and info["confidence"] >= 80.0:
-            has_date = True
-        if info["mapped_to"] == "department" and info["confidence"] >= 80.0:
-            has_dept = True
+        t = _get_target(info)
+        c = _get_conf(info)
+        if t:
+            col_l = col.lower()
+            tl = str(t).lower()
+            existing = detected_targets.get(t) or detected_targets.get(tl)
+            if existing:
+                existing_src = existing["source"].lower()
+                if existing_src == tl or (tl == "department" and existing_src in ["department", "dept"]):
+                    continue
+                if col_l == tl or (tl == "department" and col_l in ["department", "dept"]):
+                    detected_targets[t] = {"source": col, "confidence": c}
+                    detected_targets[tl] = {"source": col, "confidence": c}
+                    continue
+                if c > existing.get("confidence", 0):
+                    detected_targets[t] = {"source": col, "confidence": c}
+                    detected_targets[tl] = {"source": col, "confidence": c}
+            else:
+                detected_targets[t] = {"source": col, "confidence": c}
+                detected_targets[tl] = {"source": col, "confidence": c}
 
-    has_long = False
-    has_wide = False
+    has_date = "date" in detected_targets
+    has_dept = "department" in detected_targets or "dept" in detected_targets or "division" in detected_targets or "business_unit" in detected_targets
+    has_amount = "amount" in detected_targets
+    has_rev = "revenue" in detected_targets or "Revenue" in detected_targets or "sales" in detected_targets
+    has_exp = "expense" in detected_targets or "Expense" in detected_targets or "cost" in detected_targets
+    has_profit = "profit" in detected_targets or "Profit" in detected_targets
+    has_budget = "budget" in detected_targets or "Budget" in detected_targets
+    has_item = "line_item" in detected_targets
 
-    has_amount = any(
-        info["mapped_to"] == "amount" and info["confidence"] >= 80.0
-        for info in mapping.values()
-    )
-    has_item = any(
-        info["mapped_to"] == "line_item" and info["confidence"] >= 80.0
-        for info in mapping.values()
-    )
-    if has_amount and has_item:
-        has_long = True
+    # Check for transactional revenue/expense capability
+    sample_categories = []
+    if has_item:
+        cat_src = detected_targets["line_item"]["source"]
+        if cat_src in df.columns:
+            sample_categories = [str(x).lower().strip() for x in df[cat_src].dropna().head(50).tolist()]
 
-    has_rev_exp = any(
-        info["mapped_to"] in ["Revenue", "Expense"] and info["confidence"] >= 80.0
-        for info in mapping.values()
-    )
-    if has_rev_exp:
-        has_wide = True
+    rev_keywords = {"revenue", "sales", "income", "credit", "receivable", "billing", "subscription", "consulting", "services"}
+    exp_keywords = {"expense", "expenses", "cost", "costs", "operating_cost", "spend", "debit", "cogs", "payable", "salary", "payroll", "rent", "marketing", "vendor", "supplies", "travel", "utilities", "maintenance", "software", "infrastructure"}
+    
+    can_derive_from_type = any(any(k in cat for k in rev_keywords) for cat in sample_categories) or any(any(k in cat for k in exp_keywords) for cat in sample_categories)
+    revenue_expense_derivable = (has_rev and has_exp) or (has_amount and can_derive_from_type) or (has_rev or has_exp)
 
-    confidence_ok = has_date and (has_long or has_wide)
+    confidence_ok = has_date and (has_rev or has_exp or has_amount or has_item)
 
-    # Calculate dataset dimensions for success card display
     num_records = len(df)
+    dept_src = detected_targets.get("department", {}).get("source")
+    num_depts = df[dept_src].dropna().nunique() if (dept_src and dept_src in df.columns) else 1
 
-    dept_cols = [
-        col for col, info in mapping.items() if info["mapped_to"] == "department"
-    ]
-    num_depts = (
-        df[dept_cols[0]].dropna().nunique()
-        if (dept_cols and dept_cols[0] in df.columns)
-        else 0
-    )
+    cat_src = detected_targets.get("line_item", {}).get("source")
+    num_cats = df[cat_src].dropna().nunique() if (cat_src and cat_src in df.columns) else 1
 
-    cat_cols = [
-        col
-        for col, info in mapping.items()
-        if info["mapped_to"] in ["line_item", "cost_center", "Category"]
-    ]
-    num_cats = (
-        df[cat_cols[0]].dropna().nunique()
-        if (cat_cols and cat_cols[0] in df.columns)
-        else 14
-    )
-    if num_cats == 0:
-        num_cats = 14
+    detected_currencies = auto_detect_currency(df, {k: _get_target(v) for k, v in mapping.items()})
+    if not detected_currencies:
+        detected_currencies = "USD"
 
-    currency_cols = [
-        col for col, info in mapping.items() if info["mapped_to"] == "currency"
-    ]
-    detected_currencies = "INR"
-    if currency_cols and currency_cols[0] in df.columns:
-        unique_currs = df[currency_cols[0]].dropna().unique().tolist()
-        if unique_currs:
-            detected_currencies = ", ".join(str(c) for c in unique_currs)
-    else:
-        detected_currencies = auto_detect_currency(
-            df, {k: v["mapped_to"] for k, v in mapping.items()}
-        )
-        if not detected_currencies or detected_currencies == "USD":
-            detected_currencies = "INR"
-
-    date_cols = [col for col, info in mapping.items() if info["mapped_to"] == "date"]
-    years_str = "2022-2025"
-    if date_cols and date_cols[0] in df.columns:
+    years_str = "2024-2026"
+    date_src = detected_targets.get("date", {}).get("source")
+    if date_src and date_src in df.columns:
         try:
-            parsed_dates = pd.to_datetime(df[date_cols[0]].dropna(), errors="coerce")
-            unique_years = sorted(
-                parsed_dates.dt.year.dropna().unique().astype(int).tolist()
-            )
+            parsed_dates = pd.to_datetime(df[date_src].dropna(), errors="coerce")
+            unique_years = sorted(parsed_dates.dt.year.dropna().unique().astype(int).tolist())
             if unique_years:
-                if len(unique_years) > 1:
-                    years_str = f"{unique_years[0]}-{unique_years[-1]}"
-                else:
-                    years_str = str(unique_years[0])
+                years_str = f"{unique_years[0]}-{unique_years[-1]}" if len(unique_years) > 1 else str(unique_years[0])
         except Exception:
-            years_str = "2022-2025"
+            years_str = "2024-2026"
 
-    # Extract first 5 row items as preview dicts
+    # Identify financial fields detected
+    financial_fields = []
+    if has_rev: financial_fields.append("Revenue")
+    if has_exp: financial_fields.append("Expense")
+    if has_profit: financial_fields.append("Profit")
+    if has_budget: financial_fields.append("Budget")
+    if has_amount: financial_fields.append("Amount")
+
+    # Unmapped columns
+    mapped_sources = {detected_targets[t]["source"] for t in detected_targets}
+    unmapped_columns = [c for c in cols if c not in mapped_sources]
+
+    # Build canonical mappings dictionary for the UI
+    canonical_mappings = {}
+    system_fields = ["date", "department", "amount", "Revenue", "Expense", "Profit", "Budget", "line_item", "currency", "cost_center"]
+    for sf in system_fields:
+        if sf in detected_targets:
+            canonical_mappings[sf] = {
+                "mapped_to": detected_targets[sf]["source"],
+                "confidence": detected_targets[sf]["confidence"]
+            }
+        else:
+            canonical_mappings[sf] = {
+                "mapped_to": "",
+                "confidence": 0.0
+            }
+
+    schema_mapping_obj = {
+        "detected_columns": cols,
+        "mappings": canonical_mappings,
+        "suggested_mapping": mapping,
+        "unmapped_columns": unmapped_columns,
+        "financial_fields_detected": financial_fields,
+        "capabilities": {
+            "revenue_expense_derivable": revenue_expense_derivable,
+            "forecast_available": has_date and num_records >= 10,
+            "anomaly_detection_available": has_amount or has_rev or has_exp,
+            "departments_available": has_dept,
+            "budget_available": has_budget
+        }
+    }
+
     preview_rows = df.head(5).replace({np.nan: None}).to_dict(orient="records")
 
     return {
         "headers": cols,
         "suggested_mapping": mapping,
+        "schema_mapping": schema_mapping_obj,
         "quality_report": dq.to_dict(),
         "preview_rows": preview_rows,
         "confidence_ok": confidence_ok,
@@ -401,19 +433,28 @@ def analyze_upload(
         "categories_count": num_cats,
         "currencies_list": detected_currencies,
         "years_range": years_str,
+        "financial_fields": financial_fields,
+        "unmapped_columns": unmapped_columns,
+        "revenue_expense_derivable": revenue_expense_derivable,
     }
 
 
 def auto_ingest_dataset(
-    db: Session, file_content: bytes, filename: str, user_id: int, upload_id: str = None, preset_mapping: dict = None
+    db: Session,
+    file_content: bytes,
+    filename: str,
+    user_id: int,
+    upload_id: str = None,
+    preset_mapping: dict = None,
+    set_active: bool = True,
 ) -> dict:
-    """Intelligently parse, schema-detect, clean, validate, derive metrics, store in DB, and set as active dataset."""
+    """Intelligently parse, schema-detect, clean, validate, derive metrics, store in DB, and optionally set as active dataset."""
     from services.cache_service import invalidate_global_cache
     from models.recommendation import Setting
-    from models.uploaded_file import UploadedFile
-    from models.workflow import WorkflowInstance
-    from routers.datasets_router import _active_dataset, _schema_mappings
+    from core.dataset_context import runtime_dataset_context, CANONICAL_SEED_ID, CANONICAL_SEED_FILENAME
+    from routers.datasets_router import _schema_mappings
     import os
+    import math
 
     if not upload_id:
         upload_id = str(uuid.uuid4())
@@ -427,42 +468,100 @@ def auto_ingest_dataset(
         f.write(file_content)
 
     df = load_file_to_dataframe(file_content, filename)
+    cols = df.columns.tolist()
+
+    # Normalize mapping
+    mapping = {}
     if preset_mapping:
-        mapping = preset_mapping
+        # Check if preset_mapping is {canonical: source_col} or {source_col: canonical}
+        for k, v in preset_mapping.items():
+            if not v:
+                continue
+            val_target = v.get("mapped_to") if isinstance(v, dict) else v
+            if not val_target:
+                continue
+            if val_target in cols:
+                mapping[val_target] = {"mapped_to": k, "confidence": 100.0}
+            elif k in cols:
+                mapping[k] = {"mapped_to": val_target, "confidence": 100.0}
+        # For columns in df not explicitly mapped in preset_mapping, run inference
+        inferred = infer_schema([c for c in cols if c not in mapping], db, user_id)
+        for c, inf in inferred.items():
+            if c not in mapping:
+                mapping[c] = inf
     else:
-        mapping = infer_schema(df.columns.tolist(), db, user_id)
+        mapping = infer_schema(cols, db, user_id)
+
     dq = check_data_quality(df, mapping)
 
-    # Save mappings feedback
+    # Save mapping feedback
     for orig, target_info in mapping.items():
         target = target_info.get("mapped_to") if isinstance(target_info, dict) else target_info
         if target:
             save_mapping_feedback(db, user_id, orig, target)
 
-    detected_currency = auto_detect_currency(df, mapping)
+    detected_currency = auto_detect_currency(df, mapping) or "USD"
 
     def _get_target(col_info):
         return col_info.get("mapped_to") if isinstance(col_info, dict) else col_info
 
-    date_col = next((col for col, target in mapping.items() if _get_target(target) == "date"), None)
-    dept_col = next((col for col, target in mapping.items() if _get_target(target) == "department"), None)
-    currency_col = next((col for col, target in mapping.items() if _get_target(target) == "currency"), None)
-    cost_center_col = next((col for col, target in mapping.items() if _get_target(target) == "cost_center"), None)
-    rev_col = next((col for col, target in mapping.items() if _get_target(target) == "Revenue"), None)
-    exp_col = next((col for col, target in mapping.items() if _get_target(target) == "Expense"), None)
-    profit_col = next((col for col, target in mapping.items() if _get_target(target) == "Profit"), None)
-    budget_col = next((col for col, target in mapping.items() if _get_target(target) == "Budget"), None)
-    line_item_col = next((col for col, target in mapping.items() if _get_target(target) == "line_item"), None)
-    amount_col = next((col for col, target in mapping.items() if _get_target(target) == "amount"), None)
+    # Date column: direct canonical match > schema mapping > aliases
+    date_col = next((c for c in df.columns if c.lower() in ["date", "transaction_date", "period"]), None)
+    if not date_col:
+        date_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["date", "period", "transaction_date"]), None)
+    if not date_col:
+        date_col = next((c for c in df.columns if c.lower() in ["posting_date", "invoice_date", "financial_date", "dt"]), None)
+
+    # Department column: direct "department"/"dept" > schema mapping > "division"/"business_unit"
+    dept_col = next((c for c in df.columns if c.lower() in ["department", "dept"]), None)
+    if not dept_col:
+        dept_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["department", "dept"]), None)
+    if not dept_col:
+        dept_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["division", "business_unit", "cost_center", "domain"]), None)
+    if not dept_col:
+        dept_col = next((c for c in df.columns if c.lower() in ["division", "business_unit", "cost_center", "domain", "region"]), None)
+
+    currency_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["currency", "ccy"]), None)
+    cost_center_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["cost_center", "cost center"]), None)
+
+    # Revenue column
+    rev_col = next((c for c in df.columns if c.lower() in ["revenue", "sales", "total_revenue", "sales_revenue", "income", "turnover"]), None)
+    if not rev_col:
+        rev_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["revenue", "sales", "income", "turnover"]), None)
+
+    # Expense column
+    exp_col = next((c for c in df.columns if c.lower() in ["expense", "expenses", "cost", "costs", "total_expense", "total_cost", "operating_cost", "operating_expense", "opex"]), None)
+    if not exp_col:
+        exp_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["expense", "expenses", "cost", "costs", "opex", "spend"]), None)
+
+    # Profit column
+    profit_col = next((c for c in df.columns if c.lower() in ["profit", "net_profit", "earnings", "net_income"]), None)
+    if not profit_col:
+        profit_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["profit", "net_profit", "earnings"]), None)
+
+    # Budget column
+    budget_col = next((c for c in df.columns if c.lower() in ["budget", "budget_amount", "allocated_budget", "planned_budget", "budget_target"]), None)
+    if not budget_col:
+        budget_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["budget", "budget_amount", "allocated_budget", "target"]), None)
+
+    line_item_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["line_item", "line item", "category", "account", "item"]), None)
+    amount_col = next((col for col, target in mapping.items() if str(_get_target(target) or "").lower() in ["amount", "value", "net_amount"]), None)
+
+    rev_keywords = {"revenue", "sales", "income", "credit", "receivable", "billing", "subscription", "consulting", "services"}
+    exp_keywords = {"expense", "expenses", "cost", "costs", "operating_cost", "spend", "debit", "cogs", "payable", "salary", "payroll", "rent", "marketing", "vendor", "supplies", "travel", "utilities", "maintenance", "software", "infrastructure"}
 
     records = []
     rows_list = df.to_dict(orient="records")
+    total_rev = 0.0
+    total_exp = 0.0
+    has_rev_records = False
+    has_exp_records = False
 
     for row_dict in rows_list:
         date_val = parse_date(row_dict.get(date_col)) if date_col else "2026-01-01"
         dept_val = str(row_dict.get(dept_col) or "All Departments").strip() if dept_col else "All Departments"
-        currency_val = str(row_dict.get(currency_col) or detected_currency or "USD").strip()
-        cost_center_val = str(row_dict.get(cost_center_col) or "").strip()
+        currency_val = str(row_dict.get(currency_col) or detected_currency or "USD").strip()[:10]
+        cost_center_val = str(row_dict.get(cost_center_col) or "").strip()[:50]
 
         # Check wide financial columns
         rev_amt = parse_amount(row_dict.get(rev_col)) if rev_col else None
@@ -470,63 +569,106 @@ def auto_ingest_dataset(
         profit_amt = parse_amount(row_dict.get(profit_col)) if profit_col else None
         budget_amt = parse_amount(row_dict.get(budget_col)) if budget_col else None
 
-        # Derived Profit = Revenue - Expense
-        if rev_amt is not None and exp_amt is not None:
-            profit_amt = round(rev_amt - exp_amt, 2)
-        elif profit_amt is None and rev_amt is not None and exp_amt is not None:
-            profit_amt = round(rev_amt - exp_amt, 2)
+        # Build dynamic_data dict safely
+        dynamic_data = {}
+        for k, v in row_dict.items():
+            if pd.isnull(v):
+                dynamic_data[str(k)] = None
+            elif isinstance(v, (np.integer, int)):
+                dynamic_data[str(k)] = int(v)
+            elif isinstance(v, (np.floating, float)):
+                dynamic_data[str(k)] = round(float(v), 4) if not (math.isnan(v) or math.isinf(v)) else None
+            else:
+                dynamic_data[str(k)] = str(v)
 
-        profit_margin_pct = round((profit_amt / rev_amt) * 100, 2) if (profit_amt is not None and rev_amt and rev_amt != 0) else None
-        budget_var = round(exp_amt - budget_amt, 2) if (exp_amt is not None and budget_amt is not None) else None
-        budget_var_pct = round((budget_var / budget_amt) * 100, 2) if (budget_var is not None and budget_amt and budget_amt != 0) else None
+        # Case 1: Wide format with Revenue and/or Expense columns
+        if rev_amt is not None or exp_amt is not None:
+            if rev_amt is not None and exp_amt is not None:
+                profit_amt = round(rev_amt - exp_amt, 2)
+            profit_margin_pct = round((profit_amt / rev_amt) * 100, 2) if (profit_amt is not None and rev_amt and rev_amt != 0) else None
+            budget_var = round(exp_amt - budget_amt, 2) if (exp_amt is not None and budget_amt is not None) else None
+            budget_var_pct = round((budget_var / budget_amt) * 100, 2) if (budget_var is not None and budget_amt and budget_amt != 0) else None
 
-        dynamic_data = {
-            k: (v if pd.notnull(v) else None) for k, v in row_dict.items()
-        }
-        if rev_amt is not None: dynamic_data["Revenue"] = rev_amt
-        if exp_amt is not None: dynamic_data["Expense"] = exp_amt
-        if profit_amt is not None: dynamic_data["Profit"] = profit_amt
-        if budget_amt is not None: dynamic_data["Budget"] = budget_amt
-        if profit_margin_pct is not None: dynamic_data["Profit_Margin_Pct"] = profit_margin_pct
-        if budget_var is not None: dynamic_data["Budget_Variance"] = budget_var
-        if budget_var_pct is not None: dynamic_data["Budget_Variance_Pct"] = budget_var_pct
+            if rev_amt is not None:
+                dynamic_data["Revenue"] = rev_amt
+                total_rev += rev_amt
+                has_rev_records = True
+                records.append({
+                    "domain": dept_val,
+                    "period": date_val,
+                    "line_item": "Revenue",
+                    "amount": rev_amt,
+                    "currency": currency_val,
+                    "cost_center": cost_center_val,
+                    "dynamic_data": dynamic_data,
+                })
 
-        if rev_amt is not None:
-            records.append({
-                "domain": dept_val,
-                "period": date_val,
-                "line_item": "Revenue",
-                "amount": rev_amt,
-                "currency": currency_val,
-                "cost_center": cost_center_val,
-                "dynamic_data": dynamic_data,
-            })
-        if exp_amt is not None:
-            records.append({
-                "domain": dept_val,
-                "period": date_val,
-                "line_item": "Expense",
-                "amount": exp_amt,
-                "currency": currency_val,
-                "cost_center": cost_center_val,
-                "dynamic_data": dynamic_data,
-            })
-        if rev_amt is None and exp_amt is None:
-            item_val = str(row_dict.get(line_item_col) or "Financial Line Item").strip()
-            amt_val = parse_amount(row_dict.get(amount_col)) if amount_col else 0.0
-            records.append({
-                "domain": dept_val,
-                "period": date_val,
-                "line_item": item_val,
-                "amount": amt_val,
-                "currency": currency_val,
-                "cost_center": cost_center_val,
-                "dynamic_data": dynamic_data,
-            })
+            if exp_amt is not None:
+                dynamic_data["Expense"] = exp_amt
+                total_exp += exp_amt
+                has_exp_records = True
+                records.append({
+                    "domain": dept_val,
+                    "period": date_val,
+                    "line_item": "Expense",
+                    "amount": exp_amt,
+                    "currency": currency_val,
+                    "cost_center": cost_center_val,
+                    "dynamic_data": dynamic_data,
+                })
+
+        # Case 2: Transaction-style data with Amount and Category/Type
+        else:
+            item_val = str(row_dict.get(line_item_col) or "").strip()
+            raw_amt_val = parse_amount(row_dict.get(amount_col)) if amount_col else None
+            amt_val = raw_amt_val if raw_amt_val is not None else 0.0
+
+            item_lower = item_val.lower()
+            is_rev = any(k in item_lower for k in rev_keywords)
+            is_exp = any(k in item_lower for k in exp_keywords)
+
+            if is_rev and not is_exp:
+                total_rev += abs(amt_val)
+                has_rev_records = True
+                dynamic_data["Revenue"] = abs(amt_val)
+                records.append({
+                    "domain": dept_val,
+                    "period": date_val,
+                    "line_item": item_val or "Revenue",
+                    "amount": abs(amt_val),
+                    "currency": currency_val,
+                    "cost_center": cost_center_val,
+                    "dynamic_data": dynamic_data,
+                })
+            elif is_exp and not is_rev:
+                total_exp += abs(amt_val)
+                has_exp_records = True
+                dynamic_data["Expense"] = abs(amt_val)
+                records.append({
+                    "domain": dept_val,
+                    "period": date_val,
+                    "line_item": item_val or "Expense",
+                    "amount": abs(amt_val),
+                    "currency": currency_val,
+                    "cost_center": cost_center_val,
+                    "dynamic_data": dynamic_data,
+                })
+            else:
+                # General structured row: ingest as actual line item without fabricating revenue/expense
+                records.append({
+                    "domain": dept_val,
+                    "period": date_val,
+                    "line_item": item_val or "Financial Line Item",
+                    "amount": amt_val,
+                    "currency": currency_val,
+                    "cost_center": cost_center_val,
+                    "dynamic_data": dynamic_data,
+                })
 
     db_records = pl_repository.create_pl_records(db, records, upload_id, user_id)
 
     # Save UploadedFile record
+    is_seed_dataset = (upload_id == CANONICAL_SEED_ID)
     up_file = db.query(UploadedFile).filter(UploadedFile.upload_id == upload_id).first()
     if not up_file:
         up_file = UploadedFile(
@@ -534,41 +676,30 @@ def auto_ingest_dataset(
             filename=filename,
             file_size_bytes=len(file_content),
             user_id=user_id,
-            status="COMPLETED"
+            status="COMPLETED",
+            is_seeded=is_seed_dataset
         )
         db.add(up_file)
     else:
         up_file.status = "COMPLETED"
+        up_file.is_seeded = is_seed_dataset
     db.commit()
 
-    # Save Setting active_dataset_id & active_dataset_filename
-    try:
-        s_id = db.query(Setting).filter(Setting.key == "active_dataset_id").first()
-        if not s_id:
-            db.add(Setting(key="active_dataset_id", value=upload_id))
-        else:
-            s_id.value = upload_id
+    # Set in-memory runtime active dataset if set_active is True
+    if set_active:
+        runtime_dataset_context.set_active(
+            dataset_id=upload_id,
+            filename=filename,
+            source="upload",
+            reason="USER UPLOAD"
+        )
 
-        s_fn = db.query(Setting).filter(Setting.key == "active_dataset_filename").first()
-        if not s_fn:
-            db.add(Setting(key="active_dataset_filename", value=filename))
-        else:
-            s_fn.value = filename
-
-        db.commit()
-    except Exception as set_err:
-        logger.warning(f"Error persisting active dataset setting: {set_err}")
-
-    # Set in-memory active dataset
-    _active_dataset["dataset_id"] = upload_id
-    _active_dataset["filename"] = filename
-
-    # Trigger anomaly detection
+    # Trigger anomaly detection safely
     try:
         from services.anomaly_service import run_anomaly_detection
         run_anomaly_detection(db, upload_id)
     except Exception as ex:
-        logger.error(f"Anomaly detection failed during auto-ingest: {ex}")
+        logger.error(f"Anomaly detection skipped or failed during auto-ingest: {ex}")
 
     # Format mapping for frontend
     formatted_mapping = []
@@ -594,16 +725,24 @@ def auto_ingest_dataset(
         if mapped_to:
             detected_schema[col] = mapped_to
 
+    derived_metrics = {
+        "revenue": round(total_rev, 2) if has_rev_records else None,
+        "expense": round(total_exp, 2) if has_exp_records else None,
+        "profit": round(total_rev - total_exp, 2) if (has_rev_records and has_exp_records) else None
+    }
+
     return {
         "status": "READY",
         "dataset_id": upload_id,
         "upload_id": upload_id,
         "filename": filename,
+        "records_ingested": len(db_records),
         "records_count": len(db_records),
         "row_count": len(df),
         "column_count": len(df.columns),
         "quality_score": dq.to_dict().get("overall_score", 95.0),
         "detected_schema": detected_schema,
+        "derived_metrics": derived_metrics,
         "preview_rows": df.head(5).replace({np.nan: None}).to_dict(orient="records"),
         "has_departments": dept_col is not None,
     }
@@ -612,15 +751,15 @@ def auto_ingest_dataset(
 def finalize_ingestion(
     db: Session, file_content: bytes, filename: str, mapping: dict, user_id: int, upload_id: str
 ):
-    """Backward compatibility wrapper delegating to auto_ingest_dataset."""
-    res = auto_ingest_dataset(db, file_content, filename, user_id, upload_id=upload_id)
-    return res["upload_id"], res["records_count"]
+    """Finalize ingestion by parsing mapping and storing records in DB."""
+    res = auto_ingest_dataset(db, file_content, filename, user_id, upload_id=upload_id, preset_mapping=mapping, set_active=True)
+    return res["upload_id"], res["records_ingested"]
 
 
 _demo_data_seeded = False
 
 def ensure_demo_data(db: Session):
-    """Seed the database with the canonical demo dataset (unified_pnl_enterprise_demo.csv) if no records exist."""
+    """Seed the database with the canonical demo dataset if missing, and ensure runtime active dataset is canonical seed on startup."""
     global _demo_data_seeded
     if _demo_data_seeded:
         return
@@ -630,42 +769,29 @@ def ensure_demo_data(db: Session):
     if "PYTEST_CURRENT_TEST" in os.environ:
         return
 
-    from models.pl_record import PLRecord
-    from models.recommendation import Setting
-    from routers.datasets_router import _active_dataset
+    from core.dataset_context import runtime_dataset_context, CANONICAL_SEED_ID, CANONICAL_SEED_FILENAME
+    from models.uploaded_file import UploadedFile
 
-    canonical_upload_id = "899540e5-fa49-49e8-b87a-6965b44fd71f"
-    canonical_filename = "unified_pnl_enterprise_demo.xlsx"
+    canonical_upload_id = CANONICAL_SEED_ID
+    canonical_filename = CANONICAL_SEED_FILENAME
 
-    # Sync active dataset from persistent Setting table if present
+    # 1. Check if canonical demo dataset records exist
     try:
-        active_setting = db.query(Setting).filter(Setting.key == "active_dataset_id").first()
-        active_fn_setting = db.query(Setting).filter(Setting.key == "active_dataset_filename").first()
+        canonical_record_count = db.query(PLRecord).filter(PLRecord.upload_id == canonical_upload_id).count()
+    except Exception:
+        canonical_record_count = 0
 
-        if active_setting and active_setting.value:
-            cnt = db.query(PLRecord).filter(PLRecord.upload_id == active_setting.value).count()
-            if cnt > 0:
-                _active_dataset["dataset_id"] = active_setting.value
-                _active_dataset["filename"] = active_fn_setting.value if active_fn_setting else canonical_filename
-            else:
-                _active_dataset["dataset_id"] = canonical_upload_id
-                _active_dataset["filename"] = canonical_filename
-    except Exception as err:
-        logger.warning(f"Failed to read active dataset setting: {err}")
-
-    if db.query(PLRecord).count() > 0:
-        _demo_data_seeded = True
-        return
-
-    logger.info("Database is empty on launch. Automatically ingesting canonical unified_pnl_enterprise_demo.csv...")
-    try:
-        # Search for canonical CSV file
+    if canonical_record_count < 1000:
         candidate_paths = [
-            Path("data/default/unified_pnl_enterprise_demo.csv"),
+            Path("demo_dataset.csv"),
             Path("unified_pnl_enterprise_demo.csv"),
+            Path("data/default/unified_pnl_enterprise_demo.csv"),
             Path("../data/default/unified_pnl_enterprise_demo.csv"),
             Path("../unified_pnl_enterprise_demo.csv"),
             Path("../../data/default/unified_pnl_enterprise_demo.csv"),
+            Path("../../unified_pnl_enterprise_demo.csv"),
+            Path("unified-pl-system/backend/demo_dataset.csv"),
+            Path("unified-pl-system/data/default/unified_pnl_enterprise_demo.csv"),
         ]
         csv_file_path = None
         for cp in candidate_paths:
@@ -681,24 +807,82 @@ def ensure_demo_data(db: Session):
                 content,
                 canonical_filename,
                 user_id=1,
-                upload_id=canonical_upload_id
+                upload_id=canonical_upload_id,
+                set_active=False
             )
-            _active_dataset["dataset_id"] = canonical_upload_id
-            _active_dataset["filename"] = canonical_filename
-            _demo_data_seeded = True
-            logger.info(f"Successfully auto-ingested canonical dataset: {res['records_count']} records.")
-
-            # Run anomaly detection to populate anomalies
-            try:
-                from services.anomaly_detection_engine import run_anomaly_detection
-                anom_res = run_anomaly_detection(db, upload_id=canonical_upload_id)
-                logger.info(f"Auto-detected anomalies on startup: {len(anom_res)} anomalies.")
-            except Exception as anom_err:
-                logger.warning(f"Failed to run initial anomaly detection: {anom_err}")
+            canonical_record_count = res.get('records_count', 0)
         else:
-            logger.error("Canonical unified_pnl_enterprise_demo.csv could not be found.")
-    except Exception as e:
-        logger.error(f"Failed to ingest default dataset: {e}")
+            logger.error("[DATASET] Canonical unified_pnl_enterprise_demo.csv could not be found.")
+
+    # 2. Ensure UploadedFile record exists for canonical demo dataset
+    try:
+        uf = db.query(UploadedFile).filter(UploadedFile.upload_id == canonical_upload_id).first()
+        if not uf:
+            uf = UploadedFile(
+                upload_id=canonical_upload_id,
+                filename=canonical_filename,
+                file_size_bytes=124362,
+                user_id=1,
+                status="COMPLETED",
+                is_seeded=True
+            )
+            db.add(uf)
+            db.commit()
+        else:
+            if not getattr(uf, "is_seeded", False):
+                uf.is_seeded = True
+                db.commit()
+    except Exception as uf_err:
+        logger.warning(f"[DATASET WARN] Error ensuring UploadedFile for demo dataset: {uf_err}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
+
+    # 3. Synchronize Runtime Active Dataset: ALWAYS canonical seed on fresh startup
+    runtime_dataset_context.reset_to_seed()
+
+    _demo_data_seeded = True
+    try:
+        print_dataset_startup_diagnostics(db)
+    except Exception as diag_err:
+        logger.warning(f"Error printing dataset startup diagnostics: {diag_err}")
+
+
+def print_dataset_startup_diagnostics(db: Session):
+    """Outputs structured startup block on backend startup."""
+    from core.dataset_context import CANONICAL_SEED_ID, CANONICAL_SEED_FILENAME
+    from routers.datasets_router import get_active_dataset
+
+    active_ds = get_active_dataset(db)
+    seed_records = db.query(PLRecord).filter(PLRecord.upload_id == CANONICAL_SEED_ID).count()
+
+    lines = [
+        "",
+        "==================================================",
+        "DATASET STARTUP",
+        "==================================================",
+        "",
+        "Seed dataset:",
+        f"ID: {CANONICAL_SEED_ID}",
+        f"Name: {CANONICAL_SEED_FILENAME}",
+        f"Record count: {seed_records}",
+        "",
+        "Runtime active dataset:",
+        f"ID: {active_ds.get('dataset_id')}",
+        f"Name: {active_ds.get('filename')}",
+        f"Record count: {active_ds.get('record_count')}",
+        "",
+        "Startup rule:",
+        "SEEDED DATASET",
+        "",
+        "==================================================",
+        "",
+    ]
+
+    diag_text = "\n".join(lines)
+    print(diag_text, flush=True)
+    logger.info(diag_text)
 
 
 def process_csv_upload(db: Session, file_content: bytes, user_id: int):

@@ -1,7 +1,13 @@
 import { api } from './api.js';
 import { initEchart, safeSetOption } from './chart-engine.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+console.log(
+  "[FORECAST LIVE BUILD]",
+  new Date().toISOString(),
+  "dashboard_wiring.js ACTIVE"
+);
+
+async function initDashboardWiring() {
   // Global Currency & Number Formatter
   const formatCurrency = (val) => {
     if (val === null || val === undefined || isNaN(val)) return '₹0';
@@ -146,53 +152,111 @@ document.addEventListener('DOMContentLoaded', async () => {
   // =========================================================================
   // 1. POPULATE ACTIVE DATASET & SUMMARY KPIS
   // =========================================================================
-  try {
-    const active = await api.get('/api/v1/datasets/active').catch(() => null);
-    if (active && active.filename) {
-      const pill = document.getElementById('active-dataset-name');
-      if (pill) pill.textContent = active.filename.replace('.csv', '').replace('.xlsx', '');
+  console.log("[FORECAST LIVE BUILD]", new Date().toISOString(), "dashboard_wiring.js ACTIVE");
+
+  async function loadSummaryKPIs() {
+    try {
+      console.log("[FORECAST] API REQUEST START: /api/v1/pl/summary");
+      const [active, summary] = await Promise.all([
+        api.get('/api/v1/datasets/active').catch(() => null),
+        api.get('/api/v1/pl/summary').catch((err) => {
+          console.error("[FORECAST] API REQUEST FAILED:", err);
+          return null;
+        })
+      ]);
+
+      if (active && active.filename) {
+        const pill = document.getElementById('active-dataset-name');
+        if (pill) pill.textContent = active.filename.replace('.csv', '').replace('.xlsx', '');
+      }
+
+      console.log("[FORECAST] API RESPONSE RECEIVED", summary);
+      console.log("[FORECAST KPI VALUE]", summary?.kpis?.forecast_profit);
+
+      if (summary && summary.kpis) {
+        const k = summary.kpis;
+        const rEl = document.getElementById('kpi-total-revenue');
+        const eEl = document.getElementById('kpi-total-expenses');
+        const pEl = document.getElementById('kpi-net-profit');
+        const mEl = document.getElementById('kpi-operating-margin');
+        const cEl = document.getElementById('kpi-cash-flow');
+        const hEl = document.getElementById('kpi-health');
+        const fcEl = document.getElementById('kpi-forecast') || document.getElementById('kpi-forecasted-profit') || document.getElementById('kpi-forecast-profit') || document.getElementById('forecast-kpi-value');
+        const fcLbl = document.getElementById('kpi-forecast-label');
+        const fcGr = document.getElementById('kpi-forecast-growth');
+
+        if (rEl && k.revenue !== undefined) rEl.textContent = formatCurrency(k.revenue);
+        if (eEl && k.expense !== undefined) eEl.textContent = formatCurrency(k.expense);
+        if (pEl && k.profit !== undefined) pEl.textContent = formatCurrency(k.profit);
+        if (mEl && k.profit_margin !== undefined) mEl.textContent = `${k.profit_margin.toFixed(1)}%`;
+        if (cEl) {
+          cEl.textContent = k.cash_flow !== undefined && k.cash_flow !== null ? formatCurrency(k.cash_flow) : 'Unavailable';
+        }
+        if (hEl && k.health_score !== undefined) hEl.textContent = `${Math.round(k.health_score)}/100`;
+
+        // 6. Forecast KPI - Synchronous with other KPIs from active dataset
+        if (fcLbl) fcLbl.textContent = 'Forecast';
+        
+        const rawFcVal = k.forecast_profit ?? k.forecasted_profit ?? k.forecast_value ?? (k.forecast && typeof k.forecast === 'object' ? (k.forecast.value ?? k.forecast.profit) : null);
+        const rawFcGr = k.forecast_growth ?? k.growth_percent ?? (k.forecast && typeof k.forecast === 'object' ? (k.forecast.growth_percent ?? k.forecast.growth) : null);
+
+        const numFcVal = Number(rawFcVal);
+        const isFcAvailable = rawFcVal !== null && rawFcVal !== undefined && Number.isFinite(numFcVal) && (k.forecast_status === 'available' || numFcVal !== 0);
+
+        if (fcEl) {
+          if (isFcAvailable) {
+            fcEl.textContent = formatCurrency(numFcVal);
+          } else {
+            const reason = k.forecast_reason || 'Insufficient data';
+            fcEl.textContent = reason.includes('Insufficient') ? 'Insufficient data' : 'Forecast unavailable';
+          }
+        }
+        if (fcGr) {
+          const numGr = Number(rawFcGr);
+          if (Number.isFinite(numGr)) {
+            const sign = numGr >= 0 ? '↑ +' : '↓ ';
+            const colorClass = numGr >= 0 ? 'text-emerald-600' : 'text-rose-500';
+            fcGr.innerHTML = `<span class="${colorClass} font-semibold">${sign}${Math.abs(numGr).toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs current baseline</span>`;
+          } else {
+            const reason = k.forecast_reason || 'Insufficient historical periods';
+            fcGr.innerHTML = `<span class="text-[9px] text-amber-600 font-medium">${reason}</span>`;
+          }
+        }
+
+        // Sparklines with real data if available
+        const sparkData = k.forecast_sparkline || (k.forecast && k.forecast.sparkline);
+        if (sparkData && Array.isArray(sparkData) && sparkData.length > 0) {
+          initSparkline('sparkline-forecast', '#0284C7', sparkData);
+        }
+
+        // Trends
+        const rGr = document.getElementById('kpi-growth-revenue');
+        const eGr = document.getElementById('kpi-growth-expenses');
+        const pGr = document.getElementById('kpi-growth-profit');
+        const mGr = document.getElementById('kpi-growth-margin');
+
+        if (rGr && k.revenue_growth !== undefined) {
+          const sign = k.revenue_growth >= 0 ? '↑ +' : '↓ ';
+          rGr.innerHTML = `<span class="${k.revenue_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.revenue_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+        }
+        if (eGr && k.expense_growth !== undefined) {
+          const sign = k.expense_growth >= 0 ? '↑ +' : '↓ ';
+          eGr.innerHTML = `<span class="${k.expense_growth <= 5 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.expense_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+        }
+        if (pGr && k.profit_growth !== undefined) {
+          const sign = k.profit_growth >= 0 ? '↑ +' : '↓ ';
+          pGr.innerHTML = `<span class="${k.profit_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.profit_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+        }
+        if (mGr && k.margin_growth !== undefined) {
+          const sign = k.margin_growth >= 0 ? '↑ +' : '↓ ';
+          mGr.innerHTML = `<span class="${k.margin_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.margin_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
+        }
+      }
+    } catch (err) {
+      console.warn('Summary KPI load error:', err);
     }
-
-    const summary = await api.get('/api/v1/pl/summary').catch(() => null);
-    if (summary && summary.kpis) {
-      const k = summary.kpis;
-      const rEl = document.getElementById('kpi-total-revenue');
-      const eEl = document.getElementById('kpi-total-expenses');
-      const pEl = document.getElementById('kpi-net-profit');
-      const mEl = document.getElementById('kpi-operating-margin');
-      const cEl = document.getElementById('kpi-cash-flow');
-      const hEl = document.getElementById('kpi-health');
-
-      if (rEl && k.revenue !== undefined) rEl.textContent = formatCurrency(k.revenue);
-      if (eEl && k.expense !== undefined) eEl.textContent = formatCurrency(k.expense);
-      if (pEl && k.profit !== undefined) pEl.textContent = formatCurrency(k.profit);
-      if (mEl && k.profit_margin !== undefined) mEl.textContent = `${k.profit_margin.toFixed(1)}%`;
-      if (cEl && k.cash_flow !== undefined) cEl.textContent = formatCurrency(k.cash_flow);
-      if (hEl && k.health_score !== undefined) hEl.textContent = `${Math.round(k.health_score)}/100`;
-
-      // Trends
-      const rGr = document.getElementById('kpi-growth-revenue');
-      const eGr = document.getElementById('kpi-growth-expenses');
-      const pGr = document.getElementById('kpi-growth-profit');
-      const mGr = document.getElementById('kpi-growth-margin');
-
-      if (rGr && k.revenue_growth !== undefined) {
-        const sign = k.revenue_growth >= 0 ? '↑ +' : '↓ ';
-        rGr.innerHTML = `<span class="${k.revenue_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.revenue_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
-      }
-      if (eGr && k.expense_growth !== undefined) {
-        const sign = k.expense_growth >= 0 ? '↑ +' : '↓ ';
-        eGr.innerHTML = `<span class="${k.expense_growth <= 5 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.expense_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
-      }
-      if (pGr && k.profit_growth !== undefined) {
-        const sign = k.profit_growth >= 0 ? '↑ +' : '↓ ';
-        pGr.innerHTML = `<span class="${k.profit_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.profit_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
-      }
-      if (mGr && k.margin_growth !== undefined) {
-        const sign = k.margin_growth >= 0 ? '↑ +' : '↓ ';
-        mGr.innerHTML = `<span class="${k.margin_growth >= 0 ? 'text-emerald-600' : 'text-rose-500'} font-semibold">${sign}${k.margin_growth.toFixed(1)}%</span> <span class="text-[9px] text-slate-400 font-normal">vs last period</span>`;
-      }
-    }
+  }
+  loadSummaryKPIs();
 
     // Populate department dropdowns
     const deptsRes = await api.get('/api/v1/pl/departments').catch(() => null);
@@ -221,9 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       populateDropdown('ctrl-cf-dept');
       populateDropdown('ctrl-budget-dept');
     }
-  } catch (err) {
-    console.warn('Dashboard KPI fetch error:', err);
-  }
+
 
   // =========================================================================
   // 2. ROW 1 LEFT: REVENUE VS EXPENSES VS NET PROFIT (WITH AGG + DEPT + ZOOM)
@@ -707,91 +769,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   loadExpenseDistribution('expense', 'all');
 
-  // =========================================================================
-  // 6. ROW 2 RIGHT: DATA-DRIVEN INSIGHTS & EXTENDED VIEW ALL MODAL
-  // =========================================================================
-  let loadedInsights = [];
-  async function loadInsights() {
-    const container = document.getElementById('insights-container');
-    if (!container) return;
 
-    try {
-      const res = await api.get('/api/v1/pl/insights').catch(() => null);
-      if (res && res.insights && res.insights.length > 0) {
-        loadedInsights = res.insights;
-        container.innerHTML = '';
-
-        loadedInsights.slice(0, 4).forEach(ins => {
-          const icon = ins.category === 'Revenue' ? 'trending_up' :
-                       (ins.category === 'Expenses' ? 'warning' :
-                       (ins.category === 'Margin' ? 'favorite' : 'auto_awesome'));
-          const iconColor = ins.type === 'POSITIVE' ? 'text-emerald-600' :
-                            (ins.type === 'WARNING' ? 'text-rose-500' : 'text-purple-600');
-          const badgeBg = ins.badge === 'CRITICAL' || ins.badge === 'ALERT' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                          (ins.badge === 'HIGH IMPACT' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-blue-50 text-blue-600 border-blue-100');
-
-          const div = document.createElement('div');
-          div.className = 'flex items-start justify-between gap-2';
-          div.innerHTML = `
-            <div class="flex items-start gap-1.5">
-              <span class="material-symbols-outlined ${iconColor} text-sm mt-0.5">${icon}</span>
-              <div>
-                <p class="text-[10px] font-bold text-slate-800 leading-tight">${ins.title}</p>
-                <p class="text-[9px] text-slate-500 leading-tight mt-0.5">${ins.description}</p>
-              </div>
-            </div>
-            <span class="px-1.5 py-0.2 rounded text-[8px] font-bold ${badgeBg} border flex-shrink-0">${ins.badge}</span>
-          `;
-          container.appendChild(div);
-        });
-      }
-    } catch (err) {
-      console.warn('Insights error:', err);
-    }
-  }
-  loadInsights();
-
-  // Wire Extended Insights Modal
-  const btnViewAllInsights = document.getElementById('btn-view-all-insights');
-  const modalInsights = document.getElementById('modal-insights');
-  const closeModalInsights = document.getElementById('close-modal-insights');
-  const btnCloseInsightsFooter = document.getElementById('btn-close-insights-footer');
-
-  if (btnViewAllInsights && modalInsights) {
-    btnViewAllInsights.addEventListener('click', () => {
-      const list = document.getElementById('modal-insights-list');
-      if (list) {
-        list.innerHTML = '';
-        loadedInsights.forEach((ins, idx) => {
-          const card = document.createElement('div');
-          card.className = 'p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2.5';
-          card.innerHTML = `
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-sm text-slate-900">${idx + 1}. ${ins.title}</span>
-              <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">${ins.category} • ${ins.department}</span>
-            </div>
-            <p class="text-xs text-slate-700 leading-relaxed">${ins.description}</p>
-            <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100">
-              <div><span class="font-bold text-slate-900">Metric:</span> ${ins.metric}</div>
-              <div><span class="font-bold text-slate-900">Current Value:</span> ${typeof ins.current_value === 'number' ? formatCurrency(ins.current_value) : ins.current_value}</div>
-              <div><span class="font-bold text-slate-900">Change:</span> <span class="${ins.change_pct >= 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}">${ins.change_pct >= 0 ? '+' : ''}${ins.change_pct}%</span></div>
-              <div><span class="font-bold text-slate-900">Period:</span> ${ins.time_period || 'Historical Multi-Period'}</div>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100 space-y-1.5 leading-relaxed">
-              <div><span class="font-bold text-slate-900">Why It Matters:</span> ${ins.why_it_matters}</div>
-              <div><span class="font-bold text-slate-900">Supporting Data:</span> ${ins.supporting_data}</div>
-              <div><span class="font-bold text-slate-900">Interpretation:</span> ${ins.interpretation}</div>
-              <div><span class="font-bold text-slate-900">Suggested Action:</span> ${ins.suggested_action}</div>
-            </div>
-          `;
-          list.appendChild(card);
-        });
-      }
-      modalInsights.classList.remove('hidden');
-    });
-  }
-  if (closeModalInsights) closeModalInsights.addEventListener('click', () => modalInsights?.classList.add('hidden'));
-  if (btnCloseInsightsFooter) btnCloseInsightsFooter.addEventListener('click', () => modalInsights?.classList.add('hidden'));
 
   // =========================================================================
   // 7. ROW 3 LEFT: FORECAST VS ACTUAL (WITH DEPT + PERIOD + VARIANCE IN TOOLTIP)
@@ -1078,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // =========================================================================
   // 9. ROW 4: BUDGET VS ACTUAL (VISUAL REFERENCE INFORMATION ARCHITECTURE)
   // =========================================================================
-  async function loadBudgetActual(dept = 'all', range = 'all') {
+  async function loadBudgetActual(dept = 'all', range = 'top5') {
     const container = document.getElementById('budget-actual-chart-container');
     const rowsEl = document.getElementById('budget-actual-rows');
     const axisEl = document.getElementById('budget-actual-axis');
@@ -1271,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const triggerBudgetActual = () => {
     loadBudgetActual(
       ctrlBudgetDept ? ctrlBudgetDept.value : 'all',
-      ctrlBudgetRange ? ctrlBudgetRange.value : 'all'
+      ctrlBudgetRange ? ctrlBudgetRange.value : 'top5'
     );
   };
 
@@ -1279,12 +1257,185 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (ctrlBudgetDept) ctrlBudgetDept.addEventListener('change', triggerBudgetActual);
   if (btnBudgetOptions) btnBudgetOptions.addEventListener('click', triggerBudgetActual);
 
-  loadBudgetActual('all', 'all');
+  loadBudgetActual('all', 'top5');
 
   // =========================================================================
-  // 10. ROW 4 RIGHT: RECOMMENDATIONS (AI) & IN-PLACE MODAL
+  // 9. ROW 2 RIGHT: INSIGHTS & IN-PLACE EXTENDED MODAL
+  // =========================================================================
+  let loadedInsights = [];
+  async function loadInsights() {
+    const container = document.getElementById('insights-container');
+    if (!container) return;
+
+    try {
+      const res = await api.get('/api/v1/pl/insights').catch(() => null);
+      if (res && res.insights && Array.isArray(res.insights) && res.insights.length > 0) {
+        loadedInsights = res.insights;
+        container.innerHTML = '';
+        loadedInsights.slice(0, 3).forEach(ins => {
+          const sev = (ins.severity || '').toUpperCase();
+          const badgeClass = sev === 'CRITICAL' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                             (sev === 'HIGH IMPACT' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                             (sev === 'POSITIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-blue-50 text-blue-700 border-blue-100'));
+          const icon = ins.category === 'Revenue' ? 'trending_up' :
+                       (ins.category === 'Expenses' ? 'account_balance_wallet' :
+                       (ins.category === 'Margin' ? 'query_stats' :
+                       (ins.category === 'Budget' ? 'pie_chart' :
+                       (ins.category === 'Cash Flow' ? 'payments' :
+                       (ins.category === 'Risk' ? 'warning' : 'lightbulb')))));
+
+          const div = document.createElement('div');
+          div.className = 'p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between';
+          div.innerHTML = `
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-start gap-1.5">
+                <span class="material-symbols-outlined text-amber-500 text-sm mt-0.5">${icon}</span>
+                <div>
+                  <p class="text-[10px] font-bold text-slate-800 leading-tight">${ins.title}</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5 line-clamp-2">${ins.evidence || ins.description}</p>
+                </div>
+              </div>
+              <span class="px-1.5 py-0.2 rounded text-[8px] font-bold ${badgeClass} border flex-shrink-0">${ins.badge || ins.severity}</span>
+            </div>
+            <div class="mt-1 pt-1 border-t border-slate-100 flex items-center justify-between text-[9px]">
+              <span class="text-slate-500 font-medium">Dept: <b>${ins.department || 'Enterprise'}</b></span>
+              <span class="text-indigo-600 font-semibold truncate max-w-[130px]">${ins.suggested_action}</span>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+    } catch (err) {
+      console.warn('Insights load error:', err);
+    }
+  }
+  loadInsights();
+
+  // Wire Extended Insights Modal
+  const btnViewAllInsights = document.getElementById('btn-view-all-insights');
+  const modalInsights = document.getElementById('modal-insights');
+  const closeModalInsights = document.getElementById('close-modal-insights');
+  const btnCloseInsightsFooter = document.getElementById('btn-close-insights-footer');
+
+  if (btnViewAllInsights && modalInsights) {
+    btnViewAllInsights.addEventListener('click', () => {
+      const list = document.getElementById('modal-insights-list');
+      if (list) {
+        list.innerHTML = '';
+        loadedInsights.forEach((ins, idx) => {
+          const badgeClass = ins.severity === 'CRITICAL' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                             (ins.severity === 'HIGH IMPACT' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                             (ins.severity === 'POSITIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'));
+          const card = document.createElement('div');
+          card.className = 'p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2.5';
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-slate-900">${idx + 1}. ${ins.title}</span>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-bold ${badgeClass} border">${ins.badge || ins.severity}</span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">${ins.category || 'Strategic Insight'}</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed">${ins.evidence || ins.description}</p>
+            <div class="bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100">
+              <span class="font-bold text-slate-900">Why it matters:</span> ${ins.why_it_matters}
+            </div>
+            <div class="bg-amber-50/50 p-3 rounded-lg text-xs text-slate-800 border border-amber-100 flex items-center justify-between gap-3">
+              <div><span class="font-bold text-slate-900">Action:</span> ${ins.suggested_action}</div>
+              <span class="px-2.5 py-1 rounded-md bg-amber-600 text-white text-xs font-semibold flex-shrink-0">
+                ${ins.department || 'Enterprise'}
+              </span>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+      }
+      modalInsights.classList.remove('hidden');
+    });
+  }
+  if (closeModalInsights) closeModalInsights.addEventListener('click', () => modalInsights?.classList.add('hidden'));
+  if (btnCloseInsightsFooter) btnCloseInsightsFooter.addEventListener('click', () => modalInsights?.classList.add('hidden'));
+
+  // =========================================================================
+  // 10. ROW 5: STRATEGIC RECOMMENDATIONS (AI) & IN-PLACE MODAL
   // =========================================================================
   let loadedRecommendations = [];
+  let currentRecFilter = 'all';
+
+  function renderModalRecommendations(filter = 'all') {
+    currentRecFilter = filter;
+    const list = document.getElementById('modal-recommendations-list');
+    if (!list) return;
+
+    list.innerHTML = '';
+    const filtered = (filter === 'all')
+      ? loadedRecommendations
+      : loadedRecommendations.filter(r => (r.priority || '').toLowerCase() === filter.toLowerCase());
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div class="p-8 text-center bg-slate-50 rounded-xl border border-slate-200">
+          <span class="material-symbols-outlined text-slate-400 text-3xl mb-1">filter_alt_off</span>
+          <p class="text-xs font-bold text-slate-700">No ${filter} priority recommendations detected</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Switch filter tab to view other data-driven recommendations</p>
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach((rec, idx) => {
+      const badgeBg = rec.priority === 'Critical' ? 'bg-red-50 text-red-700 border-red-200' :
+                      (rec.priority === 'High' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                      (rec.priority === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'));
+      const card = document.createElement('div');
+      card.className = 'p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2.5';
+      card.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-sm text-slate-900">${idx + 1}. ${rec.title}</span>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold ${badgeBg} border">${rec.priority} Priority</span>
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">${rec.department || 'Enterprise'}</span>
+          </div>
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed font-medium">${rec.evidence || rec.reason}</p>
+        ${rec.business_impact ? `<p class="text-[11px] text-slate-500 leading-relaxed"><b class="text-slate-700">Business Impact:</b> ${rec.business_impact}</p>` : ''}
+        <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100">
+          <div><span class="font-bold text-slate-900">Category:</span> ${rec.category ? rec.category.replace(/_/g, ' ').toUpperCase() : 'STRATEGIC ADVISORY'}</div>
+          <div><span class="font-bold text-slate-900">Financial Impact:</span> <span class="text-emerald-600 font-semibold">${typeof rec.financial_impact === 'number' && rec.financial_impact > 0 ? formatCurrency(rec.financial_impact) : (rec.financial_impact || 'Operational')}</span></div>
+          <div><span class="font-bold text-slate-900">Metric Tracked:</span> ${rec.metric || 'General Performance'}</div>
+          <div><span class="font-bold text-slate-900">Expected Benefit:</span> ${rec.expected_benefit || 'EBITDA expansion'}</div>
+        </div>
+        <div class="bg-indigo-50/50 p-3 rounded-lg text-xs text-slate-800 border border-indigo-100 flex items-center justify-between gap-3">
+          <div><span class="font-bold text-slate-900">Recommended Action:</span> ${rec.suggested_action}</div>
+          <a href="${rec.action_url || '#'}" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors flex-shrink-0 cursor-pointer inline-block">
+            ${rec.action_button || 'Implement'}
+          </a>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function updateRecommendationFilterCounts() {
+    const allCount = loadedRecommendations.length;
+    const critCount = loadedRecommendations.filter(r => (r.priority || '').toLowerCase() === 'critical').length;
+    const highCount = loadedRecommendations.filter(r => (r.priority || '').toLowerCase() === 'high').length;
+    const medCount = loadedRecommendations.filter(r => (r.priority || '').toLowerCase() === 'medium').length;
+    const lowCount = loadedRecommendations.filter(r => (r.priority || '').toLowerCase() === 'low').length;
+
+    const elAll = document.getElementById('rec-count-all');
+    const elCrit = document.getElementById('rec-count-crit');
+    const elHigh = document.getElementById('rec-count-high');
+    const elMed = document.getElementById('rec-count-med');
+    const elLow = document.getElementById('rec-count-low');
+
+    if (elAll) elAll.textContent = allCount;
+    if (elCrit) elCrit.textContent = critCount;
+    if (elHigh) elHigh.textContent = highCount;
+    if (elMed) elMed.textContent = medCount;
+    if (elLow) elLow.textContent = lowCount;
+  }
+
   async function loadRecommendations() {
     const container = document.getElementById('recommendations-container');
     if (!container) return;
@@ -1294,15 +1445,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (res && Array.isArray(res) && res.length > 0) {
         loadedRecommendations = res;
         container.innerHTML = '';
+        updateRecommendationFilterCounts();
+
         loadedRecommendations.slice(0, 4).forEach(rec => {
           const cat = (rec.category || '').toLowerCase();
           const icon = cat.includes('revenue') ? 'campaign' :
                        (cat.includes('cost') || cat.includes('expense') ? 'account_balance_wallet' :
                        (cat.includes('margin') ? 'trending_up' :
-                       (cat.includes('risk') ? 'warning' : 'smart_toy')));
-          const impactBadge = rec.priority === 'High'
-            ? 'bg-rose-50 text-rose-600 border-rose-100'
-            : (rec.priority === 'Medium' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-blue-50 text-blue-600 border-blue-100');
+                       (cat.includes('risk') || cat.includes('loss') ? 'warning' : 'smart_toy')));
+          const impactBadge = rec.priority === 'Critical' ? 'bg-red-50 text-red-600 border-red-100' :
+                              (rec.priority === 'High' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                              (rec.priority === 'Medium' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-blue-50 text-blue-600 border-blue-100'));
 
           const div = document.createElement('div');
           div.className = 'p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between';
@@ -1312,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span class="material-symbols-outlined text-indigo-600 text-sm mt-0.5">${icon}</span>
                 <div>
                   <p class="text-[10px] font-bold text-slate-800 leading-tight">${rec.title}</p>
-                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5 line-clamp-2">${rec.reason}</p>
+                  <p class="text-[9px] text-slate-500 leading-tight mt-0.5 line-clamp-2">${rec.evidence || rec.reason}</p>
                 </div>
               </div>
               <span class="px-1.5 py-0.2 rounded text-[8px] font-bold ${impactBadge} border flex-shrink-0">${rec.priority}</span>
@@ -1337,41 +1490,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const closeModalRecommendations = document.getElementById('close-modal-recommendations');
   const btnCloseRecommendationsFooter = document.getElementById('btn-close-recommendations-footer');
 
+  // Filter Buttons in Modal
+  document.querySelectorAll('.rec-filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.rec-filter-btn').forEach(b => {
+        b.className = 'rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors';
+      });
+      btn.className = 'rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs cursor-pointer transition-colors';
+      const filter = btn.getAttribute('data-filter') || 'all';
+      renderModalRecommendations(filter);
+    });
+  });
+
   if (btnViewAllRecommendations && modalRecommendations) {
     btnViewAllRecommendations.addEventListener('click', () => {
-      const list = document.getElementById('modal-recommendations-list');
-      if (list) {
-        list.innerHTML = '';
-        loadedRecommendations.forEach((rec, idx) => {
-          const badgeBg = rec.priority === 'High' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                          (rec.priority === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200');
-          const card = document.createElement('div');
-          card.className = 'p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2.5';
-          card.innerHTML = `
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-sm text-slate-900">${idx + 1}. ${rec.title}</span>
-              <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 rounded-md text-xs font-bold ${badgeBg} border">${rec.priority} Priority</span>
-                <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">${rec.department || 'Enterprise'}</span>
-              </div>
-            </div>
-            <p class="text-xs text-slate-700 leading-relaxed">${rec.reason}</p>
-            <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-lg text-xs text-slate-700 border border-slate-100">
-              <div><span class="font-bold text-slate-900">Category:</span> ${rec.category || 'Strategic Advisory'}</div>
-              <div><span class="font-bold text-slate-900">Financial Impact:</span> <span class="text-emerald-600 font-semibold">${typeof rec.financial_impact === 'number' ? formatCurrency(rec.financial_impact) : rec.financial_impact}</span></div>
-              <div><span class="font-bold text-slate-900">Confidence Score:</span> ${rec.confidence || 90}%</div>
-              <div><span class="font-bold text-slate-900">Expected Benefit:</span> ${rec.expected_benefit || 'EBITDA expansion'}</div>
-            </div>
-            <div class="bg-indigo-50/50 p-3 rounded-lg text-xs text-slate-800 border border-indigo-100 flex items-center justify-between gap-3">
-              <div><span class="font-bold text-slate-900">Suggested Action:</span> ${rec.suggested_action}</div>
-              <button class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors flex-shrink-0 cursor-pointer">
-                ${rec.action_button || 'Implement'}
-              </button>
-            </div>
-          `;
-          list.appendChild(card);
-        });
-      }
+      renderModalRecommendations('all');
       modalRecommendations.classList.remove('hidden');
     });
   }
@@ -1396,6 +1529,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Global live dataset refresh listener
+  window.addEventListener('dataset-activated', () => {
+    loadSummaryKPIs();
+    loadInsights();
+    loadRecommendations();
+    triggerBudgetActual();
+    loadRevExpTrend('all', 'monthly');
+    loadForecastActual('all', 'monthly');
+    loadCashFlowTrend('all', 'monthly');
+  });
+
   // Global window resize listener
   window.addEventListener('resize', () => {
     revExpChart?.resize();
@@ -1403,7 +1547,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     deptPerfChart?.resize();
     expDistChart?.resize();
     fcstChart?.resize();
-    cfChart?.resize();
     budgetChart?.resize();
   });
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDashboardWiring);
+} else {
+  initDashboardWiring();
+}
+

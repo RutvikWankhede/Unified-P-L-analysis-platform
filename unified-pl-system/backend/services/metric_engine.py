@@ -153,6 +153,7 @@ class MetricEngine:
             
         df = pd.DataFrame(rows)
         df["date_parsed"] = pd.to_datetime(df["period"])
+        df["amount"] = pd.to_numeric(df["amount"].astype(str).str.replace(r'[^\d\.\-]', '', regex=True), errors='coerce').fillna(0.0)
         
         profile = self.get_active_profile()
         cash_inflow_col = profile["cash_inflow_column"]
@@ -665,6 +666,7 @@ class MetricEngine:
             })
         df = pd.DataFrame(rows)
         df["date_parsed"] = pd.to_datetime(df["period"])
+        df["amount"] = pd.to_numeric(df["amount"].astype(str).str.replace(r'[^\d\.\-]', '', regex=True), errors='coerce').fillna(0.0)
         
         agg_lower = str(aggregation).lower().replace("_", "-").replace(" ", "-")
         if agg_lower in ["overall", "total", "all"]:
@@ -1014,7 +1016,7 @@ class MetricEngine:
             "items": items
         }
 
-    def get_budget_vs_actual(self, dept="all", range_limit="all"):
+    def get_budget_vs_actual(self, dept="all", range_limit="top5"):
         from models.pl_record import DepartmentBudget, PLRecord
 
         profile = self.get_active_profile()
@@ -1101,7 +1103,8 @@ class MetricEngine:
                 "status": status
             })
 
-        results.sort(key=lambda x: x["actual"], reverse=True)
+        # Rank dynamically by absolute budget variance abs(actual - budget) highest first
+        results.sort(key=lambda x: abs(x["variance"]), reverse=True)
 
         # Apply range limitation if requested
         lim = str(range_limit).lower()

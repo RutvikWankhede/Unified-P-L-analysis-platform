@@ -14,6 +14,19 @@
 
 import { api } from './api.js';
 
+export function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+if (typeof window !== 'undefined') {
+    window.escapeHtml = escapeHtml;
+}
+
 // ─── Route Guard (runs synchronously before render) ──────────────────────────
 (function guardRoute() {
     const PUBLIC = ['login.html', 'forgot-password.html', 'index.html'];
@@ -24,7 +37,7 @@ import { api } from './api.js';
     }
 })();
 
-// ─── Canonical Navigation Map (EXACT 10 items in exact order) ────────────────
+// ─── Canonical Navigation Map (EXACT 9 items in exact order) ─────────────────
 const NAV_ITEMS = [
     { href: 'dashboard.html',   icon: 'grid_view',     label: 'Dashboard' },
     { href: 'departments.html', icon: 'domain',        label: 'Departments' },
@@ -32,9 +45,8 @@ const NAV_ITEMS = [
     { href: 'forecast.html',    icon: 'trending_up',   label: 'Forecast' },
     { href: 'anomalies.html',   icon: 'warning',       label: 'Anomaly Detection' },
     { href: 'copilot.html',     icon: 'smart_toy',     label: 'AI Copilot' },
-    { href: 'workflow.html',    icon: 'account_tree',  label: 'Workflow' },
-    { href: 'reports.html',     icon: 'description',   label: 'Reports' },
     { href: 'what-if.html',     icon: 'tune',          label: 'What-If Analysis' },
+    { href: 'reports.html',     icon: 'description',   label: 'Reports' },
     { href: 'settings.html',    icon: 'settings',      label: 'Settings' },
 ];
 
@@ -69,8 +81,10 @@ const PAGE_ALIASES = {
     'copilot.html':        'copilot.html',
     'ai-copilot.html':     'copilot.html',
 
-    // 7. Workflow
-    'workflow.html':       'workflow.html',
+    // 7. What-If Analysis (replaces Workflow)
+    'what-if.html':        'what-if.html',
+    'whatif.html':         'what-if.html',
+    'workflow.html':       'what-if.html',
 
     // 8. Reports
     'reports.html':        'reports.html',
@@ -81,16 +95,12 @@ const PAGE_ALIASES = {
     'financial-health.html':'reports.html',
     'analytics.html':      'reports.html',
 
-    // 9. What-If Analysis
-    'what-if.html':        'what-if.html',
-    'whatif.html':         'what-if.html',
-    'audit.html':          'what-if.html',
-    'audit-trail.html':    'what-if.html',
-
-    // 10. Settings
+    // 9. Settings
     'settings.html':       'settings.html',
     'users.html':          'settings.html',
     'profile.html':        'settings.html',
+    'audit.html':          'settings.html',
+    'audit-trail.html':    'settings.html',
 };
 
 // ─── User info from JWT ──────────────────────────────────────────────────────
@@ -152,6 +162,18 @@ function buildSidebar(activePage) {
             ${navHTML}
         </div>
     </nav>
+
+    <!-- Active Dataset Footer Badge -->
+    <div class="sidebar-dataset-badge px-3 py-3 border-t border-slate-100 bg-slate-50/50 mt-auto" data-active-dataset-container="true">
+        <div class="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs cursor-pointer hover:border-indigo-300 transition-all">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
+            <div class="flex flex-col text-left min-w-0">
+                <span class="text-[8px] font-extrabold uppercase tracking-wider text-slate-400">ACTIVE DATASET</span>
+                <span class="font-bold text-slate-800 text-[11px] truncate" id="sidebar-active-dataset-name">unified_pnl_enterprise_demo</span>
+                <span class="text-[9px] font-semibold text-emerald-600" id="sidebar-active-dataset-type">● Seed Dataset</span>
+            </div>
+        </div>
+    </div>
 </aside>`;
 }
 
@@ -246,7 +268,7 @@ async function loadNotificationList() {
             forecast: { icon: 'trending_up', color: 'text-yellow-600 bg-yellow-50' },
             info: { icon: 'info', color: 'text-slate-500 bg-slate-50' },
         };
-        const targets = { anomaly: 'anomalies.html', workflow: 'workflow.html', report: 'reports.html', forecast: 'forecast.html' };
+        const targets = { anomaly: 'anomalies.html', workflow: 'what-if.html', report: 'reports.html', forecast: 'forecast.html' };
         listEl.innerHTML = list.map(n => {
             const cfg = typeIcons[n.type] || typeIcons.info;
             const time = new Date(n.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -279,7 +301,7 @@ function initSearch() {
         ['alert', 'anomalies.html'],
         ['forecast', 'forecast.html'],
         ['predict', 'forecast.html'],
-        ['workflow', 'workflow.html'],
+        ['workflow', 'what-if.html'],
         ['upload', 'datasets.html'],
         ['dataset', 'datasets.html'],
         ['copilot', 'copilot.html'],
@@ -287,7 +309,7 @@ function initSearch() {
         ['what', 'what-if.html'],
         ['simul', 'what-if.html'],
         ['scenario', 'what-if.html'],
-        ['audit', 'what-if.html'],
+        ['audit', 'audit.html'],
         ['dept', 'departments.html'],
     ];
 
@@ -381,6 +403,157 @@ function initSidebar() {
         const hour = new Date().getHours();
         const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
         greetingEl.textContent = `Good ${part}, ${user.name}! 👋`;
+    }
+
+    // Synchronize Active Dataset Pill & Dataset Switcher across all pages
+    initActiveDatasetSync();
+}
+
+// ─── Universal Active Dataset Sync & Switcher ──────────────────────────────
+async function initActiveDatasetSync() {
+    try {
+        const active = await api.get('/api/v1/datasets/active').catch(() => null);
+        if (active) {
+            const isSeed = active.is_seeded || active.is_seed || active.dataset_id === "899540e5-fa49-49e8-b87a-6965b44fd71f";
+            const displayName = (active.filename || 'unified_pnl_enterprise_demo.xlsx').replace('.csv', '').replace('.xlsx', '');
+            const badgeType = isSeed ? 'Seed Dataset' : 'Uploaded Dataset';
+            const dotColor = isSeed ? 'bg-emerald-500' : 'bg-indigo-500';
+            const textColor = isSeed ? 'text-emerald-700' : 'text-indigo-700';
+            const bgColor = isSeed ? 'bg-emerald-50/90 border-emerald-200/80' : 'bg-indigo-50/90 border-indigo-200/80';
+
+            // 1. Update sidebar dataset badge
+            const sbName = document.getElementById('sidebar-active-dataset-name');
+            const sbType = document.getElementById('sidebar-active-dataset-type');
+            if (sbName) sbName.textContent = displayName;
+            if (sbType) {
+                sbType.textContent = `● ${badgeType}`;
+                sbType.className = `text-[9px] font-semibold ${isSeed ? 'text-emerald-600' : 'text-indigo-600'}`;
+            }
+
+            // 2. Update all custom dataset badge containers in page headers
+            document.querySelectorAll('[data-active-dataset-container="true"]').forEach(el => {
+                el.style.cursor = 'pointer';
+                el.title = 'Click to switch active dataset';
+                el.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openDatasetSwitcherModal();
+                };
+            });
+
+            // 3. Update active dataset name pill
+            const pill = document.getElementById('active-dataset-name') || document.getElementById('active-dataset-pill');
+            if (pill) {
+                pill.textContent = displayName;
+                const container = pill.closest('.rounded-full') || pill.closest('[class*="rounded"]');
+                if (container) {
+                    container.style.cursor = 'pointer';
+                    container.title = 'Click to switch active dataset';
+                    container.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openDatasetSwitcherModal();
+                    };
+                }
+            }
+        }
+    } catch (_) {}
+}
+
+async function openDatasetSwitcherModal() {
+    let modal = document.getElementById('dataset-switcher-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'dataset-switcher-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col max-h-[80vh]">
+                <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                            <span class="material-symbols-outlined text-lg">dataset</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-900">Switch Active Dataset</h3>
+                            <p class="text-[11px] text-slate-500">Select a dataset to update all application analytics</p>
+                        </div>
+                    </div>
+                    <button id="close-dataset-modal-btn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                </div>
+                <div class="p-4 overflow-y-auto space-y-2 flex-1" id="dataset-switcher-list">
+                    <div class="text-center py-6 text-slate-400 text-xs">Loading available datasets...</div>
+                </div>
+                <div class="p-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <a href="datasets.html" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">upload_file</span> Upload New Dataset
+                    </a>
+                    <button id="close-dataset-modal-footer" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-xs transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.querySelector('#close-dataset-modal-btn').addEventListener('click', () => modal.remove());
+        modal.querySelector('#close-dataset-modal-footer').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    }
+
+    const listEl = modal.querySelector('#dataset-switcher-list');
+    try {
+        const datasets = await api.get('/api/v1/datasets/list').catch(() => []);
+        if (!Array.isArray(datasets) || datasets.length === 0) {
+            listEl.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">No datasets found in database.</div>';
+            return;
+        }
+
+        listEl.innerHTML = datasets.map(d => {
+            const isActive = d.is_active || d.status === 'ACTIVE';
+            return `
+                <div class="p-3 rounded-xl border ${isActive ? 'border-indigo-500 bg-indigo-50/40 ring-1 ring-indigo-500/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'} flex items-center justify-between transition-all">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-8 h-8 rounded-lg ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'} flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-base">description</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-900 truncate">${d.filename || 'Dataset'}</p>
+                            <p class="text-[10px] text-slate-400">${(d.rows || d.row_count || 0).toLocaleString()} rows • ${d.uploaded_at ? d.uploaded_at.slice(0, 10) : 'Active'}</p>
+                        </div>
+                    </div>
+                    <div>
+                        ${isActive ? 
+                            '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active</span>' : 
+                            `<button class="btn-switch-dataset px-3 py-1 bg-white hover:bg-indigo-600 hover:text-white text-indigo-600 border border-indigo-200 text-xs font-semibold rounded-lg shadow-2xs transition-all cursor-pointer" data-id="${d.dataset_id}" data-fn="${d.filename}">Activate</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        listEl.querySelectorAll('.btn-switch-dataset').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const fn = btn.getAttribute('data-fn');
+                btn.disabled = true;
+                btn.textContent = 'Switching...';
+                try {
+                    await api.post(`/api/v1/datasets/${id}/activate`, { dataset_id: id, filename: fn });
+                    modal.remove();
+                    window.location.reload();
+                } catch (err) {
+                    alert('Failed to switch dataset: ' + err.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Activate';
+                }
+            });
+        });
+    } catch (err) {
+        listEl.innerHTML = `<div class="text-center py-6 text-rose-500 text-xs">Failed to load datasets: ${escapeHtml(err.message)}</div>`;
     }
 }
 

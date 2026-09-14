@@ -9,6 +9,7 @@ start_time = time.time()
 
 class HealthResponse(BaseModel):
     status: str
+    service: str = "Unified P&L Intelligence Platform"
     uptime: float
     version: str
 
@@ -16,7 +17,12 @@ class HealthResponse(BaseModel):
 @router.get("/health", response_model=HealthResponse)
 def health_check():
     uptime = time.time() - start_time
-    return {"status": "ok", "uptime": uptime, "version": "1.0.0"}
+    return {
+        "status": "ok",
+        "service": "Unified P&L Intelligence Platform",
+        "uptime": round(uptime, 2),
+        "version": "1.0.0",
+    }
 
 
 @router.get("/metrics")

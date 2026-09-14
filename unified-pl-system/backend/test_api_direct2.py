@@ -115,8 +115,7 @@ except Exception as e:
 
 print("\nDone.")
 
-print('
-============================================================')
+print('============================================================')
 print('STEP 7: Call /api/v1/pl/departments')
 print('============================================================')
 r_dept = requests.get(base_url + '/api/v1/pl/departments', headers=headers)

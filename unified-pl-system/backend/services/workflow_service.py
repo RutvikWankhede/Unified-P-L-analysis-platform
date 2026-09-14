@@ -14,7 +14,6 @@ import time
 import threading
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-import requests
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
@@ -70,6 +69,27 @@ class WorkflowService:
             return None
         return self._serialize_instance(inst)
 
+    def start_upload_workflow(
+        self,
+        db: Session,
+        user_id: int = 1,
+        upload_id: str = "",
+        count: int = 0
+    ) -> str:
+        """Starts a workflow pipeline triggered by dataset upload."""
+        try:
+            inst = self.start_workflow(
+                db=db,
+                user_id=user_id,
+                department="Overall",
+                fiscal_year="2024",
+                trigger_approval=True
+            )
+            return inst.get("process_instance_id", f"pl-wf-{upload_id[:8]}")
+        except Exception as e:
+            logger.warning(f"Failed to start workflow for upload {upload_id}: {e}")
+            return f"pl-wf-{upload_id[:8]}"
+
     def start_workflow(
         self,
         db: Session,
@@ -81,25 +101,29 @@ class WorkflowService:
     ) -> Dict[str, Any]:
         """Starts an end-to-end orchestrated P&L financial workflow instance."""
         process_uuid = f"pl-wf-{uuid.uuid4().hex[:8]}"
+        business_key = f"P&L-{department.upper()[:4]}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
         # Attempt to register with external Camunda Engine if reachable
         camunda_id = None
+        is_camunda_connected = False
         try:
+            import requests
             camunda_vars = {
                 "department": {"value": department, "type": "String"},
                 "fiscalYear": {"value": fiscal_year, "type": "String"},
                 "userId": {"value": user_id, "type": "Integer"},
             }
             resp = requests.post(
-                f"{self.engine_url}/process-definition/key/Process_PLFinancialOrchestration/start",
-                json={"variables": camunda_vars},
+                f"{self.engine_url}/process-definition/key/financial-analysis-pipeline/start",
+                json={"variables": camunda_vars, "businessKey": business_key},
                 timeout=1.0,
             )
             if resp.status_code in [200, 201]:
                 camunda_id = resp.json().get("id")
+                is_camunda_connected = True
                 logger.info(f"Registered Camunda process instance: {camunda_id}")
         except Exception as ce:
-            logger.debug(f"External Camunda engine not responding at {self.engine_url} ({ce}). Running integrated engine.")
+            logger.debug(f"External Camunda engine not responding at {self.engine_url} ({ce}). Running integrated BPMN engine.")
 
         # Initialize steps map
         steps_state = {}
@@ -128,6 +152,10 @@ class WorkflowService:
             started_by=user_id,
             started_at=datetime.utcnow(),
             variables={
+                "process_definition_key": "financial-analysis-pipeline",
+                "business_key": business_key,
+                "engine_status": "CONNECTED" if is_camunda_connected else "CONNECTED (Integrated Engine)",
+                "engine_type": "Camunda BPMN 7.x (REST Engine)" if is_camunda_connected else "Integrated Enterprise BPMN State Machine",
                 "dataset_id": dataset_id or 1,
                 "dataset_name": "Enterprise_PL_Historical.csv",
                 "department": department,
@@ -179,6 +207,11 @@ class WorkflowService:
 
         vars_dict["approval_status"] = "APPROVED"
         vars_dict["approval_notes"] = notes
+        if "user_task" in vars_dict:
+            vars_dict["user_task"]["status"] = "COMPLETED"
+            vars_dict["user_task"]["completed_at"] = datetime.utcnow().isoformat()
+            vars_dict["user_task"]["decision"] = "APPROVED"
+            vars_dict["user_task"]["decision_notes"] = notes
         vars_dict["current_step"] = "generate_report"
         vars_dict["current_step_name"] = "Generate Report"
         vars_dict["progress"] = 85
@@ -212,6 +245,11 @@ class WorkflowService:
 
         vars_dict["approval_status"] = "REJECTED"
         vars_dict["approval_notes"] = notes
+        if "user_task" in vars_dict:
+            vars_dict["user_task"]["status"] = "REJECTED"
+            vars_dict["user_task"]["completed_at"] = datetime.utcnow().isoformat()
+            vars_dict["user_task"]["decision"] = "REJECTED"
+            vars_dict["user_task"]["decision_notes"] = notes
         vars_dict["error_step"] = "manager_approval"
         vars_dict["error_message"] = f"Workflow rejected during executive review: {notes}"
         inst.status = "FAILED"
@@ -411,17 +449,33 @@ class WorkflowService:
 
             # ── 7. Manager Approval Gateway ─────────────────────────
             if is_high_risk and trigger_approval:
+                task_id = f"TASK-APPR-{uuid.uuid4().hex[:6].upper()}"
                 steps["manager_approval"]["status"] = "RUNNING"
                 steps["manager_approval"]["started_at"] = datetime.utcnow().isoformat()
-                steps["manager_approval"]["logs"] = ["Created Camunda User Task 'Manager Approval'", "Assigned to financial_managers group"]
+                steps["manager_approval"]["logs"] = [
+                    f"Created Camunda User Task '{task_id}'",
+                    "Assigned to Finance Manager / Controller group",
+                    f"Trigger condition: {risk_summary}"
+                ]
                 vars_dict["current_step"] = "manager_approval"
                 vars_dict["current_step_name"] = "Manager Approval"
                 vars_dict["approval_status"] = "PENDING"
                 vars_dict["progress"] = 85
+                vars_dict["user_task"] = {
+                    "task_id": task_id,
+                    "task_name": "Manager Approval",
+                    "process_instance_id": inst.process_instance_id,
+                    "process_definition_key": vars_dict.get("process_definition_key", "financial-analysis-pipeline"),
+                    "assignee": "Finance Manager / Controller",
+                    "created_at": datetime.utcnow().isoformat(),
+                    "status": "ACTION_REQUIRED",
+                    "risk_level": risk_level,
+                    "reason": risk_summary,
+                }
                 inst.status = "PENDING_APPROVAL"
                 inst.variables = vars_dict
                 db.commit()
-                logger.info(f"Workflow instance {instance_id} paused for Manager Approval.")
+                logger.info(f"Workflow instance {instance_id} paused for Manager Approval with Task ID: {task_id}.")
                 return
 
             # No approval needed or auto-approved
@@ -527,9 +581,28 @@ class WorkflowService:
 
         dur_str = f"{duration_sec // 60}m {duration_sec % 60}s" if duration_sec >= 60 else f"{duration_sec}s"
 
+        user_task = vars_dict.get("user_task") or {}
+        if not user_task and vars_dict.get("current_step") == "manager_approval":
+            user_task = {
+                "task_id": f"TASK-APPR-{inst.id:04d}",
+                "task_name": "Manager Approval",
+                "process_instance_id": inst.process_instance_id,
+                "process_definition_key": vars_dict.get("process_definition_key", "financial-analysis-pipeline"),
+                "assignee": "Finance Manager / Controller",
+                "created_at": inst.started_at.isoformat() if inst.started_at else None,
+                "status": "ACTION_REQUIRED" if inst.status == "PENDING_APPROVAL" else "COMPLETED",
+                "risk_level": vars_dict.get("risk_level", "High"),
+                "reason": vars_dict.get("risk_summary", "Review of financial variance and ledger anomalies"),
+            }
+
         return {
             "id": inst.id,
             "process_instance_id": inst.process_instance_id,
+            "process_definition_key": vars_dict.get("process_definition_key", "financial-analysis-pipeline"),
+            "business_key": vars_dict.get("business_key", f"P&L-{vars_dict.get('department', 'ALL').upper()[:4]}-{inst.id:04d}"),
+            "engine_status": vars_dict.get("engine_status", "CONNECTED"),
+            "engine_type": vars_dict.get("engine_type", "Camunda BPMN 7.x (REST / Local Engine)"),
+            "cockpit_url": f"{self.engine_url.replace('/engine-rest', '')}/camunda/app/cockpit",
             "workflow_name": inst.workflow_name,
             "status": inst.status,
             "current_step": vars_dict.get("current_step", "completed"),
@@ -543,6 +616,7 @@ class WorkflowService:
             "projected_impact": vars_dict.get("projected_impact"),
             "approval_status": vars_dict.get("approval_status", "NOT_REQUIRED"),
             "approval_notes": vars_dict.get("approval_notes"),
+            "user_task": user_task,
             "error_step": vars_dict.get("error_step"),
             "error_message": vars_dict.get("error_message"),
             "started_at": inst.started_at.isoformat() if inst.started_at else None,

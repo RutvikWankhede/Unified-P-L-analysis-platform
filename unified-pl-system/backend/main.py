@@ -1,5 +1,12 @@
 import sys
 import traceback
+import asyncio
+
+if sys.platform == "win32":
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except Exception:
+        pass
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
@@ -30,54 +37,68 @@ from routers import (
 logger = setup_logging()
 limiter = Limiter(key_func=get_remote_address)
 
+from database import SessionLocal, engine, Base
+from sqlalchemy import inspect
+import models
+from services.pl_service import ensure_demo_data
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    import asyncio
     import os
 
     try:
-        logger.info("Starting up Unified P&L AI Platform...")
+        logger.info("[BACKEND] Starting Unified P&L AI Platform...")
+        print("[BACKEND] Starting Unified P&L AI Platform...", flush=True)
 
         if "PYTEST_CURRENT_TEST" not in os.environ:
-            # ── Step 1: Create DB tables ───────────────────────────────────
-            logger.info("[Startup] Step 1/3 — Creating DB tables...")
-            from database import SessionLocal, engine, Base
-            import models.user
-            import models.schema_mapping
-            import models.pl_record
-            import models.uploaded_file
-            import models.anomaly
-            import models.forecast
-            import models.audit_log
-            import models.workflow
-            import models.notification
-            import models.chat_history
-            import models.recommendation
-            import models.ai_log
+            logger.info("[BACKEND] Verifying database...")
+            print("[BACKEND] Verifying database...", flush=True)
 
-            try:
-                await asyncio.to_thread(Base.metadata.create_all, engine)
-                logger.info("[Startup] Step 1/3 — DB tables ready.")
-            except Exception as tbl_err:
-                logger.error(f"[Startup] Step 1/3 — DB table creation failed: {tbl_err}. Continuing anyway.")
+            def _verify_and_init_db():
+                try:
+                    inspector = inspect(engine)
+                    has_users = inspector.has_table("users")
+                    has_pl = inspector.has_table("pl_records")
+                    if not (has_users and has_pl):
+                        Base.metadata.create_all(bind=engine)
+                except Exception as tbl_err:
+                    logger.warning(f"[BACKEND WARN] Table verification notice: {tbl_err}")
 
-            logger.info("[Startup] Platform initialization complete.")
+                try:
+                    db_seed = SessionLocal()
+                    try:
+                        ensure_demo_data(db_seed)
+                    finally:
+                        db_seed.close()
+                except Exception as seed_err:
+                    logger.warning(f"[BACKEND WARN] Demo data verification notice: {seed_err}")
+
+            await asyncio.to_thread(_verify_and_init_db)
+            logger.info("[BACKEND] Database ready")
+            print("[BACKEND] Database ready", flush=True)
+            logger.info("[BACKEND] Core services ready")
+            print("[BACKEND] Core services ready", flush=True)
+            logger.info("[BACKEND] Application startup complete")
+            print("[BACKEND] Application startup complete", flush=True)
 
     except Exception as e:
-        logger.error(f"Startup initialization failed: {e}")
+        logger.error(f"[BACKEND ERROR] Startup initialization failed: {e}")
         logger.error(traceback.format_exc())
+        print(f"[BACKEND ERROR] {e}\n{traceback.format_exc()}", flush=True)
         log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend.log")
-        with open(log_path, "a") as f:
-            f.write(traceback.format_exc())
-            f.flush()
-        # Do NOT re-raise — let uvicorn start anyway so health/ready endpoints respond
-        logger.warning("Startup had errors but proceeding — backend will serve requests.")
+        try:
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(traceback.format_exc() + "\n")
+                f.flush()
+        except Exception:
+            pass
+        logger.warning("[BACKEND] Startup had errors but proceeding — backend will serve requests.")
 
     yield
 
-    logger.info("Shutting down Unified P&L AI Platform.")
+    logger.info("[BACKEND] Shutting down Unified P&L AI Platform.")
+    print("[BACKEND] Shutdown complete.", flush=True)
     try:
-        from database import engine
         engine.dispose()
     except Exception:
         pass
@@ -90,12 +111,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-@app.middleware("http")
-async def print_headers(request, call_next):
-    if "api" in request.url.path:
-        print(f"[{request.method}] {request.url.path} - Headers: {dict(request.headers)}")
-    response = await call_next(request)
-    return response
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        return response
 
 try:
     from prometheus_fastapi_instrumentator import Instrumentator
@@ -108,14 +133,15 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 setup_exception_handlers(app)
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS.split(","),
+    allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "X-Correlation-ID"],
 )
 
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Authentication"])

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -17,6 +17,7 @@ class UploadedFile(Base):
     status = Column(
         String, default="UPLOADED"
     )  # UPLOADED, PROCESSING, COMPLETED, FAILED
+    is_seeded = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User")

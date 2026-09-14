@@ -19,4 +19,4 @@ Write-Host " [*] Starting platform from: $ScriptDir" -ForegroundColor Gray
 Write-Host ""
 
 Set-Location $ScriptDir
-& $Python run_project.py
+& $Python run.py

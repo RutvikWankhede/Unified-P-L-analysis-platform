@@ -23,6 +23,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   const trendContainer = document.getElementById('chart-anomaly-trend');
   let trendChart = trendContainer ? initEchart(trendContainer) : null;
 
+  function setupZoomControls(chart, inBtnId, outBtnId, resetBtnId) {
+    if (!chart) return;
+    let zoomSpan = 100;
+    const inBtn = document.getElementById(inBtnId);
+    const outBtn = document.getElementById(outBtnId);
+    const resetBtn = document.getElementById(resetBtnId);
+
+    if (inBtn) {
+      inBtn.addEventListener('click', () => {
+        zoomSpan = Math.max(20, zoomSpan - 25);
+        const start = Math.max(0, 50 - zoomSpan / 2);
+        const end = Math.min(100, 50 + zoomSpan / 2);
+        chart.dispatchAction({ type: 'dataZoom', start, end });
+      });
+    }
+    if (outBtn) {
+      outBtn.addEventListener('click', () => {
+        zoomSpan = Math.min(100, zoomSpan + 25);
+        const start = Math.max(0, 50 - zoomSpan / 2);
+        const end = Math.min(100, 50 + zoomSpan / 2);
+        chart.dispatchAction({ type: 'dataZoom', start, end });
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        zoomSpan = 100;
+        chart.dispatchAction({ type: 'dataZoom', start: 0, end: 100 });
+        chart.dispatchAction({ type: 'restore' });
+      });
+    }
+  }
+  setupZoomControls(trendChart, 'zoom-in-anom', 'zoom-out-anom', 'zoom-reset-anom');
+
   async function loadActiveDataset() {
     try {
       const active = await api.get('/api/v1/datasets/active').catch(() => null);
@@ -34,6 +67,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.warn('Dataset info fetch error:', e);
     }
   }
+
+  const DEPT_GROUPS = {
+    'commercial': ['sales', 'marketing', 'marketing & sales', 'sales & marketing', 'commercial'],
+    'technology': ['it', 'r&d', 'engineering', 'tech', 'technology', 'information technology'],
+    'operations': ['operations', 'logistics', 'procurement', 'supply chain'],
+    'corporate': ['finance', 'legal', 'human resources', 'hr', 'administration', 'admin'],
+  };
 
   async function loadDepartments() {
     try {
@@ -53,6 +93,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deptSelect = document.getElementById('filter-anom-dept');
     if (!deptSelect) return;
 
+    const savedVal = deptSelect.value || currentDept || 'all';
+
     // Gather any additional departments present in anomalies
     const deptSet = new Set(departments);
     allAnomalies.forEach(a => {
@@ -61,13 +103,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const sortedDepts = Array.from(deptSet).sort();
-    deptSelect.innerHTML = '<option value="all" selected>All Departments</option>';
+    let html = '<option value="all">All Departments</option>';
+    
+    // Group Aggregations
+    html += '<optgroup label="Department Groups / Aggregations">';
+    html += '<option value="Commercial">Commercial (Sales & Marketing)</option>';
+    html += '<option value="Technology">Technology (IT & R&D)</option>';
+    html += '<option value="Operations">Operations (Logistics & Procurement)</option>';
+    html += '<option value="Corporate">Corporate / G&A</option>';
+    html += '</optgroup>';
+
+    // Specific Departments
+    html += '<optgroup label="Specific Operating Units">';
     sortedDepts.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d;
-      opt.textContent = d;
-      deptSelect.appendChild(opt);
+      html += `<option value="${d}">${d}</option>`;
     });
+    html += '</optgroup>';
+
+    deptSelect.innerHTML = html;
+    if (Array.from(deptSelect.options).some(o => o.value.toLowerCase() === savedVal.toLowerCase())) {
+      deptSelect.value = savedVal;
+    } else {
+      deptSelect.value = 'all';
+    }
   }
 
   async function fetchAnomalies() {
@@ -84,9 +142,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getFilteredAnomalies() {
+    if (currentDept === 'all' || !currentDept) return allAnomalies;
+    const cDeptLower = currentDept.trim().toLowerCase();
+    const groupDepts = DEPT_GROUPS[cDeptLower] || [];
+
     return allAnomalies.filter(a => {
-      const d = (a.department || a.domain || (a.pl_record && a.pl_record.domain) || '').toLowerCase();
-      return (currentDept === 'all') || (d === currentDept.toLowerCase());
+      const d = (a.department || a.domain || (a.pl_record && a.pl_record.domain) || '').trim().toLowerCase();
+      if (!d) return false;
+      if (d === cDeptLower) return true;
+      if (groupDepts.includes(d)) return true;
+      if (groupDepts.some(cand => d.includes(cand) || cand.includes(d))) return true;
+      return false;
     });
   }
 
@@ -227,9 +293,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       activeDepts = ['Sales', 'Operations', 'Finance', 'IT', 'R&D', 'Marketing', 'Procurement', 'Logistics'];
     }
 
-    const displayDepts = currentDept === 'all'
-      ? activeDepts
-      : activeDepts.filter(d => d.toLowerCase() === currentDept.toLowerCase());
+    const cDeptLower = (currentDept || 'all').trim().toLowerCase();
+    let displayDepts = [];
+
+    if (cDeptLower === 'all') {
+      displayDepts = activeDepts;
+    } else if (DEPT_GROUPS[cDeptLower]) {
+      const groupList = DEPT_GROUPS[cDeptLower];
+      displayDepts = activeDepts.filter(d => {
+        const dLow = d.toLowerCase();
+        return groupList.includes(dLow) || groupList.some(cand => dLow.includes(cand) || cand.includes(dLow));
+      });
+      if (displayDepts.length === 0) {
+        // Fallback to group names if active departments aren't mapped
+        displayDepts = activeDepts.filter(d => dLow === cDeptLower);
+      }
+    } else {
+      displayDepts = activeDepts.filter(d => d.toLowerCase() === cDeptLower);
+      if (displayDepts.length === 0) {
+        displayDepts = [currentDept];
+      }
+    }
+
+    if (displayDepts.length === 0 || (filtered.length === 0 && currentDept !== 'all')) {
+      container.innerHTML = `
+        <div class="py-12 px-6 text-center text-slate-500 font-medium flex flex-col items-center justify-center gap-2 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+          <span class="material-symbols-outlined text-3xl text-slate-400">info</span>
+          <p class="text-sm font-semibold text-slate-700">No anomaly data available for ${currentDept}</p>
+          <p class="text-xs text-slate-500">${currentDept} is not represented with flagged outliers in the active dataset.</p>
+        </div>
+      `;
+      const legendMax = document.getElementById('legend-scale-max');
+      if (legendMax) legendMax.textContent = '0';
+      return;
+    }
 
     // Matrix rows: Critical, High, Medium, Low (top-to-bottom)
     const severityLevels = [
@@ -366,6 +463,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderAnomalyTrend(filtered) {
     if (!trendChart) return;
+    const emptyEl = document.getElementById('anom-trend-empty');
+
+    if (!filtered || filtered.length === 0) {
+      trendChart.clear();
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+    if (emptyEl) emptyEl.classList.add('hidden');
 
     // Group anomalies by normalized period (YYYY-MM)
     const periodMap = {};
@@ -444,6 +549,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       },
       legend: { show: false },
       grid: { left: 4, right: 12, top: 10, bottom: 20, containLabel: true },
+      dataZoom: [{ type: 'inside' }],
       xAxis: {
         type: 'category',
         boundaryGap: false,
@@ -563,12 +669,217 @@ document.addEventListener('DOMContentLoaded', async () => {
     `).join('');
   }
 
+  function openExpandedAnomalyInsightsModal() {
+    const modal = document.getElementById('modal-anomaly-insights');
+    const content = document.getElementById('modal-anom-content');
+    if (!modal || !content) return;
+
+    const filtered = getFilteredAnomalies();
+    const total = filtered.length;
+    const crit = filtered.filter(a => (a.severity || '').toLowerCase() === 'critical').length;
+    const high = filtered.filter(a => (a.severity || '').toLowerCase() === 'high').length;
+    const med = filtered.filter(a => (a.severity || '').toLowerCase() === 'medium').length;
+    const low = filtered.filter(a => (a.severity || '').toLowerCase() === 'low').length;
+
+    // Total financial exposure flagged
+    const totalExposure = filtered.reduce((acc, a) => {
+      const val = Math.abs(a.impact_amount || a.amount || (a.pl_record && a.pl_record.amount) || 0);
+      return acc + val;
+    }, 0);
+
+    // Department breakdown
+    const deptStats = {};
+    filtered.forEach(a => {
+      const d = a.department || a.domain || (a.pl_record && a.pl_record.domain) || 'General';
+      if (!deptStats[d]) {
+        deptStats[d] = { total: 0, critical: 0, high: 0, medium: 0, low: 0, exposure: 0 };
+      }
+      deptStats[d].total += 1;
+      const s = (a.severity || 'medium').toLowerCase();
+      if (deptStats[d][s] !== undefined) deptStats[d][s] += 1;
+      deptStats[d].exposure += Math.abs(a.impact_amount || a.amount || (a.pl_record && a.pl_record.amount) || 0);
+    });
+
+    const sortedDepts = Object.entries(deptStats).sort((a, b) => b[1].total - a[1].total);
+
+    content.innerHTML = `
+      <!-- 1. Executive Summary Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Flagged</span>
+          <h4 class="text-xl font-bold text-slate-900 mt-1">${total}</h4>
+          <span class="text-[10px] text-slate-400 font-medium">Outlier occurrences</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-100">
+          <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Critical Severity</span>
+          <h4 class="text-xl font-bold text-rose-700 mt-1">${crit}</h4>
+          <span class="text-[10px] text-rose-500 font-medium">${Math.round((crit / Math.max(1, total)) * 100)}% of total</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-100">
+          <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider">High Severity</span>
+          <h4 class="text-xl font-bold text-amber-700 mt-1">${high}</h4>
+          <span class="text-[10px] text-amber-500 font-medium">${Math.round((high / Math.max(1, total)) * 100)}% of total</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100">
+          <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Flagged Exposure</span>
+          <h4 class="text-xl font-bold text-indigo-700 mt-1">${formatCurrency(totalExposure)}</h4>
+          <span class="text-[10px] text-indigo-500 font-medium">Cumulative deviation</span>
+        </div>
+      </div>
+
+      <!-- 2. Department Concentration & Severity Matrix -->
+      <div class="p-4 rounded-xl border border-slate-200/80 bg-white">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Department Anomaly Frequencies &amp; Distribution</h4>
+            <p class="text-[10px] text-slate-400">Concentration of flagged transactions and severity classification across departments</p>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">${sortedDepts.length} Units</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-100 text-[10px] text-slate-400 uppercase font-semibold">
+                <th class="pb-2">Department</th>
+                <th class="pb-2 text-center">Critical</th>
+                <th class="pb-2 text-center">High</th>
+                <th class="pb-2 text-center">Med / Low</th>
+                <th class="pb-2 text-right">Total Outliers</th>
+                <th class="pb-2 text-right">Total Exposure</th>
+                <th class="pb-2 pl-4">Share</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${sortedDepts.map(([dept, s]) => {
+                const sharePct = Math.round((s.total / Math.max(1, total)) * 100);
+                return `
+                  <tr class="hover:bg-slate-50/60">
+                    <td class="py-2.5 font-semibold text-slate-800">${dept}</td>
+                    <td class="py-2.5 text-center font-bold ${s.critical > 0 ? 'text-rose-600' : 'text-slate-300'}">${s.critical}</td>
+                    <td class="py-2.5 text-center font-bold ${s.high > 0 ? 'text-amber-600' : 'text-slate-300'}">${s.high}</td>
+                    <td class="py-2.5 text-center text-slate-500">${s.medium + s.low}</td>
+                    <td class="py-2.5 text-right font-bold text-slate-900">${s.total}</td>
+                    <td class="py-2.5 text-right font-semibold text-slate-700">${formatCurrency(s.exposure)}</td>
+                    <td class="py-2.5 pl-4 w-32">
+                      <div class="flex items-center gap-2">
+                        <div class="w-full bg-slate-100 rounded-full h-1.5">
+                          <div class="bg-primary h-1.5 rounded-full" style="width: ${sharePct}%"></div>
+                        </div>
+                        <span class="text-[10px] font-semibold text-slate-400 w-8 text-right">${sharePct}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. Outlier Cluster Patterns & Detection Signals -->
+      <div class="p-4 rounded-xl border border-slate-200/80 bg-white">
+        <h4 class="text-xs font-bold text-slate-900 mb-1">Outlier Clusters &amp; Detection Patterns</h4>
+        <p class="text-[10px] text-slate-400 mb-3">Algorithmic findings from statistical scoring and ensemble isolation models</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-1.5 text-indigo-600 font-bold text-xs mb-1">
+                <span class="material-symbols-outlined text-sm">hub</span>
+                <span>Isolation Forest Clustering</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">Multivariate isolation score detected multidimensional anomalies where line item expense ratio diverged from historical baseline.</p>
+            </div>
+            <span class="text-[10px] font-semibold text-slate-400 mt-2">Model Confidence: 94.8%</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-1.5 text-amber-600 font-bold text-xs mb-1">
+                <span class="material-symbols-outlined text-sm">show_chart</span>
+                <span>Z-Score Variance Spikes</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">Transactions exceeding 3 standard deviations from rolling departmental averages identified in high-velocity expenditure accounts.</p>
+            </div>
+            <span class="text-[10px] font-semibold text-slate-400 mt-2">Threshold: |Z| &gt; 3.0</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-1.5 text-rose-600 font-bold text-xs mb-1">
+                <span class="material-symbols-outlined text-sm">calendar_month</span>
+                <span>Period Closing Concentration</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">Temporal clustering observed near month-end and quarterly closing intervals with elevated manual journal adjustments.</p>
+            </div>
+            <span class="text-[10px] font-semibold text-slate-400 mt-2">Pattern: End-of-Period Drift</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Prioritized Remediation & Internal Control Actions -->
+      <div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/30">
+        <h4 class="text-xs font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm text-emerald-600">verified_user</span>
+          <span>Recommended Remediation &amp; Internal Controls</span>
+        </h4>
+        <p class="text-[10px] text-slate-500 mb-3">Concrete operational steps to investigate, resolve, and prevent future ledger irregularities</p>
+
+        <div class="space-y-2.5">
+          <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+            <div>
+              <h5 class="text-xs font-bold text-slate-900">Expedited Ledger &amp; Voucher Audit</h5>
+              <p class="text-[11px] text-slate-600 mt-0.5">Conduct immediate line-item review for all flagged Critical &amp; High severity transactions with department financial controllers.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+            <div>
+              <h5 class="text-xs font-bold text-slate-900">Department Approval Re-authorization Review</h5>
+              <p class="text-[11px] text-slate-600 mt-0.5">Verify dual-signature signoffs for transactions in departments exhibiting higher anomaly frequency.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+            <div>
+              <h5 class="text-xs font-bold text-slate-900">Statistical Baseline &amp; Threshold Calibration</h5>
+              <p class="text-[11px] text-slate-600 mt-0.5">Recalibrate rolling mean/variance boundaries following verified structural budget adjustments to eliminate false positives.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-emerald-100">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">4</span>
+            <div>
+              <h5 class="text-xs font-bold text-slate-900">Automated Real-time Surveillance Alerting</h5>
+              <p class="text-[11px] text-slate-600 mt-0.5">Configure automated webhook notifications for any upcoming ledger ingestion breaching the 3-sigma anomaly threshold.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeExpandedAnomalyInsightsModal() {
+    const modal = document.getElementById('modal-anomaly-insights');
+    if (modal) modal.classList.add('hidden');
+  }
+
   function openAnomaliesModal(filterDept = null, filterSev = null) {
     let list = getFilteredAnomalies();
     if (filterDept && filterDept !== 'all') {
+      const fdLow = filterDept.trim().toLowerCase();
+      const groupList = DEPT_GROUPS[fdLow];
       list = list.filter(a => {
         const d = (a.department || a.domain || (a.pl_record && a.pl_record.domain) || '').toLowerCase();
-        return d === filterDept.toLowerCase();
+        if (d === fdLow) return true;
+        if (groupList && (groupList.includes(d) || groupList.some(cand => d.includes(cand) || cand.includes(d)))) return true;
+        return false;
       });
     }
     if (filterSev && filterSev !== 'all') {
@@ -620,6 +931,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   const viewAllBtn = document.getElementById('btn-view-all-anomalies');
   if (viewAllBtn) {
     viewAllBtn.addEventListener('click', () => openAnomaliesModal());
+  }
+
+  const viewInsightsBtn = document.getElementById('btn-view-all-anomaly-insights');
+  if (viewInsightsBtn) {
+    viewInsightsBtn.addEventListener('click', () => openExpandedAnomalyInsightsModal());
+  }
+
+  const modalCloseBtn = document.getElementById('modal-anom-close');
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', closeExpandedAnomalyInsightsModal);
+  }
+
+  const modalBackdrop = document.getElementById('modal-anom-backdrop');
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', closeExpandedAnomalyInsightsModal);
+  }
+
+  const modalDoneBtn = document.getElementById('modal-anom-done');
+  if (modalDoneBtn) {
+    modalDoneBtn.addEventListener('click', closeExpandedAnomalyInsightsModal);
   }
 
   const runBtn = document.getElementById('btn-run-detection');

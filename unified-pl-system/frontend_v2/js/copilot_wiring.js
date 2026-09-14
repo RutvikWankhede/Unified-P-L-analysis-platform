@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sessionId = 'session_' + Math.random().toString(36).substring(2, 9);
 
     const formatCurrency = (val) => {
-        if (val === null || val === undefined || isNaN(val)) return '₹0 Cr';
+        if (val === null || val === undefined || isNaN(val)) return '₹0.00';
         const abs = Math.abs(val);
         const sign = val < 0 ? '-' : '';
         if (abs >= 1000000000) return `${sign}₹${(abs / 1000000000).toFixed(2)} B`;
@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load active dataset and live KPIs into context panel
     async function loadCopilotContext() {
         try {
-            const active = await api.get('/api/v1/datasets/active').catch(() => null);
-            if (active && active.filename) {
+            const ctxRes = await api.get('/api/v1/copilot/context').catch(() => null);
+            if (ctxRes && ctxRes.active_dataset_name) {
                 const pill = document.getElementById('active-dataset-name');
-                if (pill) pill.textContent = active.filename.replace('.csv', '').replace('.xlsx', '');
+                if (pill) pill.textContent = ctxRes.active_dataset_name;
             }
 
             const summary = await api.get('/api/v1/pl/summary?dept=all').catch(() => null);
@@ -64,13 +64,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!chatHistory) return;
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const aiHtml = `
-        <div class="flex items-start gap-3 max-w-[90%]">
+        <div class="flex items-start gap-3 max-w-[92%]">
             <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-600">
                 <span class="material-symbols-outlined text-base">smart_toy</span>
             </div>
             <div class="space-y-1 w-full">
-                <div class="bg-slate-50 border border-slate-100 p-3.5 rounded-2xl rounded-tl-none shadow-xs">
-                    <div class="text-xs leading-relaxed text-slate-700">${formatAiResponse(text)}</div>
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl rounded-tl-none shadow-xs text-xs leading-relaxed text-slate-800 space-y-2">
+                    ${formatAiResponse(text)}
                 </div>
                 <span class="text-[9px] text-slate-400 ml-1">${timeStr}</span>
             </div>
@@ -79,10 +79,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatHistory.scrollTop = chatHistory.scrollHeight;
     }
 
-    function formatAiResponse(text) {
-        if (!text) return '';
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-        // Check if text has markdown tables
+    function formatAiResponse(raw) {
+        if (!raw) return '';
+
+        // Pre-escape to neutralize any malicious HTML / scripts
+        let text = escapeHtml(raw);
+
+        // 1. Process Markdown Tables
         if (text.includes('|') && text.includes('\n')) {
             const lines = text.split('\n');
             let inTable = false;
@@ -94,15 +107,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (line.startsWith('|') && line.endsWith('|')) {
                     if (!inTable) {
                         inTable = true;
-                        tableHtml = '<div class="overflow-x-auto my-2"><table class="w-full text-[11px] border-collapse border border-slate-200 rounded-lg"><tbody>';
+                        tableHtml = '<div class="overflow-x-auto my-3"><table class="w-full text-[11px] border-collapse border border-slate-200 rounded-lg bg-white shadow-xs"><tbody>';
                     }
                     if (line.includes('---')) {
                         continue; // skip separator row
                     }
                     const cells = line.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
-                    const isHeader = (i === 0 || (i > 0 && lines[i-1].includes('---')));
-                    const rowClass = isHeader ? 'bg-indigo-50/60 font-bold text-slate-800' : 'hover:bg-slate-100/50';
-                    tableHtml += `<tr class="${rowClass}">` + cells.map(c => `<td class="border border-slate-200 px-2 py-1">${c.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</td>`).join('') + '</tr>';
+                    const isHeader = (outLines.length > 0 && !outLines[outLines.length - 1].includes('<tr>')) || (i === 0);
+                    const rowClass = isHeader ? 'bg-indigo-50/80 font-bold text-slate-900 border-b border-slate-200' : 'hover:bg-slate-50 border-b border-slate-100';
+                    tableHtml += `<tr class="${rowClass}">` + cells.map(c => `<td class="border border-slate-200 px-3 py-1.5 text-left">${c.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</td>`).join('') + '</tr>';
                 } else {
                     if (inTable) {
                         inTable = false;
@@ -119,20 +132,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             text = outLines.join('\n');
         }
 
-        let escaped = text;
-        // Replace markdown bold **text** with <strong>text</strong>
-        escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        // Replace bullet points
-        escaped = escaped.replace(/^[•\-\*]\s*(.*?)$/gm, '<div class="flex items-start gap-1.5 my-1"><span class="text-primary font-bold">•</span><span>$1</span></div>');
-        // Replace numbered list 1. 2.
-        escaped = escaped.replace(/^(\d+)\.\s*(.*?)$/gm, '<div class="flex items-start gap-1.5 my-1"><span class="font-bold text-slate-700">$1.</span><span>$2</span></div>');
-        // Replace newlines with <br/> except around tables
-        escaped = escaped.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>');
-        return escaped;
-    }
+        // 2. Headings
+        text = text.replace(/^###\s*(.*?)$/gm, '<h4 class="font-bold text-xs text-slate-900 mt-2 mb-1 text-primary">$1</h4>');
+        text = text.replace(/^##\s*(.*?)$/gm, '<h3 class="font-bold text-sm text-slate-900 mt-2 mb-1">$1</h3>');
 
-    function escapeHtml(str) {
-        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        // 3. Alerts & Callouts
+        text = text.replace(/^&gt;\s*\[!NOTE\]\s*\n*&gt;\s*(.*?)$/gm, '<div class="p-2.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-800 text-[11px] my-2">ℹ️ $1</div>');
+        text = text.replace(/^&gt;\s*\[!WARNING\]\s*\n*&gt;\s*(.*?)$/gm, '<div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] my-2">⚠️ $1</div>');
+
+        // 4. Bold & Code
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/`([^`]+)`/g, '<code class="bg-slate-200/70 px-1 py-0.5 rounded text-[11px] font-mono">$1</code>');
+
+        // 5. Bullet lists & Numbered lists
+        text = text.replace(/^[•\-\*]\s*(.*?)$/gm, '<div class="flex items-start gap-1.5 my-0.5"><span class="text-primary font-bold">•</span><span>$1</span></div>');
+        text = text.replace(/^(\d+)\.\s*(.*?)$/gm, '<div class="flex items-start gap-1.5 my-0.5"><span class="font-bold text-slate-700">$1.</span><span>$2</span></div>');
+
+        // 6. Newlines
+        text = text.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>');
+
+        return text;
     }
 
     async function sendPrompt(promptText) {
@@ -142,7 +161,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         appendUserMessage(text);
 
-        // Show typing placeholder
         const typingId = 'typing-' + Date.now();
         const typingHtml = `
         <div id="${typingId}" class="flex items-start gap-3 max-w-[85%]">
@@ -170,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             appendAiMessage(answer);
         } catch (e) {
             document.getElementById(typingId)?.remove();
-            appendAiMessage("I couldn't process that question right now. Please ensure the backend server is running and a dataset is active.");
+            appendAiMessage("Unable to retrieve the active dataset right now. Please retry.");
         }
     }
 
@@ -200,3 +218,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadCopilotContext();
 });
+

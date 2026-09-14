@@ -28,6 +28,10 @@ ENV/
 *.db-wal
 *.db.backup*
 data/
+!data/default/
+!data/default/*
+!unified_pnl_enterprise_demo.csv
+!unified_pnl_enterprise_demo.xlsx
 uploads/
 postgres/
 postgres.zip

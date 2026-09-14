@@ -308,12 +308,15 @@
 
         <!-- AI Forecast Insights & Recommendations (7 Cols) -->
         <div class="col-span-12 md:col-span-7 dash-card custom-shadow">
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
             <div>
               <h4 class="font-bold text-slate-900 text-xs">Forecast Insights &amp; Recommendations</h4>
               <p class="text-[10px] text-slate-400">Data-driven observations &amp; concrete operational action points</p>
             </div>
-            <span class="material-symbols-outlined text-base text-primary">lightbulb</span>
+            <button id="btn-view-all-forecast-insights" class="px-2.5 py-1 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/10 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+              <span>View All Insights &amp; Recommendations</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </button>
           </div>
 
           <div class="space-y-3">
@@ -343,6 +346,44 @@
       </section>
     </div>
   </main>
+
+  <!-- ======================================================== -->
+  <!-- EXPANDED FORECAST INSIGHTS & RECOMMENDATIONS MODAL       -->
+  <!-- ======================================================== -->
+  <div id="modal-forecast-insights" class="fixed inset-0 z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" id="modal-fc-backdrop"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-xl">trending_up</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900">Comprehensive Forecast Intelligence &amp; Strategy</h3>
+            <p class="text-[11px] text-slate-500">Long-range trajectory analysis, confidence intervals, multi-scenario sensitivity, and growth initiatives</p>
+          </div>
+        </div>
+        <button id="modal-fc-close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto custom-scrollbar space-y-6" id="modal-fc-content">
+        <!-- Dynamically populated via forecast_wiring.js -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <span class="text-[11px] text-slate-400 font-medium">Domain-specific predictive context: Financial Forecast Engine</span>
+        <button id="modal-fc-done" class="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition cursor-pointer">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="js/forecast_wiring.js"></script>
   <script type="module" src="js/shell.js"></script>

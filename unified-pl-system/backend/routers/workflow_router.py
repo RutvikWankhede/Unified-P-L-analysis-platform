@@ -1,33 +1,30 @@
-"""
-workflow_router.py - Camunda BPMN Workflow REST API
-===================================================
-Provides monitoring, starting, approvals, task execution, and
-timeline inspection endpoints for the enterprise P&L workflow engine.
-"""
-
 from __future__ import annotations
 
 import os
+import re
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, Request
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from database import get_db
 from services.workflow_service import workflow_service
 
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 
 class StartWorkflowRequest(BaseModel):
-    dataset_id: Optional[int] = 1
-    department: Optional[str] = "Overall"
-    fiscal_year: Optional[str] = "2024"
+    dataset_id: Optional[int] = Field(1, ge=1)
+    department: Optional[str] = Field("Overall", max_length=100)
+    fiscal_year: Optional[str] = Field("2024", max_length=10)
     trigger_approval: Optional[bool] = True
 
 
 class ApprovalDecisionRequest(BaseModel):
-    notes: Optional[str] = "Approved by Executive Manager"
+    notes: Optional[str] = Field("Approved by Executive Manager", max_length=1000)
 
 
 @router.get("")
@@ -55,14 +52,19 @@ def list_workflow_instances(limit: int = Query(50, ge=1, le=200), db: Session = 
 @router.get("/{instance_id}/history")
 def get_workflow_instance(instance_id: str, db: Session = Depends(get_db)):
     """Fetches full execution state, timeline, step outputs, and variables for a specific instance."""
-    inst = workflow_service.get_instance(db, instance_id)
+    safe_instance_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(instance_id).strip())
+    if not safe_instance_id:
+        raise HTTPException(status_code=400, detail="Invalid instance_id parameter")
+
+    inst = workflow_service.get_instance(db, safe_instance_id)
     if not inst:
-        raise HTTPException(status_code=404, detail=f"Workflow instance '{instance_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Workflow instance '{safe_instance_id}' not found")
     return inst
 
 
 @router.post("/start")
-def start_workflow(req: StartWorkflowRequest, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def start_workflow(request: Request, req: StartWorkflowRequest, db: Session = Depends(get_db)):
     """Triggers and executes a new P&L financial workflow."""
     inst = workflow_service.start_workflow(
         db=db,
@@ -76,40 +78,48 @@ def start_workflow(req: StartWorkflowRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/{instance_id}/approve")
-def approve_workflow(instance_id: str, req: Optional[ApprovalDecisionRequest] = None, db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def approve_workflow(request: Request, instance_id: str, req: Optional[ApprovalDecisionRequest] = None, db: Session = Depends(get_db)):
     """Resolves a pending approval task as APPROVED and resumes workflow execution."""
+    safe_instance_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(instance_id).strip())
     notes = req.notes if req and req.notes else "Approved by Executive Manager"
-    inst = workflow_service.approve_task(db, instance_id, notes=notes)
+    inst = workflow_service.approve_task(db, safe_instance_id, notes=notes)
     if not inst:
-        raise HTTPException(status_code=404, detail=f"Workflow instance '{instance_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Workflow instance '{safe_instance_id}' not found")
     return inst
 
 
 @router.post("/{instance_id}/reject")
-def reject_workflow(instance_id: str, req: Optional[ApprovalDecisionRequest] = None, db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def reject_workflow(request: Request, instance_id: str, req: Optional[ApprovalDecisionRequest] = None, db: Session = Depends(get_db)):
     """Resolves a pending approval task as REJECTED."""
+    safe_instance_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(instance_id).strip())
     notes = req.notes if req and req.notes else "Rejected by Executive Manager"
-    inst = workflow_service.reject_task(db, instance_id, notes=notes)
+    inst = workflow_service.reject_task(db, safe_instance_id, notes=notes)
     if not inst:
-        raise HTTPException(status_code=404, detail=f"Workflow instance '{instance_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Workflow instance '{safe_instance_id}' not found")
     return inst
 
 
 @router.post("/{instance_id}/retry")
-def retry_workflow(instance_id: str, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def retry_workflow(request: Request, instance_id: str, db: Session = Depends(get_db)):
     """Retries a failed workflow execution."""
-    inst = workflow_service.retry_workflow(db, instance_id)
+    safe_instance_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(instance_id).strip())
+    inst = workflow_service.retry_workflow(db, safe_instance_id)
     if not inst:
-        raise HTTPException(status_code=404, detail=f"Workflow instance '{instance_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Workflow instance '{safe_instance_id}' not found")
     return inst
 
 
 @router.post("/{instance_id}/cancel")
-def cancel_workflow(instance_id: str, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def cancel_workflow(request: Request, instance_id: str, db: Session = Depends(get_db)):
     """Cancels a running workflow instance."""
-    inst = workflow_service.cancel_workflow(db, instance_id)
+    safe_instance_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(instance_id).strip())
+    inst = workflow_service.cancel_workflow(db, safe_instance_id)
     if not inst:
-        raise HTTPException(status_code=404, detail=f"Workflow instance '{instance_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Workflow instance '{safe_instance_id}' not found")
     return inst
 
 

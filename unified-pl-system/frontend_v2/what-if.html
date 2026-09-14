@@ -70,7 +70,7 @@
             <span id="active-dataset-name">Active Dataset</span>
           </span>
         </div>
-        <p class="text-[11px] text-slate-500 mt-0.5">Simulate business assumption shifts &amp; evaluate bottom-line sensitivity across departments</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Simulate financial decisions and understand their potential impact before taking action.</p>
       </div>
 
       <!-- Action Buttons & Preset Selector -->
@@ -101,6 +101,15 @@
         </button>
       </div>
     </header>
+
+    <!-- Safety Banner -->
+    <div class="bg-amber-50/90 border border-amber-200/90 text-amber-800 px-4 py-2.5 rounded-xl text-xs flex items-center justify-between gap-3 mb-4 shadow-xs">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm text-amber-600">info</span>
+        <span><strong>Scenario Simulation Mode:</strong> Illustrative mathematical modeling — does not modify actual dataset values or database tables.</span>
+      </div>
+      <span class="text-[10px] font-semibold text-amber-600 bg-amber-100/80 px-2 py-0.5 rounded-md">Safety Isolated</span>
+    </div>
 
     <div class="space-y-4">
       <!-- ======================================================== -->
@@ -322,13 +331,24 @@
       <!-- ======================================================== -->
       <!-- ROW 3: SCENARIO SUMMARY & DYNAMIC WHAT-IF INSIGHTS       -->
       <!-- ======================================================== -->
-      <section class="dash-card custom-shadow">
-        <div class="flex items-center justify-between mb-3">
+      <section class="dash-card custom-shadow space-y-3.5">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
           <div>
             <h4 class="font-bold text-slate-900 text-xs">Scenario Insights &amp; Sensitivity Analysis</h4>
             <p class="text-[10px] text-slate-400">Algorithmic impact interpretation based on active simulation math</p>
           </div>
           <span class="material-symbols-outlined text-base text-primary">auto_awesome</span>
+        </div>
+
+        <!-- Dynamic Executive Narrative Summary Callout -->
+        <div id="whatif-narrative-summary" class="p-3.5 rounded-xl bg-slate-900 text-white flex items-start gap-3 shadow-xs">
+          <span class="material-symbols-outlined text-indigo-400 text-lg mt-0.5 shrink-0">psychology</span>
+          <div>
+            <div class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Dynamic Scenario Verdict</div>
+            <p class="text-xs text-slate-200 mt-0.5 font-medium leading-relaxed" id="whatif-narrative-text">
+              Adjust levers above to generate real-time sensitivity commentary.
+            </p>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="whatif-insights-container">

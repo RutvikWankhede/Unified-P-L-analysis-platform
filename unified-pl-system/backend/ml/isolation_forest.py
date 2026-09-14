@@ -1,5 +1,3 @@
-from scipy import stats
-
 from config import settings
 from ml.feature_engineering import engineer_features
 
@@ -26,6 +24,7 @@ def get_contamination(domain: str, db=None) -> float:
 
 
 def assign_severity(anomaly_score: float, batch_scores: list) -> str:
+    from scipy import stats
     percentile = stats.percentileofscore(batch_scores, anomaly_score)
     if percentile >= 95:
         return "High"
@@ -35,17 +34,31 @@ def assign_severity(anomaly_score: float, batch_scores: list) -> str:
         return "Low"
 
 
-def detect_anomalies(records: list) -> list:
+def detect_anomalies(records: list, db=None) -> list:
     if not records:
         return []
+
+    from scipy import stats
 
     import numpy as np
     import pandas as pd
     from sklearn.ensemble import IsolationForest
 
-    df = pd.DataFrame([{c.name: getattr(r, c.name) for c in r.__table__.columns} for r in records])
-    if "id" not in df.columns:
-        df["id"] = [r.id for r in records]
+    rows_data = []
+    for r in records:
+        if isinstance(r, dict):
+            rows_data.append(r)
+        else:
+            rows_data.append({
+                "id": getattr(r, "id", None),
+                "domain": getattr(r, "domain", "All Departments"),
+                "period": getattr(r, "period", "2026-01-01"),
+                "line_item": getattr(r, "line_item", "Financial Line Item"),
+                "amount": getattr(r, "amount", 0.0),
+                "currency": getattr(r, "currency", "USD"),
+                "cost_center": getattr(r, "cost_center", ""),
+            })
+    df = pd.DataFrame(rows_data)
 
     df_features = engineer_features(df)
 
@@ -64,9 +77,11 @@ def detect_anomalies(records: list) -> list:
 
     results = []
 
-    # We need a DB session to read adaptive thresholds
-    from database import SessionLocal
-    db = SessionLocal()
+    own_db = False
+    if db is None:
+        from database import SessionLocal
+        db = SessionLocal()
+        own_db = True
     
     try:
         # Process per domain due to different contamination rates
@@ -138,6 +153,7 @@ def detect_anomalies(records: list) -> list:
                 }
             )
     finally:
-        db.close()
+        if own_db and db:
+            db.close()
 
     return out

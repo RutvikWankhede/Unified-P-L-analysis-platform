@@ -24,6 +24,26 @@ async function initWorkflowPage() {
     { key: 'generate_report', name: 'Generate Report', icon: 'description', service: 'Financial Reporting Service' },
   ];
 
+  // ── 0. Check Camunda Engine Status ──────────────────────────────
+  async function checkEngineStatus() {
+    try {
+      const st = await api.get('/api/v1/workflow/camunda-status').catch(() => null);
+      const dot = document.getElementById('camunda-engine-dot');
+      const label = document.getElementById('camunda-engine-label');
+      if (dot && label && st) {
+        if (st.is_connected) {
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse';
+          label.textContent = 'Camunda Engine: Connected';
+        } else {
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500';
+          label.textContent = 'Camunda Orchestrator: Active';
+        }
+      }
+    } catch (e) {
+      console.warn('Camunda status error:', e);
+    }
+  }
+
   // ── 1. Fetch & Render KPIs ──────────────────────────────────────
   async function loadKpis() {
     try {
@@ -89,7 +109,7 @@ async function initWorkflowPage() {
 
       // Auto-select currently active or failed step in inspector if none selected
       const curKey = inst.current_step || 'upload_data';
-      if (!selectedStepKey || !inst.steps[selectedStepKey]) {
+      if (!selectedStepKey || !inst.steps || !inst.steps[selectedStepKey]) {
         selectedStepKey = inst.error_step || curKey;
       }
       renderStepInspector(inst, selectedStepKey);
@@ -110,7 +130,20 @@ async function initWorkflowPage() {
     const textEl = document.getElementById('active-wf-progress-text');
     const actionContainer = document.getElementById('active-wf-action-btns');
 
-    if (titleEl) titleEl.textContent = `P&L Workflow #${inst.process_instance_id.replace('pl-wf-', '')} (${inst.department})`;
+    // Update Camunda Proof Panel
+    const proofInstance = document.getElementById('proof-process-instance');
+    const proofBusinessKey = document.getElementById('proof-business-key');
+    const proofActivity = document.getElementById('proof-current-activity');
+    const proofId = document.getElementById('proof-instance-id');
+    const cockpitBtn = document.getElementById('btn-open-cockpit');
+
+    if (proofInstance) proofInstance.textContent = inst.process_instance_id || '—';
+    if (proofBusinessKey) proofBusinessKey.textContent = inst.business_key || `P&L-${inst.department || 'Enterprise'}-${inst.fiscal_year || '2024'}`;
+    if (proofActivity) proofActivity.textContent = inst.current_step_name || (inst.status === 'COMPLETED' ? 'Completed' : '—');
+    if (proofId) proofId.textContent = `#${(inst.process_instance_id || '').replace('pl-wf-', '')}`;
+    if (cockpitBtn && inst.cockpit_url) cockpitBtn.href = inst.cockpit_url;
+
+    if (titleEl) titleEl.textContent = `P&L Workflow #${(inst.process_instance_id || '').replace('pl-wf-', '')} (${inst.department})`;
     
     if (badgeEl) {
       let badgeClass = 'bg-slate-100 text-slate-700';
@@ -119,7 +152,7 @@ async function initWorkflowPage() {
       else if (inst.status === 'PENDING_APPROVAL') badgeClass = 'bg-amber-50 text-amber-700 border border-amber-200';
       else if (inst.status === 'FAILED') badgeClass = 'bg-rose-50 text-rose-700 border border-rose-200';
       badgeEl.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}`;
-      badgeEl.textContent = inst.status.replace('_', ' ');
+      badgeEl.textContent = (inst.status || 'UNKNOWN').replace('_', ' ');
     }
 
     const startTimeStr = inst.started_at ? new Date(inst.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
@@ -141,7 +174,13 @@ async function initWorkflowPage() {
       viewDetailsBtn.addEventListener('click', () => openWorkflowDetailsModal(inst.process_instance_id));
       actionContainer.appendChild(viewDetailsBtn);
 
-      if (inst.status === 'RUNNING') {
+      if (inst.status === 'COMPLETED') {
+        const viewReportBtn = document.createElement('a');
+        viewReportBtn.href = `reports.html?type=overall&dept=${encodeURIComponent(inst.department || 'all')}&period=${encodeURIComponent(inst.fiscal_year || 'all')}`;
+        viewReportBtn.className = 'px-2.5 py-1 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1';
+        viewReportBtn.innerHTML = '<span class="material-symbols-outlined text-xs">description</span><span>View Report</span>';
+        actionContainer.appendChild(viewReportBtn);
+      } else if (inst.status === 'RUNNING') {
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'px-2.5 py-1 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer';
         cancelBtn.textContent = 'Cancel Workflow';
@@ -245,7 +284,7 @@ async function initWorkflowPage() {
       statusEl.className = sData.status === 'COMPLETED' ? 'text-emerald-600 font-bold' : (sData.status === 'FAILED' ? 'text-rose-600 font-bold' : (sData.status === 'RUNNING' ? 'text-blue-600 font-bold' : 'text-slate-800'));
     }
     if (durEl) durEl.textContent = sData.duration_sec ? `${sData.duration_sec}s` : (sData.status === 'RUNNING' ? 'In progress' : '—');
-    if (inputEl) inputEl.textContent = sData.input || `Dataset: ${inst.dataset_name}, Dept: ${inst.department}, FY: ${inst.fiscal_year}`;
+    if (inputEl) inputEl.textContent = sData.input || `Dataset: ${inst.dataset_name || 'Active'}, Dept: ${inst.department}, FY: ${inst.fiscal_year}`;
     if (outputEl) outputEl.textContent = sData.output || (sData.error ? `ERROR: ${sData.error}` : (sData.status === 'RUNNING' ? 'Executing task payload...' : 'Pending upstream execution'));
     if (iconEl) iconEl.textContent = sDef.icon;
   }
@@ -300,18 +339,32 @@ async function initWorkflowPage() {
         approveBtn.onclick = async () => {
           approveBtn.disabled = true;
           approveBtn.textContent = 'Approving...';
-          await api.post(`/api/v1/workflow/${inst.process_instance_id}/approve`, { notes: 'Approved by Executive Financial Manager' });
-          await loadKpis();
-          await loadInstances();
+          try {
+            await api.post(`/api/v1/workflow/${inst.process_instance_id}/approve`, { notes: 'Approved by Executive Financial Manager' });
+            await loadKpis();
+            await loadInstances();
+          } catch (e) {
+            console.error('Approve failed:', e);
+          } finally {
+            approveBtn.disabled = false;
+            approveBtn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span><span>Approve & Continue</span>';
+          }
         };
       }
       if (rejectBtn) {
         rejectBtn.onclick = async () => {
           rejectBtn.disabled = true;
           rejectBtn.textContent = 'Rejecting...';
-          await api.post(`/api/v1/workflow/${inst.process_instance_id}/reject`, { notes: 'Rejected by Executive Financial Manager' });
-          await loadKpis();
-          await loadInstances();
+          try {
+            await api.post(`/api/v1/workflow/${inst.process_instance_id}/reject`, { notes: 'Rejected by Executive Financial Manager' });
+            await loadKpis();
+            await loadInstances();
+          } catch (e) {
+            console.error('Reject failed:', e);
+          } finally {
+            rejectBtn.disabled = false;
+            rejectBtn.innerHTML = '<span class="material-symbols-outlined text-sm">close</span><span>Reject</span>';
+          }
         };
       }
     } else {
@@ -350,11 +403,19 @@ async function initWorkflowPage() {
         statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Failed</span>';
       }
 
+      const isCompleted = inst.status === 'COMPLETED';
+      const reportBtnHtml = isCompleted ? `
+        <a href="reports.html?type=overall&dept=${encodeURIComponent(inst.department || 'all')}&period=${encodeURIComponent(inst.fiscal_year || 'all')}" class="px-2 py-1 rounded-md text-[10px] font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition inline-flex items-center gap-0.5">
+          <span class="material-symbols-outlined text-xs">description</span>
+          <span>Report</span>
+        </a>
+      ` : '';
+
       html += `
         <tr class="hover:bg-slate-50/80 transition ${isSelected ? 'bg-indigo-50/40 font-medium' : ''}">
           <td class="px-4 py-3 font-semibold text-slate-900 flex items-center gap-1.5">
             <span class="material-symbols-outlined text-xs text-primary">account_tree</span>
-            <span>#${inst.process_instance_id.replace('pl-wf-', '')}</span>
+            <span>#${(inst.process_instance_id || '').replace('pl-wf-', '')}</span>
           </td>
           <td class="px-4 py-3 text-slate-700">${inst.department} (${inst.fiscal_year})</td>
           <td class="px-4 py-3 text-slate-600">${startStr}</td>
@@ -363,9 +424,12 @@ async function initWorkflowPage() {
           <td class="px-4 py-3 text-center">${statusBadge}</td>
           <td class="px-4 py-3 text-right text-slate-600 font-mono">${inst.duration}</td>
           <td class="px-4 py-3 text-right">
-            <button data-view-inst="${inst.process_instance_id}" class="px-2.5 py-1 rounded-md text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer">
-              View
-            </button>
+            <div class="flex items-center justify-end gap-1.5">
+              ${reportBtnHtml}
+              <button data-view-inst="${inst.process_instance_id}" class="px-2.5 py-1 rounded-md text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer">
+                View
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -397,7 +461,7 @@ async function initWorkflowPage() {
       if (!modal) return;
 
       const titleEl = document.getElementById('details-modal-title');
-      if (titleEl) titleEl.textContent = `Workflow Details #${inst.process_instance_id.replace('pl-wf-', '')} (${inst.department})`;
+      if (titleEl) titleEl.textContent = `Workflow Details #${(inst.process_instance_id || '').replace('pl-wf-', '')} (${inst.department})`;
 
       const statusEl = document.getElementById('details-status');
       if (statusEl) {
@@ -425,6 +489,32 @@ async function initWorkflowPage() {
       if (riskEl) {
         riskEl.textContent = inst.risk_level || 'Low';
         riskEl.className = inst.risk_level === 'High' ? 'text-base font-bold text-rose-700 mt-0.5' : 'text-base font-bold text-indigo-900 mt-0.5';
+      }
+
+      const reportStatusEl = document.getElementById('details-report-status');
+      const viewReportLink = document.getElementById('details-view-report-link');
+      if (reportStatusEl) {
+        reportStatusEl.textContent = inst.status === 'COMPLETED' ? 'Available' : 'Pending';
+      }
+      if (viewReportLink) {
+        viewReportLink.href = `reports.html?type=overall&dept=${encodeURIComponent(inst.department || 'all')}&period=${encodeURIComponent(inst.fiscal_year || 'all')}`;
+        viewReportLink.style.display = inst.status === 'COMPLETED' ? 'inline-flex' : 'none';
+      }
+
+      // Render Process Variables
+      const varsContainer = document.getElementById('details-variables-section');
+      if (varsContainer && inst.variables) {
+        let varsHtml = '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 pb-2">';
+        for (const [k, v] of Object.entries(inst.variables)) {
+          varsHtml += `
+            <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/80 font-mono text-[10px]">
+              <span class="text-slate-400 block text-[9px] uppercase tracking-wider font-bold">${k}</span>
+              <span class="font-bold text-slate-800 truncate block mt-0.5">${typeof v === 'object' ? JSON.stringify(v) : v}</span>
+            </div>
+          `;
+        }
+        varsHtml += '</div>';
+        varsContainer.innerHTML = varsHtml;
       }
 
       // Render timeline list
@@ -497,7 +587,21 @@ async function initWorkflowPage() {
   if (btnViewAllHistory) {
     btnViewAllHistory.addEventListener('click', async () => {
       await loadInstances();
-      alert(`Loaded ${cachedInstances.length} audited workflow instances.`);
+    });
+  }
+
+  // Refresh button
+  const btnRefresh = document.getElementById('btn-refresh-wf');
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', async () => {
+      const icon = btnRefresh.querySelector('.material-symbols-outlined');
+      if (icon) icon.classList.add('animate-spin');
+      await checkEngineStatus();
+      await loadKpis();
+      await loadInstances();
+      setTimeout(() => {
+        if (icon) icon.classList.remove('animate-spin');
+      }, 500);
     });
   }
 
@@ -530,7 +634,6 @@ async function initWorkflowPage() {
       btnSubmitStart.addEventListener('click', async () => {
         const dept = document.getElementById('modal-dept-select')?.value || 'Overall';
         const year = document.getElementById('modal-period-select')?.value || '2024';
-        const analysisType = document.getElementById('modal-analysis-type')?.value || 'comprehensive';
         const triggerApproval = document.getElementById('modal-approval-check')?.checked ?? true;
 
         btnSubmitStart.disabled = true;
@@ -553,7 +656,6 @@ async function initWorkflowPage() {
           await loadInstances(true);
         } catch (e) {
           console.error('Failed to start workflow:', e);
-          alert('Failed to start workflow. Please check server logs.');
         } finally {
           btnSubmitStart.disabled = false;
           btnSubmitStart.innerHTML = '<span class="material-symbols-outlined text-sm">bolt</span><span>Start Workflow</span>';
@@ -584,16 +686,42 @@ async function initWorkflowPage() {
     if (btnCloseBpmn) btnCloseBpmn.addEventListener('click', () => bpmnModal.classList.add('hidden'));
   }
 
-  // ── 14. Refresh Button Handler ──────────────────────────────────
-  const refreshBtn = document.getElementById('btn-refresh-wf');
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', async () => {
-      await loadKpis();
-      await loadInstances();
-    });
+  // ── 14. Start Modal Dynamic Options ───────────────────────────
+  async function initStartModalOptions() {
+    try {
+      const active = await api.get('/api/v1/datasets/active').catch(() => null);
+      const datasetSelect = document.getElementById('modal-dataset-select');
+      if (datasetSelect && active && active.filename) {
+        datasetSelect.innerHTML = `<option value="${active.dataset_id || 1}">${active.filename.replace('.csv','').replace('.xlsx','')} (Active Dataset)</option>`;
+      }
+
+      const deptsRes = await api.get('/api/v1/pl/departments').catch(() => null);
+      const deptSelect = document.getElementById('modal-dept-select');
+      if (deptSelect && deptsRes && deptsRes.departments) {
+        let html = '<option value="Overall">Overall Enterprise (All Departments)</option>';
+        html += '<optgroup label="Department Groups / Aggregations">';
+        html += '<option value="Commercial">Commercial (Sales & Marketing)</option>';
+        html += '<option value="Technology">Technology (IT & R&D)</option>';
+        html += '<option value="Operations">Operations (Logistics & Procurement)</option>';
+        html += '<option value="Corporate">Corporate / G&A</option>';
+        html += '</optgroup>';
+        html += '<optgroup label="Specific Operating Units">';
+        deptsRes.departments.forEach(d => {
+          if (d && d !== 'All Departments' && d !== 'Unknown' && d !== 'All') {
+            html += `<option value="${d}">${d}</option>`;
+          }
+        });
+        html += '</optgroup>';
+        deptSelect.innerHTML = html;
+      }
+    } catch (e) {
+      console.warn('Failed to load modal options:', e);
+    }
   }
 
   // ── Initial Load ────────────────────────────────────────────────
+  await checkEngineStatus();
+  await initStartModalOptions();
   await loadKpis();
   await loadInstances(true);
 }

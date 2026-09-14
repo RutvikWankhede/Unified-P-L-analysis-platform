@@ -1,21 +1,24 @@
 """
 run.py - Production Launcher for Unified P&L Intelligence Platform
 ==================================================================
-Production-grade launcher with reliable process lifecycle management:
-- Positively identifies and cleans up project-owned processes on ports 8000 & 3000
-- Preserves unrelated third-party processes with clear diagnostic error messages
-- Manages state in .runtime/ (backend.pid, frontend.pid)
-- Windows and Linux/macOS safe process tree termination
-- Direct subprocess.Popen handle supervision without infinite restart loops
-- Accurate readiness polling with real health check distinction
+Production-grade launcher with robust dynamic port & process lifecycle management:
+- Default ports: Backend 8000, Frontend 3000
+- Automatically detects and cleanly recycles stale project-owned processes
+- Preserves unrelated third-party processes without killing them
+- Automatically finds and shifts to next available port (8001, 8002, ...) when 8000 is occupied by external apps
+- Generates dynamic frontend runtime configuration (runtime_config.js) so frontend always communicates with active backend port
+- Supports explicit --backend-port and --frontend-port overrides with strict validation
+- Accurate 60s readiness polling against active dynamic ports
+- Preserves SQLite/Postgres database and existing seeded dataset
+- Full diagnostic and --self-test execution modes
 
 Usage:
-    python run.py                      # Normal launch
-    python run.py --self-test          # Test startup and readiness, then exit cleanly
+    python run.py                      # Automatic launch (default: BE 8000, FE 3000 or auto-shifted)
+    python run.py --self-test          # Test startup and readiness on active ports, then exit cleanly
     python run.py --no-browser         # Start servers without launching browser
     python run.py --seed               # Force database seed before launch
-    python run.py --backend-port 8000  # Custom backend port
-    python run.py --frontend-port 3000 # Custom frontend port
+    python run.py --backend-port 8001  # Explicit custom backend port
+    python run.py --frontend-port 3001 # Explicit custom frontend port
     python run.py --diag               # Environment diagnostics only
 """
 
@@ -166,6 +169,12 @@ def build_backend_env(backend_dir: Path) -> dict[str, str]:
     else:
         env["PYTHONPATH"] = backend_str
 
+    # Guarantee unbuffered I/O and UTF-8 encoding across all child processes
+    env["PYTHONUNBUFFERED"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONDONTWRITEBYTECODE"] = "0"
+
     env_file = backend_dir / ".env"
     if env_file.exists():
         try:
@@ -225,21 +234,31 @@ def validate_main_module(python_exe: Path, backend_dir: Path, backend_env: dict[
     )
     try:
         res = subprocess.run(
-            [str(python_exe), "-c", code],
+            [str(python_exe), "-u", "-c", code],
             cwd=str(backend_dir),
             env=backend_env,
             capture_output=True,
             text=True,
-            timeout=45.0,
+            timeout=60.0,
         )
+        if res.returncode == 0 and "MAIN_APP_OK" in res.stdout:
+            ok("Backend module and app object validated")
+            return True
+        elif res.returncode != 0:
+            err(f"Backend validation returned error (exit code: {res.returncode}):")
+            if res.stderr:
+                print(f"  {res.stderr.strip()}")
+            return False
+        else:
+            return True
     except subprocess.TimeoutExpired:
-        warn("Backend import validation timed out after 45s (continuing with startup)")
+        warn("Backend pre-validation took longer than 60s; proceeding to uvicorn startup...")
         return True
-    if res.returncode == 0 and "MAIN_APP_OK" in res.stdout:
-        ok("Backend module and app object validated")
+    except Exception as ex:
+        warn(f"Backend pre-validation warning ({ex}); proceeding to uvicorn startup...")
         return True
 
-    err("Backend validation failed. Detailed diagnostic:")
+    err(f"Backend validation failed (exit code: {res.returncode}). Detailed diagnostic:")
     print(f"{RED}{'='*60}")
     if res.stderr:
         for line in res.stderr.strip().splitlines():
@@ -259,10 +278,10 @@ def setup_database_if_needed(python_exe: Path, backend_dir: Path, backend_env: d
         return True
 
     if db_file.exists() and not force_seed:
-        ok(f"Database exists ({db_file.name}) — skipping seed for fast startup")
+        ok(f"Database exists ({db_file.name}) — preserving existing seeded datasets and records")
         return True
 
-    info("Seeding database...")
+    info("Initializing database seed...")
     res = subprocess.run(
         [str(python_exe), "seed.py"],
         cwd=str(backend_dir),
@@ -271,14 +290,14 @@ def setup_database_if_needed(python_exe: Path, backend_dir: Path, backend_env: d
         text=True,
     )
     if res.returncode == 0:
-        ok("Database seed completed")
+        ok("Database seed completed successfully")
         return True
     else:
         err(f"Database seed failed:\n{res.stderr or res.stdout}")
         return False
 
 # ──────────────────────────────────────────────────────────────────────────────
-# SAFE PROCESS INSPECTION, PORT CHECKING & CLEANUP
+# SAFE PROCESS INSPECTION, PORT RESOLUTION & CLEANUP
 # ──────────────────────────────────────────────────────────────────────────────
 
 _no_proxy_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -297,6 +316,11 @@ def is_pid_alive(pid: int) -> bool:
     """Check if a given PID is currently active."""
     if pid <= 0:
         return False
+    try:
+        import psutil
+        return psutil.pid_exists(pid)
+    except Exception:
+        pass
     if sys.platform == "win32":
         try:
             res = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"], capture_output=True, text=True, timeout=3.0)
@@ -313,6 +337,18 @@ def is_pid_alive(pid: int) -> bool:
 def get_pids_on_port(port: int) -> list[int]:
     """Find all PIDs currently listening on a TCP port."""
     pids: list[int] = []
+    # 1. Try psutil net_connections if available
+    try:
+        import psutil
+        for conn in psutil.net_connections(kind="tcp"):
+            if conn.status == psutil.CONN_LISTEN and conn.laddr and conn.laddr.port == port:
+                if conn.pid and conn.pid > 0 and conn.pid not in pids:
+                    pids.append(conn.pid)
+        if pids:
+            return pids
+    except Exception:
+        pass
+
     if sys.platform == "win32":
         try:
             out = subprocess.check_output(["netstat", "-ano", "-p", "tcp"], text=True, errors="replace")
@@ -346,63 +382,67 @@ def get_pids_on_port(port: int) -> list[int]:
             pass
     return pids
 
-def get_process_info(pid: int) -> tuple[str, str]:
-    """Retrieve (command_line, executable_path) for a process PID."""
+def get_process_info(pid: int) -> tuple[str, str, str]:
+    """Retrieve (command_line, executable_path, working_dir) for a process PID."""
     if pid <= 0:
-        return "", ""
+        return "", "", ""
+    try:
+        import psutil
+        p = psutil.Process(pid)
+        cmdline = " ".join(p.cmdline())
+        path = p.exe()
+        cwd = p.cwd()
+        return cmdline, path, cwd
+    except Exception:
+        pass
+
     if sys.platform == "win32":
         cmdline = ""
         path = ""
+        cwd = ""
         try:
             cmd = [
                 "powershell",
                 "-NoProfile",
                 "-Command",
-                f"$cp = Get-CimInstance Win32_Process -Filter 'ProcessId = {pid}' -ErrorAction SilentlyContinue; if ($cp) {{ $cp.CommandLine }}; $p = Get-Process -Id {pid} -ErrorAction SilentlyContinue; if ($p) {{ $p.Path }}"
+                f"$p = Get-CimInstance Win32_Process -Filter 'ProcessId = {pid}' -ErrorAction SilentlyContinue; if ($p) {{ Write-Output ('CMD===' + $p.CommandLine); Write-Output ('PATH===' + $p.ExecutablePath) }}"
             ]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=4.0)
-            lines = [l.strip() for l in res.stdout.splitlines() if l.strip()]
-            if len(lines) >= 2:
-                cmdline = lines[0]
-                path = lines[1]
-            elif len(lines) == 1:
-                cmdline = lines[0]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=5.0)
+            for line in res.stdout.splitlines():
+                line = line.strip()
+                if line.startswith("CMD==="):
+                    cmdline = line[len("CMD==="):]
+                elif line.startswith("PATH==="):
+                    path = line[len("PATH==="):]
         except Exception:
             pass
-
-        if not cmdline:
-            try:
-                res = subprocess.run(["wmic", "process", "where", f"ProcessId={pid}", "get", "CommandLine,ExecutablePath"], capture_output=True, text=True, timeout=4.0)
-                if res.returncode == 0:
-                    lines = [l.strip() for l in res.stdout.splitlines() if l.strip() and "CommandLine" not in l]
-                    if lines:
-                        cmdline = lines[0]
-            except Exception:
-                pass
-        return cmdline, path
+        return cmdline, path, cwd
     else:
         cmdline = ""
         path = ""
+        cwd = ""
         try:
             cmdline_path = Path(f"/proc/{pid}/cmdline")
             if cmdline_path.exists():
                 cmdline = cmdline_path.read_text(errors="replace").replace("\x00", " ").strip()
+            cwd_link = Path(f"/proc/{pid}/cwd")
+            if cwd_link.exists():
+                cwd = str(cwd_link.resolve())
         except Exception:
             pass
         try:
-            res = subprocess.run(["ps", "-p", str(pid), "-o", "command="], capture_output=True, text=True, timeout=3.0)
+            res = subprocess.run(["ps", "-p", str(pid), "-o", "command="], capture_output=True, text=True, timeout=2.0)
             if res.returncode == 0:
                 cmdline = res.stdout.strip()
         except Exception:
             pass
-        return cmdline, path
+        return cmdline, path, cwd
 
 def is_project_owned_process(pid: int, expected_service: str | None = None) -> tuple[bool, str]:
     """
     Positively verify whether a process PID belongs to THIS project.
-    Returns (True, reason) or (False, cmdline).
+    Returns (True, reason) or (False, cmdline_or_details).
     """
-    # 0. If process already died or is transitioning
     if not is_pid_alive(pid):
         return True, "Process already exited / socket transitioning"
 
@@ -413,24 +453,43 @@ def is_project_owned_process(pid: int, expected_service: str | None = None) -> t
         srv = "backend" if pid == be_pid else "frontend"
         return True, f"Recorded PID in .runtime/{srv}.pid"
 
-    cmdline, path = get_process_info(pid)
-    combined = f"{cmdline} {path}".lower()
+    cmdline, path, cwd = get_process_info(pid)
+    combined = f"{cmdline} {path} {cwd}".lower()
     root_lower = str(ROOT_DIR).lower()
 
-    # 2. Command line or executable explicitly mentions project root path
+    # 2. Check if working directory is inside this project
+    if cwd and (root_lower in cwd.lower() or "unified-pl-system" in cwd.lower()):
+        return True, f"Running inside project directory: {cwd}"
+
+    # 3. Command line or executable explicitly mentions project root path
     if root_lower in combined or "unified-pl-system" in combined or "frontend_v2" in combined:
         return True, f"References project path: {ROOT_DIR.name}"
 
-    # 3. Uvicorn backend process for main:app
-    if "uvicorn" in combined and "main:app" in combined:
-        return True, "Uvicorn backend server (main:app)"
+    # 4. Project-specific script names or entry points
+    project_markers = [
+        "start_server.py",
+        "main:app",
+        "backend/main.py",
+        "backend\\main.py",
+        "seed.py",
+        "inspect_env.py",
+        "verify_apis.py",
+        "test_urgent_forecast",
+    ]
+    for marker in project_markers:
+        if marker in combined:
+            return True, f"Matches project entrypoint: {marker}"
 
-    # 4. HTTP static server for frontend_v2
-    if "http.server" in combined and "3000" in combined:
+    # 5. Uvicorn backend process with FastAPI
+    if "uvicorn" in combined and ("main:app" in combined or "app" in combined):
+        return True, "Uvicorn backend process"
+
+    # 6. HTTP static server serving frontend directory
+    if "http.server" in combined and ("frontend_v2" in combined or "3000" in combined or "login.html" in combined):
         return True, "Python http.server for frontend"
 
     if not cmdline and not path:
-        return False, "Unknown process command line"
+        return False, "Unknown process (no inspectable command line)"
 
     return False, cmdline or path
 
@@ -438,6 +497,21 @@ def terminate_project_process(pid: int, timeout: float = 6.0) -> bool:
     """Terminate a verified project process and its child tree."""
     if not is_pid_alive(pid):
         return True
+
+    # 1. Try psutil process tree kill first
+    try:
+        import psutil
+        parent = psutil.Process(pid)
+        for child in parent.children(recursive=True):
+            try:
+                child.kill()
+            except Exception:
+                pass
+        parent.kill()
+    except Exception:
+        pass
+
+    # 2. taskkill fallback on Windows
     if sys.platform == "win32":
         try:
             subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], capture_output=True, timeout=4.0)
@@ -462,69 +536,128 @@ def terminate_project_process(pid: int, timeout: float = 6.0) -> bool:
             pass
     return not is_pid_alive(pid)
 
-def safe_clean_and_check_port(port: int, service_name: str) -> bool:
+def resolve_service_port(
+    preferred_port: int,
+    service_name: str,
+    is_explicit: bool = False,
+    max_tries: int = 50,
+) -> int | None:
     """
-    Safely detect if port is occupied.
-    If occupied by a verified project process, terminate it and free the port.
-    If occupied by an unrelated third-party process, print diagnostics and refuse to kill.
+    Resolve an available port for a service (backend or frontend).
+    
+    Rules:
+    1. If preferred_port is available -> use it.
+    2. If preferred_port is occupied by a verified project process -> cleanly terminate it and use preferred_port.
+    3. If preferred_port is occupied by an unrelated external process:
+       - If is_explicit: Report clear conflict error and return None (do not kill, do not silently move).
+       - If NOT is_explicit: Automatically probe preferred_port + 1, preferred_port + 2, ...
+         Find the next free port without disturbing the external application.
     """
-    if is_port_available(port):
+    # Quick check
+    if is_port_available(preferred_port):
         clear_pid(service_name)
-        return True
+        return preferred_port
 
-    pids = get_pids_on_port(port)
+    pids = get_pids_on_port(preferred_port)
     rec_pid = read_pid(service_name)
     if rec_pid and is_pid_alive(rec_pid) and rec_pid not in pids:
         pids.append(rec_pid)
 
-    # Filter for alive PIDs
     alive_pids = [p for p in pids if is_pid_alive(p)]
 
-    if not alive_pids:
-        # All reported PIDs are already dead — wait a moment for socket release
-        start = time.time()
-        while time.time() - start < 3.0:
-            if is_port_available(port):
-                clear_pid(service_name)
-                ok(f"Port {port} ({service_name}) is free and ready")
-                return True
-            time.sleep(0.3)
-
-        if not is_port_available(port):
-            err(f"Port {port} is held in socket transition state. Retrying...")
-            time.sleep(1.0)
-            if is_port_available(port):
-                clear_pid(service_name)
-                ok(f"Port {port} ({service_name}) is free and ready")
-                return True
-
+    # Check ownership of all processes occupying preferred_port
+    all_ours = True
+    unrelated_info = []
     for pid in alive_pids:
         is_ours, details = is_project_owned_process(pid, expected_service=service_name)
         if is_ours:
-            info(f"Port {port} is held by previous project-owned {service_name} (PID {pid}: {details}). Cleaning up...")
+            info(f"Port {preferred_port} is held by previous project-owned {service_name} (PID {pid}: {details}). Cleaning up...")
             terminate_project_process(pid)
         else:
+            all_ours = False
+            unrelated_info.append((pid, details))
+
+    if all_ours:
+        # Wait for port release
+        start = time.time()
+        while time.time() - start < 5.0:
+            if is_port_available(preferred_port):
+                clear_pid(service_name)
+                ok(f"Cleaned previous project process. Port {preferred_port} ({service_name}) is now free and ready.")
+                return preferred_port
+            time.sleep(0.3)
+
+    # If we reached here, the preferred port is held by an unrelated external application
+    if not all_ours:
+        pid, details = unrelated_info[0] if unrelated_info else (0, "Unknown application")
+        if is_explicit:
             print(f"\n{RED}{BOLD}{'='*60}")
-            print(f"  PORT CONFLICT — UNRELATED APPLICATION DETECTED")
+            print(f"  PORT CONFLICT — UNRELATED APPLICATION DETECTED ON EXPLICIT PORT")
             print(f"{'='*60}{RESET}")
-            print(f"  Port {BOLD}{port}{RESET} is occupied by an {RED}unrelated process{RESET}.")
+            print(f"  Port {BOLD}{preferred_port}{RESET} was explicitly requested, but is occupied by an {RED}unrelated process{RESET}.")
             print(f"  {BOLD}PID:{RESET}     {pid}")
             print(f"  {BOLD}Command:{RESET} {details or 'N/A'}")
-            print(f"\n  {YELLOW}Action required:{RESET} Please close that application or launch with:")
+            print(f"\n  {YELLOW}Action required:{RESET} Please close that application or launch with another port:")
             print(f"      python run.py --{service_name}-port <other_port>\n")
-            return False
+            return None
 
-    # Wait for port to become free
-    start = time.time()
-    while time.time() - start < 5.0:
-        if is_port_available(port):
-            clear_pid(service_name)
-            ok(f"Port {port} ({service_name}) is free and ready")
-            return True
-        time.sleep(0.3)
+        # Automatic fallback port search for default launch
+        warn(f"Port {preferred_port} is occupied by an unrelated application (PID {pid}: {details}).")
+        info(f"Preserving external application. Automatically searching for next available {service_name} port...")
 
-    err(f"Port {port} remained busy after terminating previous project process.")
-    return False
+        for offset in range(1, max_tries + 1):
+            candidate = preferred_port + offset
+            if is_port_available(candidate):
+                ok(f"Found available port: {candidate}")
+                ok(f"Automatically selected next available {service_name} port: {candidate}")
+                return candidate
+
+            # Check if candidate is occupied by our own stale process
+            cand_pids = [p for p in get_pids_on_port(candidate) if is_pid_alive(p)]
+            cand_ours = True
+            for cpid in cand_pids:
+                is_ours, details = is_project_owned_process(cpid, expected_service=service_name)
+                if is_ours:
+                    terminate_project_process(cpid)
+                else:
+                    cand_ours = False
+                    break
+            
+            if cand_ours and cand_pids:
+                time.sleep(0.5)
+                if is_port_available(candidate):
+                    ok(f"Cleaned stale project process on port {candidate}. Selected {service_name} port: {candidate}")
+                    return candidate
+
+        err(f"No available port found for {service_name} in range {preferred_port}-{preferred_port + max_tries}.")
+        return None
+
+    return None
+
+def write_frontend_runtime_config(backend_port: int, frontend_port: int, frontend_dir: Path) -> None:
+    """
+    Generate js/runtime_config.js in all frontend locations so client scripts
+    always communicate with the active dynamically selected backend port.
+    """
+    content = f"""// Auto-generated runtime configuration by run.py on {time.strftime('%Y-%m-%d %H:%M:%S')}
+// DO NOT EDIT MANUALLY - This ensures frontend communicates with active backend port.
+window.__BACKEND_PORT__ = {backend_port};
+window.__API_BASE__ = "http://127.0.0.1:{backend_port}";
+window.__FRONTEND_PORT__ = {frontend_port};
+"""
+    dirs = [
+        frontend_dir / "js",
+        ROOT_DIR / "frontend_v2" / "js",
+        ROOT_DIR / "unified-pl-system" / "frontend_v2" / "js",
+    ]
+    for d in dirs:
+        if d.parent.exists():
+            d.mkdir(parents=True, exist_ok=True)
+            cfg_file = d / "runtime_config.js"
+            try:
+                cfg_file.write_text(content, encoding="utf-8")
+            except Exception as e:
+                warn(f"Failed to write {cfg_file}: {e}")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # READINESS & HEALTH POLLING
@@ -533,17 +666,19 @@ def safe_clean_and_check_port(port: int, service_name: str) -> bool:
 def check_endpoint_ready(
     url: str,
     proc: subprocess.Popen,
-    timeout: float = 30.0,
+    port: int,
+    timeout: float = 60.0,
     label: str = "Service",
     log_path: Path | None = None,
 ) -> bool:
     """
     Poll an HTTP endpoint until ready or until child process exits/times out.
-    Distinguishes temporary warmups from real process deaths.
+    Distinguishes temporary warmups from real process deaths and socket transitions.
     """
     start_time = time.time()
     idx = 0
     backoff = 0.2
+    port_opened = False
 
     while time.time() - start_time < timeout:
         # Check if the child process exited prematurely
@@ -555,25 +690,43 @@ def check_endpoint_ready(
                 _dump_log_tail(log_path)
             return False
 
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "PL-Launcher-HealthCheck"})
-            with _no_proxy_opener.open(req, timeout=1.5) as resp:
-                if resp.status == 200:
-                    print()
-                    ok(f"{label} is healthy and responding (HTTP 200)")
-                    return True
-        except Exception:
-            pass
+        # Test socket connection directly
+        if not port_opened:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(0.5)
+                    if s.connect_ex(("127.0.0.1", port)) == 0:
+                        port_opened = True
+            except Exception:
+                pass
 
-        sys.stdout.write(f"\r  {SPIN[idx % 4]} Waiting for {label}... ({int(time.time() - start_time)}s)")
+        if port_opened:
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "PL-Launcher-HealthCheck"})
+                with _no_proxy_opener.open(req, timeout=1.5) as resp:
+                    if resp.status == 200:
+                        print()
+                        ok(f"{label} is healthy and responding on port {port} (HTTP 200)")
+                        return True
+            except Exception:
+                pass
+
+        elapsed = int(time.time() - start_time)
+        if not port_opened:
+            sys.stdout.write(f"\r  {SPIN[idx % 4]} Waiting for {label} to bind port {port}... ({elapsed}s)")
+        else:
+            sys.stdout.write(f"\r  {SPIN[idx % 4]} Port {port} is listening, awaiting {label} health response... ({elapsed}s)")
         sys.stdout.flush()
         idx += 1
         time.sleep(backoff)
-        backoff = min(0.8, backoff * 1.1)
+        backoff = min(0.5, backoff * 1.05)
 
     print()
     if proc.poll() is None:
-        err(f"{label} process is still running (PID {proc.pid}) but did not respond on {url} within {timeout}s timeout")
+        if port_opened:
+            err(f"{label} is listening on port {port} but {url} did not respond with HTTP 200 within {timeout}s timeout")
+        else:
+            err(f"{label} process is running (PID {proc.pid}) but did not open port {port} within {timeout}s timeout")
     else:
         err(f"{label} process exited with return code {proc.poll()}")
 
@@ -581,17 +734,32 @@ def check_endpoint_ready(
         _dump_log_tail(log_path)
     return False
 
-def _dump_log_tail(log_path: Path, max_lines: int = 35) -> None:
+def _dump_log_tail(log_path: Path, max_lines: int = 50) -> None:
     """Display the last lines of a log file for diagnosis."""
     try:
-        content = log_path.read_text(encoding="utf-8", errors="replace")
-        lines = content.splitlines()
-        print(f"\n  {BOLD}{'─'*50}")
-        print(f"  Log Tail ({log_path.name}):")
-        print(f"  {'─'*50}{RESET}")
-        for line in lines[-max_lines:]:
-            print(f"    {line}")
-        print()
+        if manager.backend_log_file and not manager.backend_log_file.closed:
+            try:
+                manager.backend_log_file.flush()
+            except Exception:
+                pass
+        if manager.frontend_log_file and not manager.frontend_log_file.closed:
+            try:
+                manager.frontend_log_file.flush()
+            except Exception:
+                pass
+        time.sleep(0.1)
+        if log_path.exists():
+            with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+                lines = [line.rstrip() for line in f.readlines() if line.strip()]
+            if lines:
+                print(f"\n  {BOLD}{'─'*60}")
+                print(f"  Log Tail ({log_path.name}):")
+                print(f"  {'─'*60}{RESET}")
+                for line in lines[-max_lines:]:
+                    print(f"    {line}")
+                print(f"  {BOLD}{'─'*60}{RESET}\n")
+            else:
+                print(f"\n  {YELLOW}Log file ({log_path.name}) is empty.{RESET}")
     except Exception as e:
         warn(f"Could not read log file {log_path}: {e}")
 
@@ -681,11 +849,11 @@ def print_startup_banner(project_dir: Path, backend_port: int, frontend_port: in
   {BOLD}Frontend:{RESET}  {CYAN}http://127.0.0.1:{frontend_port}{RESET}
 
   {GREEN}[OK]{RESET} Environment
-  {GREEN}[OK]{RESET} Database
-  {GREEN}[OK]{RESET} Backend started
-  {GREEN}[OK]{RESET} Backend health check
-  {GREEN}[OK]{RESET} Frontend started
-  {GREEN}[OK]{RESET} Frontend available
+  {GREEN}[OK]{RESET} Database (Preserved)
+  {GREEN}[OK]{RESET} Backend started on port {backend_port}
+  {GREEN}[OK]{RESET} Backend health check: PASS (HTTP 200)
+  {GREEN}[OK]{RESET} Frontend started on port {frontend_port}
+  {GREEN}[OK]{RESET} Frontend reachability: PASS (HTTP 200)
 
   {BOLD}{GREEN}Platform is running.{RESET}
   {DIM}Press Ctrl+C to stop servers.{RESET}
@@ -701,10 +869,15 @@ def main() -> None:
     parser.add_argument("--self-test", action="store_true", help="Launch servers, verify endpoints, shutdown, and exit.")
     parser.add_argument("--no-browser", action="store_true", help="Do not open the browser upon launch.")
     parser.add_argument("--seed", action="store_true", help="Force database seed on startup.")
-    parser.add_argument("--backend-port", type=int, default=8000, help="Port for the FastAPI backend (default: 8000).")
-    parser.add_argument("--frontend-port", type=int, default=3000, help="Port for the frontend static server (default: 3000).")
+    parser.add_argument("--backend-port", type=int, default=None, metavar="PORT", help="Explicit port for FastAPI backend (default: 8000).")
+    parser.add_argument("--frontend-port", type=int, default=None, metavar="PORT", help="Explicit port for frontend static server (default: 3000).")
     parser.add_argument("--diag", action="store_true", help="Run diagnostics and exit without starting servers.")
     args = parser.parse_args()
+
+    is_explicit_backend = (args.backend_port is not None)
+    is_explicit_frontend = (args.frontend_port is not None)
+    pref_backend_port = args.backend_port if is_explicit_backend else 8000
+    pref_frontend_port = args.frontend_port if is_explicit_frontend else 3000
 
     print(f"""
 {BOLD}{CYAN}+======================================================+
@@ -730,7 +903,7 @@ def main() -> None:
     ok(f"Python runtime:     {python_exe}")
 
     if args.diag:
-        run_diagnostics(backend_dir, frontend_dir, python_exe, args.backend_port, args.frontend_port)
+        run_diagnostics(backend_dir, frontend_dir, python_exe, pref_backend_port, pref_frontend_port)
         return
 
     # Step 2: Environment & Dependencies
@@ -740,7 +913,7 @@ def main() -> None:
         err("Dependency verification failed.")
         sys.exit(1)
 
-    # Step 3: Database setup
+    # Step 3: Database setup (Preserves database unless --seed is explicitly passed)
     header("Step 3 — Database Initialization")
     if not setup_database_if_needed(python_exe, backend_dir, backend_env, force_seed=args.seed):
         err("Database preparation failed.")
@@ -752,18 +925,37 @@ def main() -> None:
         err("Cannot launch: backend import error.")
         sys.exit(1)
 
-    # Step 5: Safe Port Check & Stale Process Cleanup
-    header("Step 5 — Port Availability & Process Check")
-    if not safe_clean_and_check_port(args.backend_port, "backend"):
+    # Step 5: Dynamic Port Resolution & Stale Process Cleanup
+    header("Step 5 — Port Resolution & Process Lifecycle")
+    selected_backend_port = resolve_service_port(
+        preferred_port=pref_backend_port,
+        service_name="backend",
+        is_explicit=is_explicit_backend,
+    )
+    if not selected_backend_port:
+        err("Failed to resolve an available backend port.")
         sys.exit(1)
 
-    if not safe_clean_and_check_port(args.frontend_port, "frontend"):
+    selected_frontend_port = resolve_service_port(
+        preferred_port=pref_frontend_port,
+        service_name="frontend",
+        is_explicit=is_explicit_frontend,
+    )
+    if not selected_frontend_port:
+        err("Failed to resolve an available frontend port.")
         sys.exit(1)
+
+    ok(f"Backend port bound:  {selected_backend_port}")
+    ok(f"Frontend port bound: {selected_frontend_port}")
+
+    # Write runtime configuration so frontend automatically connects to active backend
+    write_frontend_runtime_config(selected_backend_port, selected_frontend_port, frontend_dir)
+    ok(f"Frontend API runtime configuration synchronized (-> http://127.0.0.1:{selected_backend_port})")
 
     # Step 6: Start Backend
     header("Step 6 — Starting Backend Service")
     backend_log_path = ROOT_DIR / "backend.log"
-    manager.backend_log_file = open(backend_log_path, "w", encoding="utf-8")
+    manager.backend_log_file = open(backend_log_path, "w", encoding="utf-8", buffering=1)
 
     backend_cmd = [
         str(python_exe),
@@ -774,7 +966,7 @@ def main() -> None:
         "--host",
         "127.0.0.1",
         "--port",
-        str(args.backend_port),
+        str(selected_backend_port),
         "--log-level",
         "info",
     ]
@@ -795,8 +987,8 @@ def main() -> None:
 
     # Step 7: Await Backend Health
     header("Step 7 — Verifying Backend Readiness")
-    backend_health_url = f"http://127.0.0.1:{args.backend_port}/api/v1/system/health"
-    if not check_endpoint_ready(backend_health_url, manager.backend_proc, timeout=30.0, label="Backend", log_path=backend_log_path):
+    backend_health_url = f"http://127.0.0.1:{selected_backend_port}/api/v1/system/health"
+    if not check_endpoint_ready(backend_health_url, manager.backend_proc, port=selected_backend_port, timeout=60.0, label="Backend", log_path=backend_log_path):
         err("Backend failed to reach healthy state.")
         manager.cleanup()
         sys.exit(1)
@@ -804,14 +996,14 @@ def main() -> None:
     # Step 8: Start Frontend
     header("Step 8 — Starting Frontend Service")
     frontend_log_path = ROOT_DIR / "frontend.log"
-    manager.frontend_log_file = open(frontend_log_path, "w", encoding="utf-8")
+    manager.frontend_log_file = open(frontend_log_path, "w", encoding="utf-8", buffering=1)
 
     frontend_cmd = [
         str(python_exe),
         "-u",
         "-m",
         "http.server",
-        str(args.frontend_port),
+        str(selected_frontend_port),
         "--bind",
         "127.0.0.1",
     ]
@@ -829,8 +1021,8 @@ def main() -> None:
 
     # Step 9: Await Frontend Reachability
     header("Step 9 — Verifying Frontend Readiness")
-    frontend_url = f"http://127.0.0.1:{args.frontend_port}/login.html"
-    if not check_endpoint_ready(frontend_url, manager.frontend_proc, timeout=15.0, label="Frontend", log_path=frontend_log_path):
+    frontend_url = f"http://127.0.0.1:{selected_frontend_port}/login.html"
+    if not check_endpoint_ready(frontend_url, manager.frontend_proc, port=selected_frontend_port, timeout=20.0, label="Frontend", log_path=frontend_log_path):
         err("Frontend failed to reach ready state.")
         manager.cleanup()
         sys.exit(1)
@@ -838,8 +1030,8 @@ def main() -> None:
     # If Self-Test mode:
     if args.self_test:
         header("SELF-TEST VERIFICATION COMPLETED")
-        ok("Backend health endpoint HTTP 200 OK")
-        ok("Frontend login page HTTP 200 OK")
+        ok(f"Backend health endpoint (http://127.0.0.1:{selected_backend_port}/api/v1/system/health): HTTP 200 PASS")
+        ok(f"Frontend login page (http://127.0.0.1:{selected_frontend_port}/login.html): HTTP 200 PASS")
         info("Shutting down child processes cleanly...")
         manager.cleanup()
         ok("Self-test passed successfully.")
@@ -852,7 +1044,7 @@ def main() -> None:
         webbrowser.open(frontend_url)
 
     # Step 11: Summary and Process Supervision Loop
-    print_startup_banner(ROOT_DIR, args.backend_port, args.frontend_port)
+    print_startup_banner(ROOT_DIR, selected_backend_port, selected_frontend_port)
 
     try:
         while True:

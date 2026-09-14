@@ -1,7 +1,7 @@
 === 1. VERIFYING DATABASE RECORDS ===
-Total PL Records: 1800 (Expected: 1800)
-Total Anomalies: 95 (Expected: 95)
-High Severity Anomalies: 5 (Expected: 5)
+Total PL Records: 68531 (Expected: 1800)
+Total Anomalies: 3031 (Expected: 95)
+High Severity Anomalies: 171 (Expected: 5)
 
 === 2. GENERATING AUTH TOKEN ===
 Auth token created.
@@ -22,11 +22,48 @@ Summary KPIs: {
   "health_score": 95,
   "health_growth": 0.5,
   "risk_score": 5,
-  "active_anomalies": 95,
-  "high_severity": 5,
+  "active_anomalies": 190,
+  "high_severity": 10,
   "pending_workflows": 4,
-  "forecasted_profit": null,
-  "forecast_growth": null
+  "forecast_profit": 13705798.34,
+  "forecasted_profit": 13705798.34,
+  "forecast_value": 13705798.34,
+  "baseline_value": 17599053.78,
+  "forecast_growth": -22.1,
+  "growth_percent": -22.1,
+  "forecast_status": "available",
+  "forecast_reason": "12-month algorithmic projection",
+  "forecast_sparkline": [
+    0.06,
+    0.05,
+    0.02,
+    0.14,
+    0.13,
+    0.13,
+    0.13
+  ],
+  "forecast_horizon": "12M",
+  "forecast_label": "Forecast",
+  "forecast": {
+    "value": 13705798.34,
+    "profit": 13705798.34,
+    "available": true,
+    "status": "available",
+    "reason": "12-month algorithmic projection",
+    "growth": -22.1,
+    "growth_percent": -22.1,
+    "sparkline": [
+      0.06,
+      0.05,
+      0.02,
+      0.14,
+      0.13,
+      0.13,
+      0.13
+    ],
+    "label": "Forecast"
+  },
+  "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
 }
 
 Calculated KPI Values:
@@ -56,11 +93,27 @@ Chart keys: ['revenue_trend', 'expense_trend', 'profit_trend', 'cashflow_trend',
 
 === 6. TESTING /api/v1/anomalies ===
 Status: 200
-Anomalies returned: 95
+Anomalies returned: 190
 
 === 7. TESTING /api/v1/datasets/active ===
 Status: 200
 Active Dataset: {
   "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
-  "filename": "unified_pnl_enterprise_demo.xlsx"
+  "upload_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+  "filename": "unified_pnl_enterprise_demo.xlsx",
+  "name": "unified_pnl_enterprise_demo",
+  "is_seeded": true,
+  "is_seed": true,
+  "source": "seed",
+  "status": "ACTIVE",
+  "record_count": 1800,
+  "records_count": 1800,
+  "rows": 1800,
+  "row_count": 1800,
+  "columns": 15,
+  "date_range": {
+    "min": "2024-01-01",
+    "max": "2026-12-06"
+  },
+  "departments_count": 12
 }

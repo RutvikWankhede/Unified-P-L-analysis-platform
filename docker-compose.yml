@@ -1,22 +1,27 @@
 services:
   backend:
     build:
-      context: ./unified-pl-system/backend
+      context: .
       dockerfile: Dockerfile
     container_name: unified_pl_backend
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     environment:
       - DATABASE_MODE=sqlite
-      - DATABASE_URL=sqlite:///./data/enterprise_pl.db
-      - SECRET_KEY=supersecretkey-unified-pl-2025
-      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000
+      - DATABASE_URL=sqlite:////app/data/enterprise_pl.db
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey-unified-pl-2025}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ENABLE_COPILOT=true
+      - ENABLE_FORECAST_ENGINE=true
+      - ENABLE_RECOMMENDATIONS=true
+      - ENABLE_NOTIFICATIONS=true
     volumes:
       - pl_data:/app/data
       - pl_uploads:/app/uploads
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/system/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,7 +34,7 @@ services:
       dockerfile: Dockerfile
     container_name: unified_pl_frontend
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       backend:
         condition: service_healthy

@@ -1,238 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Sign In — Unified P&amp;L AI Governance System</title>
- <meta name="description" content="Sign in to the Unified P&amp;L AI Governance System — Enterprise Financial Intelligence Platform">
- <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
- <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
- <script>
- tailwind.config = {
- theme: {
- extend: {
- colors: {
- primary: '#5b5ceb',
- 'primary-container': '#e5e6ff',
- 'on-primary-container': '#1a1a4b',
- surface: '#f8f9fd',
- 'surface-container-lowest': '#ffffff',
- 'surface-container-low': '#f2f3f7',
- 'on-surface': '#1a1c1e',
- 'on-surface-variant': '#44474e',
- 'outline-variant': '#c4c6d0',
- success: '#10b981',
- danger: '#ef4444',
- warning: '#f59e0b',
- },
- fontFamily: { sans: ['Inter', 'sans-serif'] },
- borderRadius: { 'card': '20px' }
- }
- }
- }
- </script>
- <style>
- body {
- font-family: 'Inter', sans-serif;
- background: linear-gradient(135deg, #f0f1ff 0%, #fafbff 50%, #f0f6ff 100%);
- min-height: 100vh;
- }
- .login-card {
- background: #ffffff;
- border-radius: 24px;
- box-shadow: 0 4px 24px rgba(91, 92, 235, 0.10), 0 1px 4px rgba(0,0,0,0.06);
- padding: 40px;
- width: 100%;
- max-width: 420px;
- }
- .login-bg-pattern {
- position: fixed;
- inset: 0;
- pointer-events: none;
- overflow: hidden;
- z-index: 0;
- }
- .login-bg-pattern::before {
- content: '';
- position: absolute;
- top: -120px; right: -120px;
- width: 480px; height: 480px;
- background: radial-gradient(circle, rgba(91,92,235,0.08) 0%, transparent 70%);
- border-radius: 50%;
- }
- .login-bg-pattern::after {
- content: '';
- position: absolute;
- bottom: -80px; left: -80px;
- width: 360px; height: 360px;
- background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%);
- border-radius: 50%;
- }
- </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — Unified P&amp;L AI Governance System</title>
+  <meta name="description" content="Sign in to the Unified P&amp;L AI Governance System — Enterprise Financial Intelligence Platform">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5b5ceb',
+            'primary-container': '#e5e6ff',
+            'on-primary-container': '#1a1a4b',
+            surface: '#f8f9fd',
+            'surface-container-lowest': '#ffffff',
+            'surface-container-low': '#f2f3f7',
+            'on-surface': '#1a1c1e',
+            'on-surface-variant': '#44474e',
+            'outline-variant': '#c4c6d0',
+            success: '#10b981',
+            danger: '#ef4444',
+            warning: '#f59e0b',
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          borderRadius: { 'card': '20px' }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f0f1ff 0%, #fafbff 50%, #f0f6ff 100%);
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+      overflow-x: hidden;
+    }
+    .login-card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px -5px rgba(91, 92, 235, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+      padding: 2.25rem 2rem;
+      width: min(100%, 420px);
+      box-sizing: border-box;
+      position: relative;
+      z-index: 10;
+    }
+    .login-bg-pattern {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .login-bg-pattern::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      right: -120px;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(91,92,235,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .login-bg-pattern::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: -80px;
+      width: 360px;
+      height: 360px;
+      background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+  </style>
 </head>
-<body class="flex items-center justify-center min-h-screen px-4 py-8 relative">
+<body>
 
- <!-- Background decoration -->
- <div class="login-bg-pattern"></div>
+  <!-- Background subtle gradient glow -->
+  <div class="login-bg-pattern"></div>
 
- <!-- Centered Login Area -->
- <div class="relative z-10 flex flex-col items-center w-full">
- <div class="login-card">
+  <!-- Centered Login Card -->
+  <div class="login-card">
 
- <!-- Logo & Title -->
- <div class="flex flex-col items-center mb-8">
- <div class="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-md mb-5">
- <span class="material-symbols-outlined text-white text-3xl">bar_chart</span>
- </div>
- <h1 class="text-xl font-bold text-slate-900">Unified P&amp;L</h1>
- <p class="text-[10px] font-bold tracking-widest text-primary uppercase mt-1">AI Governance System</p>
+    <!-- Logo & Header -->
+    <div class="flex flex-col items-center mb-6">
+      <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-md mb-3">
+        <span class="material-symbols-outlined text-white text-2xl">bar_chart</span>
+      </div>
+      <h1 class="text-xl font-bold text-slate-900 tracking-tight">Unified P&amp;L</h1>
+      <p class="text-[10px] font-bold tracking-widest text-primary uppercase mt-0.5">AI GOVERNANCE SYSTEM</p>
 
- <h2 class="text-2xl font-bold text-slate-900 mt-6 text-center">Welcome Back</h2>
- <p class="text-sm text-slate-500 mt-1 text-center">Sign in to access your dashboard</p>
- </div>
+      <h2 class="text-xl font-bold text-slate-900 mt-5 text-center">Welcome Back</h2>
+      <p class="text-xs text-slate-500 mt-1 text-center">Sign in to access your financial dashboard</p>
+    </div>
 
- <!-- Error Banner (injected by JS) -->
- <div id="errorBanner" class="hidden mb-4 w-full bg-red-50 text-red-600 text-sm py-2.5 px-4 rounded-xl border border-red-100 text-center font-medium"></div>
+    <!-- Error Banner (Hidden by default, shown ONLY upon authentication error) -->
+    <div id="errorBanner" class="hidden mb-4 w-full bg-red-50 text-red-600 text-xs py-2 px-3 rounded-lg border border-red-100 text-center font-medium"></div>
 
- <!-- Form -->
- <form id="loginForm" class="space-y-5" onsubmit="handleLogin(event)">
- <!-- Username -->
- <div>
- <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2" for="emailField">Username</label>
- <input type="text" id="emailField" name="username" required
- placeholder="Enter username"
- autocomplete="username"
- class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
- </div>
+    <!-- Form -->
+    <form id="loginForm" class="space-y-4" onsubmit="handleLogin(event)">
+      <!-- Username -->
+      <div>
+        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5" for="emailField">Username</label>
+        <input type="text" id="emailField" name="username" required
+               placeholder="Enter username"
+               autocomplete="username"
+               class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-slate-800 placeholder-slate-400">
+      </div>
 
- <!-- Password -->
- <div>
- <div class="flex justify-between items-center mb-2">
- <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500" for="passwordField">Password</label>
- <a href="forgot-password.html" class="text-primary text-xs font-semibold hover:underline">Forgot Password?</a>
- </div>
- <div class="relative">
- <input type="password" id="passwordField" name="password" required
- placeholder="Enter password"
- autocomplete="current-password"
- class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
- <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
- <span class="material-symbols-outlined text-xl" id="eyeIcon">visibility</span>
- </button>
- </div>
- </div>
+      <!-- Password -->
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500" for="passwordField">Password</label>
+          <a href="forgot-password.html" class="text-primary text-xs font-semibold hover:underline">Forgot Password?</a>
+        </div>
+        <div class="relative">
+          <input type="password" id="passwordField" name="password" required
+                 placeholder="Enter password"
+                 autocomplete="current-password"
+                 class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-slate-800 placeholder-slate-400 pr-10">
+          <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center">
+            <span class="material-symbols-outlined text-lg" id="eyeIcon">visibility</span>
+          </button>
+        </div>
+      </div>
 
- <!-- Remember me -->
- <div class="flex items-center gap-2 pt-1">
- <input type="checkbox" id="remember" class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary">
- <label for="remember" class="text-sm text-slate-500">Remember me for 30 days</label>
- </div>
+      <!-- Remember me -->
+      <div class="flex items-center gap-2 pt-0.5">
+        <input type="checkbox" id="remember" class="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer">
+        <label for="remember" class="text-xs text-slate-500 cursor-pointer select-none">Remember me for 30 days</label>
+      </div>
 
- <!-- Submit -->
- <button type="submit" id="submitBtn"
- class="w-full mt-6 py-3.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2">
- <span id="btnText">Sign In</span>
- <span id="btnSpinner" class="material-symbols-outlined text-lg hidden" style="animation: spin 0.8s linear infinite">progress_activity</span>
- </button>
- </form>
+      <!-- Submit -->
+      <button type="submit" id="submitBtn"
+              class="w-full mt-4 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
+        <span id="btnText">Sign In</span>
+        <span id="btnSpinner" class="material-symbols-outlined text-base hidden" style="animation: spin 0.8s linear infinite">progress_activity</span>
+      </button>
+    </form>
 
- <!-- Footer -->
- <div class="border-t border-slate-100 mt-8 pt-6 text-center text-sm text-slate-500">
- Don't have an account? <a href="#" class="text-primary font-semibold hover:underline">Contact Administrator</a>
- </div>
- </div>
+    <!-- Footer -->
+    <div class="border-t border-slate-100 mt-6 pt-4 text-center text-xs text-slate-500">
+      Don't have an account? <a href="#" class="text-primary font-semibold hover:underline">Contact Administrator</a>
+    </div>
+  </div>
 
- <p class="text-xs text-slate-400 text-center mt-6">
- &copy; 2025 Unified P&amp;L AI Governance System &nbsp;&bull;&nbsp; Enterprise Edition
- </p>
- </div>
+  <!-- Sub-footer copyright -->
+  <p class="text-[11px] text-slate-400 text-center mt-5 relative z-10">
+    &copy; 2025 Unified P&amp;L AI Governance System &nbsp;&bull;&nbsp; Enterprise Edition
+  </p>
 
- <style>
- @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
- </style>
+  <script type="module">
+    import { api } from './js/api.js';
 
- <script type="module">
- import { api } from './js/api.js';
+    // If already authenticated, go straight to dashboard
+    if (api.isAuthenticated()) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnTo = urlParams.get('return_to');
+      window.location.replace(returnTo ? decodeURIComponent(returnTo) : 'dashboard.html');
+    }
 
- // If already authenticated, go straight to dashboard
- if (api.isAuthenticated()) {
- window.location.replace('dashboard.html');
- }
+    window.togglePassword = function() {
+      const field = document.getElementById('passwordField');
+      const icon = document.getElementById('eyeIcon');
+      if (field.type === 'password') {
+        field.type = 'text';
+        icon.textContent = 'visibility_off';
+      } else {
+        field.type = 'password';
+        icon.textContent = 'visibility';
+      }
+    };
 
- window.togglePassword = function() {
- const field = document.getElementById('passwordField');
- const icon = document.getElementById('eyeIcon');
- if (field.type === 'password') {
- field.type = 'text';
- icon.textContent = 'visibility_off';
- } else {
- field.type = 'password';
- icon.textContent = 'visibility';
- }
- };
+    async function handleLogin(e) {
+      if (e) e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const spinner = document.getElementById('btnSpinner');
+      const errDiv = document.getElementById('errorBanner');
 
- window.handleLogin = async function(e) {
- e.preventDefault();
- const btn = document.getElementById('submitBtn');
- const btnText = document.getElementById('btnText');
- const spinner = document.getElementById('btnSpinner');
- const errDiv = document.getElementById('errorBanner');
+      const username = document.getElementById('emailField').value.trim();
+      const password = document.getElementById('passwordField').value;
+      const remember = document.getElementById('remember') ? document.getElementById('remember').checked : true;
 
- const username = document.getElementById('emailField').value.trim();
- const password = document.getElementById('passwordField').value;
- const remember = document.getElementById('remember').checked;
+      // Clear previous error
+      errDiv.classList.add('hidden');
+      errDiv.textContent = '';
 
- // Clear previous error
- errDiv.classList.add('hidden');
- errDiv.textContent = '';
+      // Loading state
+      btnText.textContent = 'Signing in…';
+      spinner.classList.remove('hidden');
+      btn.disabled = true;
+      btn.classList.add('opacity-90');
 
- // Loading state
- btnText.textContent = 'Signing in…';
- spinner.classList.remove('hidden');
- btn.disabled = true;
- btn.classList.add('opacity-90');
+      try {
+        const response = await api.post('/api/v1/auth/login', { username, password });
 
- try {
- const response = await api.post('/api/v1/auth/login', { username, password });
+        if (response && response.access_token) {
+          api.setAccessToken(response.access_token, remember);
+          if (response.role) sessionStorage.setItem('pl_user_role', response.role);
 
- if (response && response.access_token) {
- api.setAccessToken(response.access_token, remember);
- // Store role for sidebar
- if (response.role) sessionStorage.setItem('pl_user_role', response.role);
+          const urlParams = new URLSearchParams(window.location.search);
+          const returnTo = urlParams.get('return_to');
+          window.location.replace(returnTo ? decodeURIComponent(returnTo) : 'dashboard.html');
+        } else {
+          throw new Error('No access token received from server');
+        }
+      } catch (err) {
+        errDiv.textContent = err.message || (err.detail ? err.detail : 'Invalid username or password. Use admin / admin123');
+        errDiv.classList.remove('hidden');
 
- // Use replace() so back button won't return to login
- const urlParams = new URLSearchParams(window.location.search);
- const returnTo = urlParams.get('return_to');
- window.location.replace(returnTo ? decodeURIComponent(returnTo) : 'dashboard.html');
- } else {
- throw { message: 'No access token in response' };
- }
- } catch (err) {
- errDiv.textContent = err.message || 'Invalid username or password. Please try again.';
- errDiv.classList.remove('hidden');
+        btnText.textContent = 'Sign In';
+        spinner.classList.add('hidden');
+        btn.disabled = false;
+        btn.classList.remove('opacity-90');
 
- btnText.textContent = 'Sign In';
- spinner.classList.add('hidden');
- btn.disabled = false;
- btn.classList.remove('opacity-90');
+        const card = document.querySelector('.login-card');
+        if (card) {
+          card.style.animation = 'shake 0.4s ease';
+          setTimeout(() => { card.style.animation = ''; }, 400);
+        }
+      }
+    }
 
- // Shake animation on error
- document.querySelector('.login-card').style.animation = 'shake 0.4s ease';
- setTimeout(() => { document.querySelector('.login-card').style.animation = ''; }, 400);
- }
- };
- </script>
-
- <style>
- @keyframes shake {
- 0%, 100% { transform: translateX(0); }
- 20% { transform: translateX(-6px); }
- 40% { transform: translateX(6px); }
- 60% { transform: translateX(-4px); }
- 80% { transform: translateX(4px); }
- }
- </style>
+    window.handleLogin = handleLogin;
+    const form = document.getElementById('loginForm');
+    if (form) {
+      form.addEventListener('submit', handleLogin);
+    }
+  </script>
 
 </body>
 </html>

@@ -172,7 +172,7 @@
         <div id="sparkline-cashflow" class="sparkline-canvas"></div>
       </div>
 
-      <!-- 6. Forecast (QTD) -->
+      <!-- 6. Forecast -->
       <div class="dash-kpi custom-shadow">
         <div class="flex items-center justify-between">
           <div class="w-7 h-7 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
@@ -180,11 +180,11 @@
           </div>
         </div>
         <div class="mt-2">
-          <p class="text-[10px] text-slate-500 font-medium leading-none">Forecast (QTD)</p>
-          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-forecast">₹31.25 Cr</h3>
-          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
-            <span>↑ +8.1%</span>
-            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          <p class="text-[10px] text-slate-500 font-medium leading-none" id="kpi-forecast-label">Forecast</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-forecast">—</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1" id="kpi-forecast-growth">
+            <span>—</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs current baseline</span>
           </div>
         </div>
         <div id="sparkline-forecast" class="sparkline-canvas"></div>
@@ -456,73 +456,62 @@
               <span class="material-symbols-outlined text-indigo-600 text-sm">smart_toy</span>
               <h3 class="font-bold text-xs text-slate-900">Recommendations (AI)</h3>
             </div>
-            <a href="reports.html" class="text-[10px] font-semibold text-indigo-600 hover:underline">View All</a>
+            <button id="btn-view-all-recommendations" class="text-[10px] font-semibold text-indigo-600 hover:underline cursor-pointer">View All</button>
           </div>
 
-          <!-- 2x2 Grid -->
-          <div class="grid grid-cols-2 gap-2.5">
-            <!-- 1. Optimize Marketing Spend -->
-            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
-              <div class="flex items-start justify-between gap-1">
-                <div class="flex items-start gap-1.5">
-                  <span class="material-symbols-outlined text-purple-600 text-sm mt-0.5">campaign</span>
-                  <div>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Optimize Marketing Spend</p>
-                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Consider reallocating 15% of marketing budget to high-performing channels.</p>
-                  </div>
-                </div>
-                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex-shrink-0">High Impact</span>
-              </div>
-            </div>
-
-            <!-- 2. Increase Investment in R&D -->
-            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
-              <div class="flex items-start justify-between gap-1">
-                <div class="flex items-start gap-1.5">
-                  <span class="material-symbols-outlined text-blue-600 text-sm mt-0.5">science</span>
-                  <div>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Increase Investment in R&amp;D</p>
-                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">R&amp;D is showing strong ROI. Consider additional allocation.</p>
-                  </div>
-                </div>
-                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex-shrink-0">High Impact</span>
-              </div>
-            </div>
-
-            <!-- 3. Review Vendor Contracts -->
-            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
-              <div class="flex items-start justify-between gap-1">
-                <div class="flex items-start gap-1.5">
-                  <span class="material-symbols-outlined text-indigo-600 text-sm mt-0.5">contract</span>
-                  <div>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Review Vendor Contracts</p>
-                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Potential 8-12% savings identified in software licenses.</p>
-                  </div>
-                </div>
-                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">Medium</span>
-              </div>
-            </div>
-
-            <!-- 4. Improve Collection Efficiency -->
-            <div class="p-2 rounded-lg bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
-              <div class="flex items-start justify-between gap-1">
-                <div class="flex items-start gap-1.5">
-                  <span class="material-symbols-outlined text-amber-600 text-sm mt-0.5">account_balance_wallet</span>
-                  <div>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Improve Collection Efficiency</p>
-                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">Reduce outstanding receivables by 20%.</p>
-                  </div>
-                </div>
-                <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">Medium</span>
-              </div>
-            </div>
+          <!-- Dynamic 2x2 Grid -->
+          <div class="grid grid-cols-2 gap-2.5" id="recommendations-container">
+            <!-- Dynamically populated from /api/v1/recommendations -->
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <script type="module" src="js/dashboard_wiring.js"></script>
-  <script type="module" src="js/shell.js"></script>
+  <!-- EXTENDED RECOMMENDATIONS MODAL (VIEW ALL) -->
+  <div id="modal-recommendations" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+            <span class="material-symbols-outlined text-lg">smart_toy</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">AI Strategic Recommendations & Advisory</h3>
+            <p class="text-[11px] text-slate-500">Actionable financial guidance calculated from active ledger metrics</p>
+          </div>
+        </div>
+        <button id="close-modal-recommendations" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Filters -->
+      <div class="px-4 py-2 border-b border-slate-100 bg-white flex items-center gap-1.5 overflow-x-auto" id="rec-filter-tabs">
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs cursor-pointer transition-colors" data-filter="all">All (<span id="rec-count-all">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="Critical">Critical (<span id="rec-count-crit">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="High">High (<span id="rec-count-high">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="Medium">Medium (<span id="rec-count-med">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="Low">Low (<span id="rec-count-low">0</span>)</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 overflow-y-auto space-y-3 flex-1" id="modal-recommendations-list">
+        <!-- Populated dynamically with full details -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500 font-medium">Real-time guidance synthesized from enterprise P&amp;L data</span>
+        <button id="btn-close-recommendations-footer" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-xs transition-colors">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/dashboard_wiring.js?v=FORECAST_FIX_20260913_LIVE"></script>
+  <script type="module" src="js/shell.js?v=FORECAST_FIX_20260913_LIVE"></script>
 </body>
 </html>

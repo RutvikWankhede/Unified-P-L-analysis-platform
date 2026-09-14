@@ -360,15 +360,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (cfLabelEl) cfLabelEl.textContent = cfMode === 'actual' ? 'Cash Flow' : 'Estimated Cash Flow';
             if (cfSubEl) cfSubEl.textContent = cfMode === 'actual' ? 'Actual cash inflow − outflow' : 'Derived from Revenue − Expense';
             setKpi('kpi-cash-flow', cfVal, null);
+
+            const fcVal = k.forecast_profit ?? k.forecasted_profit ?? (k.forecast && k.forecast.value);
+            if (fcVal !== undefined && fcVal !== null) {
+                setKpi('kpi-forecast', fcVal, null);
+                setKpi('kpi-forecasted-profit', fcVal, null);
+            }
+            const fcLbl = document.getElementById('kpi-forecast-label');
+            if (fcLbl) fcLbl.textContent = 'Forecast';
         }
     } catch (e) { console.warn('[pl_dashboard_wiring] KPI load failed:', e); }
-
-    try {
-        const forecastRes = await api.get('/api/v1/pl/forecast?metric=profit&periods=3');
-        if (forecastRes?.expected_case !== undefined) {
-            setKpi('kpi-forecasted-profit', forecastRes.expected_case, null);
-        }
-    } catch (e) { console.warn('[pl_dashboard_wiring] Forecast KPI load failed:', e); }
 
     try {
         const charts = await api.get('/api/v1/pl/charts?agg=monthly');

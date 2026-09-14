@@ -1,7 +1,10 @@
+import re
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from database import get_db
 from repositories.anomaly_repository import (
@@ -15,29 +18,73 @@ from schemas.anomaly_schemas import (
     AnomalyUpdateStatus,
     DetectionResult,
 )
-from services.anomaly_service import run_anomaly_detection
 from models.anomaly import Anomaly
 
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 
 @router.post("/detect", response_model=DetectionResult, status_code=201)
-def detect_anomalies_endpoint(upload_id: str, db: Session = Depends(get_db)):
+@limiter.limit("20/minute")
+def detect_anomalies_endpoint(request: Request, upload_id: str, db: Session = Depends(get_db)):
+    safe_upload_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(upload_id).strip())
+    if not safe_upload_id:
+        raise HTTPException(status_code=400, detail="Invalid upload_id parameter")
+
     from services.cache_service import invalidate_global_cache
+    from services.anomaly_service import run_anomaly_detection
 
     invalidate_global_cache()
 
-    anomalies = run_anomaly_detection(db, upload_id)
+    anomalies = run_anomaly_detection(db, safe_upload_id)
     high = sum(1 for a in anomalies if a.severity == "High")
     med = sum(1 for a in anomalies if a.severity == "Medium")
     low = sum(1 for a in anomalies if a.severity == "Low")
     return {
-        "upload_id": upload_id,
+        "upload_id": safe_upload_id,
         "anomalies_detected": len(anomalies),
         "high_severity_count": high,
         "medium_severity_count": med,
         "low_severity_count": low,
     }
+
+
+DEPT_GROUPS = {
+    "commercial": ["sales", "marketing", "marketing & sales", "sales & marketing", "commercial"],
+    "technology": ["it", "r&d", "engineering", "tech", "technology", "information technology"],
+    "operations": ["operations", "logistics", "procurement", "supply chain"],
+    "corporate": ["finance", "legal", "human resources", "hr", "administration", "admin"],
+}
+
+
+def get_matching_domains(dept: str, db: Session, active_id: str | None = None) -> list[str]:
+    from models.pl_record import PLRecord
+
+    if not dept or str(dept).strip().lower() in ["all", "all departments", "overall", "total", "none"]:
+        return []
+
+    dept_lower = str(dept).strip().lower()
+
+    query = db.query(PLRecord.domain).distinct()
+    if active_id:
+        query = query.filter(PLRecord.upload_id == active_id)
+    all_domains = [d[0] for d in query.all() if d[0]]
+
+    # 1. Exact match
+    exact = [d for d in all_domains if d.lower() == dept_lower]
+    if exact:
+        return exact
+
+    # 2. Group match
+    group_candidates = DEPT_GROUPS.get(dept_lower, [])
+    if group_candidates:
+        matched = [d for d in all_domains if d.lower() in group_candidates or any(cand in d.lower() for cand in group_candidates)]
+        if matched:
+            return matched
+
+    # 3. Substring match
+    matched = [d for d in all_domains if dept_lower in d.lower() or d.lower() in dept_lower]
+    return matched or [dept]
 
 
 @router.get("/summary")
@@ -51,8 +98,10 @@ def get_anomaly_summary(dept: str = "all", db: Session = Depends(get_db)):
     query = db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
     if active_id:
         query = query.filter(PLRecord.upload_id == active_id)
-    if dept and dept.lower() not in ["all", "all departments", "overall"]:
-        query = query.filter(PLRecord.domain == dept)
+
+    matching_depts = get_matching_domains(dept, db, active_id)
+    if matching_depts:
+        query = query.filter(PLRecord.domain.in_(matching_depts))
 
     anomalies = query.all()
 
@@ -123,8 +172,10 @@ def get_anomaly_trend(dept: str = "all", range: str = "12m", db: Session = Depen
     query = db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
     if active_id:
         query = query.filter(PLRecord.upload_id == active_id)
-    if dept and dept.lower() not in ["all", "all departments", "overall"]:
-        query = query.filter(PLRecord.domain == dept)
+
+    matching_depts = get_matching_domains(dept, db, active_id)
+    if matching_depts:
+        query = query.filter(PLRecord.domain.in_(matching_depts))
 
     anomalies = query.all()
 
@@ -179,7 +230,6 @@ def get_anomaly_trend(dept: str = "all", range: str = "12m", db: Session = Depen
 def get_anomaly_heatmap(dept: str = "all", metric: str = "count", db: Session = Depends(get_db)):
     from models.pl_record import PLRecord
     from routers.datasets_router import get_active_dataset_id
-    from collections import defaultdict
 
     active_id = get_active_dataset_id(db)
 
@@ -189,14 +239,17 @@ def get_anomaly_heatmap(dept: str = "all", metric: str = "count", db: Session = 
         dept_query = dept_query.filter(PLRecord.upload_id == active_id)
     all_depts = sorted([d[0] for d in dept_query.all() if d[0] and d[0] not in ["All Departments", "Unknown", "All"]])
 
-    if dept and dept.lower() not in ["all", "all departments", "overall"]:
-        display_depts = [d for d in all_depts if d.lower() == dept.lower()] or all_depts
+    matching_depts = get_matching_domains(dept, db, active_id)
+    if matching_depts:
+        display_depts = [d for d in all_depts if d in matching_depts] or matching_depts
     else:
         display_depts = all_depts
 
     query = db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
     if active_id:
         query = query.filter(PLRecord.upload_id == active_id)
+    if matching_depts:
+        query = query.filter(PLRecord.domain.in_(matching_depts))
 
     anomalies = query.all()
 

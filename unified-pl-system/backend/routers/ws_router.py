@@ -32,15 +32,23 @@ manager = ConnectionManager()
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    # Enforce connection limits
+    if len(manager.active_connections) > 100:
+        await websocket.close(code=1008, reason="Max connection capacity reached")
+        return
+
     await manager.connect(websocket)
     try:
         while True:
             # Keep connection alive, wait for client messages if any
             data = await websocket.receive_text()
-            # We can handle ping/pong or client events here
+            if len(data) > 65536:
+                await websocket.close(code=1009, reason="Message payload too large")
+                break
     except WebSocketDisconnect:
         pass
     except Exception as e:
         logging.info(f"WebSocket client disconnected/error: {e}")
     finally:
         manager.disconnect(websocket)
+

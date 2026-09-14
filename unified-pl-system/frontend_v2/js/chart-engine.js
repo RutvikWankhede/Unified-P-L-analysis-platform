@@ -16,6 +16,8 @@
  */
 
 export const formatCurrency = (val) => {
+    if (val === null || val === undefined || isNaN(Number(val))) return '₹0';
+    const num = Number(val);
     let currency = 'INR';
     try {
         const saved = localStorage.getItem('pl_global_filters');
@@ -27,18 +29,19 @@ export const formatCurrency = (val) => {
 
     const isUSD = currency.includes('USD') || currency.includes('$');
     const sym = isUSD ? '$' : '₹';
-
-    if (!val && val !== 0) return `${sym}0`;
+    const abs = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
 
     if (isUSD) {
-        if (val >= 1000000000) return `${sym}${(val / 1000000000).toFixed(2)}B`;
-        if (val >= 1000000) return `${sym}${(val / 1000000).toFixed(2)}M`;
-        if (val >= 1000) return `${sym}${(val / 1000).toFixed(1)}K`;
-        return `${sym}${val.toLocaleString()}`;
+        if (abs >= 1000000000) return `${sign}${sym}${(abs / 1000000000).toFixed(2)} B`;
+        if (abs >= 1000000) return `${sign}${sym}${(abs / 1000000).toFixed(2)} M`;
+        if (abs >= 1000) return `${sign}${sym}${(abs / 1000).toFixed(1)} K`;
+        return `${sign}${sym}${abs.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
     } else {
-        if (val >= 10000000) return `${sym}${(val / 10000000).toFixed(2)} Cr`;
-        if (val >= 100000) return `${sym}${(val / 100000).toFixed(2)} L`;
-        return `${sym}${val.toLocaleString()}`;
+        if (abs >= 10000000) return `${sign}${sym}${(abs / 10000000).toFixed(2)} Cr`;
+        if (abs >= 100000) return `${sign}${sym}${(abs / 100000).toFixed(2)} L`;
+        if (abs >= 1000) return `${sign}${sym}${(abs / 1000).toFixed(1)} K`;
+        return `${sign}${sym}${abs.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
     }
 };
 

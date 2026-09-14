@@ -13,10 +13,11 @@ class DomainException(Exception):
 
 
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(exc)} on {request.method} {request.url}")
+    correlation_id = getattr(request.state, "correlation_id", "unknown")
+    logger.error(f"[{correlation_id}] Unhandled exception on {request.method} {request.url}: {str(exc)}", exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"message": "Internal Server Error", "details": str(exc)},
+        content={"message": "Internal Server Error", "correlation_id": correlation_id},
     )
 
 

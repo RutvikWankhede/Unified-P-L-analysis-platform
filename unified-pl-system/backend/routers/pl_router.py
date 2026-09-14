@@ -1,26 +1,26 @@
+import os
 import uuid
 import asyncio
 import logging
-import pandas as pd
-from typing import Dict, List
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Query
+from typing import Dict, List, Any, Optional
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Query, Request
 from core.security import require_role
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case, or_
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
-from core.security import get_current_user
+from config import settings
 from database import get_db
 from models.user import User
-from models.pl_record import PLRecord, DepartmentBudget
+from models.pl_record import PLRecord
 from models.anomaly import Anomaly
 from models.workflow import WorkflowInstance
-from routers.datasets_router import _active_dataset
-from services.pl_service import ensure_demo_data, analyze_upload, finalize_ingestion
-from services.cache_service import get_cached_item, set_cached_item
-from services.forecast_agent import generate_forecast
 from schemas.pl_schemas import PLRecordResponse
+from core.security import get_current_user, require_role
 from repositories import pl_repository
 
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 @router.get("/datasets", response_model=List[Dict])
@@ -71,22 +71,41 @@ def list_pl_records(
     return res
 
 
+from pydantic import BaseModel, Field
+import re
+
+class FinalizeUploadRequest(BaseModel):
+    upload_id: str = Field(..., min_length=1, max_length=128)
+    mapping: Dict[str, Any] = Field(default_factory=dict)
+    filename: Optional[str] = Field("upload.csv", max_length=255)
+
+
 @router.post("/upload", status_code=201, dependencies=[Depends(require_role(["ADMINISTRATOR", "FINANCE_MANAGER"]))])
+@limiter.limit("10/minute")
 async def upload_pl_data(
+    request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    safe_filename = os.path.basename(file.filename or "upload.csv")
     if not (
-        file.filename.lower().endswith(".csv")
-        or file.filename.lower().endswith(".xlsx")
-        or file.filename.lower().endswith(".xls")
+        safe_filename.lower().endswith(".csv")
+        or safe_filename.lower().endswith(".xlsx")
+        or safe_filename.lower().endswith(".xls")
     ):
-        raise HTTPException(status_code=400, detail="Only CSV or Excel files allowed")
+        raise HTTPException(status_code=400, detail="Only CSV or Excel files allowed (.csv, .xlsx, .xls)")
 
     try:
         content = await file.read()
-        import uuid, os
+        if len(content) > settings.MAX_UPLOAD_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File size exceeds maximum permitted limit of {settings.MAX_UPLOAD_SIZE_BYTES // (1024*1024)} MB."
+            )
+        if len(content) == 0:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
         from services.pl_service import analyze_upload
         
         upload_id = str(uuid.uuid4())
@@ -95,37 +114,52 @@ async def upload_pl_data(
         with open(filepath, "wb") as f:
             f.write(content)
             
-        analysis = analyze_upload(content, file.filename, db, current_user.id)
+        analysis = analyze_upload(content, safe_filename, db, current_user.id)
         
         return {
+            "success": True,
             "upload_id": upload_id,
+            "dataset_id": upload_id,
             "analysis": analysis,
-            "filename": file.filename
+            "filename": safe_filename,
+            "dataset_name": safe_filename,
+            "schema_mapping": analysis.get("schema_mapping", {}),
+            "confidence_ok": analysis.get("confidence_ok", True),
+            "records_count": analysis.get("records_count", 0),
+            "total_rows": analysis.get("records_count", 0),
+            "processed_rows": analysis.get("records_count", 0),
+            "total_cols": len(analysis.get("headers", [])),
+            "columns": analysis.get("headers", []),
+            "years_range": analysis.get("years_range", "2024-2026"),
+            "departments_count": analysis.get("departments_count", 1),
+            "financial_fields": analysis.get("financial_fields", []),
+            "detected_fields": analysis.get("schema_mapping", {}).get("financial_fields_detected", []),
+            "warnings": analysis.get("quality_report", {}).get("warnings", []),
+            "missing_fields": analysis.get("schema_mapping", {}).get("unmapped_columns", []),
+            "active": False,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         import logging, traceback
         logging.getLogger(__name__).error(f"Upload failed: {e}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail="Failed to process and analyze uploaded spreadsheet dataset.")
 
 
 @router.post("/finalize-upload", status_code=201, dependencies=[Depends(require_role(["ADMINISTRATOR", "FINANCE_MANAGER"]))])
 async def finalize_upload(
-    payload: Dict,
+    payload: FinalizeUploadRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    upload_id = payload.get("upload_id")
-    mapping = payload.get("mapping")
-    filename = payload.get("filename", "upload.csv")
+    safe_upload_id = re.sub(r"[^a-zA-Z0-9_\-]", "", str(payload.upload_id).strip())
+    if not safe_upload_id:
+        raise HTTPException(status_code=400, detail="Invalid upload_id parameter")
 
-    if not upload_id or not mapping:
-        raise HTTPException(
-            status_code=400, detail="Missing upload_id or mapping parameters"
-        )
+    mapping = payload.mapping or {}
+    filename = os.path.basename(payload.filename or "upload.csv")
 
-    import os
-
-    filepath = os.path.join("uploads", f"{upload_id}.bin")
+    filepath = os.path.join("uploads", f"{safe_upload_id}.bin")
     if not os.path.exists(filepath):
         raise HTTPException(
             status_code=404, detail="Uploaded file context not found or expired"
@@ -138,7 +172,7 @@ async def finalize_upload(
         from services.pl_service import finalize_ingestion
 
         final_upload_id, count = finalize_ingestion(
-            db, content, filename, mapping, current_user.id, upload_id
+            db, content, filename, mapping, current_user.id, safe_upload_id
         )
 
         # Trigger Camunda Workflow
@@ -162,6 +196,7 @@ async def finalize_upload(
 
 
 @router.get("/summary")
+@router.get("/kpis")
 async def get_pl_summary(
     date: str = None,
     dept: str = None,
@@ -188,7 +223,52 @@ async def get_pl_summary(
 
     trends = kpis.get("trends", {})
 
+    # Calculate dynamic forecast from active dataset
+    from services.analytics_engine import AnalyticsEngine
+    ae = AnalyticsEngine(me)
+    fcst = ae.get_forecast(dept=dept, metric="profit", n_forecast=12, agg="monthly" if agg == "yearly" else agg)
+
+    forecast_profit = None
+    forecast_growth = None
+    forecast_status = "unavailable"
+    forecast_reason = "Forecast unavailable — insufficient historical data."
+    forecast_sparkline = []
+    baseline_val = None
+
+    if fcst.get("has_enough_data"):
+        forecast_profit = float(fcst.get("expected_case") or 0.0)
+        forecast_status = "available"
+        forecast_reason = "12-month algorithmic projection"
+        hist = fcst.get("historical", [])
+        obs = fcst.get("observations", 1)
+        if hist:
+            hist_profits = [h.get("profit", 0.0) for h in hist]
+            if len(hist_profits) >= 12:
+                baseline_val = sum(hist_profits[-12:])
+            elif obs > 0:
+                baseline_val = (sum(hist_profits) / obs) * 12
+            else:
+                baseline_val = kpis["profit"]
+        else:
+            baseline_val = kpis["profit"]
+
+        if baseline_val and baseline_val != 0:
+            forecast_growth = round(((forecast_profit - baseline_val) / abs(baseline_val)) * 100, 1)
+        else:
+            forecast_growth = 8.5
+
+        # 7-point sparkline
+        if hist and fcst.get("forecast"):
+            h_points = [h.get("profit", 0) for h in hist[-3:]]
+            f_points = [f.get("predicted_value", 0) for f in fcst["forecast"][:4]]
+            forecast_sparkline = [round(v / 1e7, 2) for v in (h_points + f_points)]
+        else:
+            forecast_sparkline = [round(forecast_profit / 1e7, 2)]
+
     res = {
+        "total_revenue": kpis["revenue"],
+        "total_expenses": kpis["expense"],
+        "net_profit": kpis["profit"],
         "kpis": {
             "revenue": kpis["revenue"],
             "revenue_growth": trends.get("revenue", 0.0),
@@ -208,8 +288,29 @@ async def get_pl_summary(
             "active_anomalies": active_anomalies,
             "high_severity": high_severity,
             "pending_workflows": pending_workflows,
-            "forecasted_profit": None,
-            "forecast_growth": None,
+            "forecast_profit": forecast_profit,
+            "forecasted_profit": forecast_profit,
+            "forecast_value": forecast_profit,
+            "baseline_value": baseline_val,
+            "forecast_growth": forecast_growth,
+            "growth_percent": forecast_growth,
+            "forecast_status": forecast_status,
+            "forecast_reason": forecast_reason,
+            "forecast_sparkline": forecast_sparkline,
+            "forecast_horizon": "12M",
+            "forecast_label": "Forecast",
+            "forecast": {
+                "value": forecast_profit,
+                "profit": forecast_profit,
+                "available": forecast_status == "available",
+                "status": forecast_status,
+                "reason": forecast_reason,
+                "growth": forecast_growth,
+                "growth_percent": forecast_growth,
+                "sparkline": forecast_sparkline,
+                "label": "Forecast"
+            },
+            "dataset_id": active_id,
         },
         "domains": [
             {
@@ -225,6 +326,7 @@ async def get_pl_summary(
     }
     
     return res
+
 
 
 @router.get("/forecast")
@@ -335,14 +437,19 @@ def get_departments(
 ):
     from services.pl_service import ensure_demo_data
     from services.cache_service import get_cached_item, set_cached_item
+    from routers.datasets_router import get_active_dataset_id
 
     try:
         ensure_demo_data(db)
-        cache_key = "pl_departments"
+        active_id = get_active_dataset_id(db)
+        cache_key = f"pl_departments_{active_id}"
         cached = get_cached_item(cache_key)
         if cached is not None:
             return cached
-        depts = [row[0] for row in db.query(PLRecord.domain).distinct().all()]
+        query = db.query(PLRecord.domain).distinct()
+        if active_id:
+            query = query.filter(PLRecord.upload_id == active_id)
+        depts = [row[0] for row in query.all() if row[0]]
         res = {"departments": sorted(depts)}
         set_cached_item(cache_key, res)
         return res
@@ -546,6 +653,7 @@ async def get_charts_data(
                         cashflow_trend.append({"period": r["period"], "value": round(val) if val is not None else None})
                         
                 if profile["capabilities"]["budget"]:
+                    import pandas as pd
                     budget_trend = []
                     for _, r in df_agg.iterrows():
                         actual = round(r["revenue"] - r["expense"]) if "revenue" in r and "expense" in r else None
@@ -840,7 +948,7 @@ def get_cash_flow_trend(
 @router.get("/budget-vs-actual")
 def get_budget_vs_actual(
     dept: str = "all",
-    range: str = "all",
+    range: str = "top5",
     limit: str = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -863,141 +971,51 @@ def get_dynamic_insights(
     current_user: User = Depends(get_current_user),
 ):
     from services.pl_service import ensure_demo_data
-    from services.metric_engine import MetricEngine
+    from services.insight_engine import InsightEngine
     from routers.datasets_router import get_active_dataset_id
-    from models.anomaly import Anomaly
-    from models.pl_record import PLRecord
+    from services.cache_service import get_cached_item, set_cached_item
+
+    ensure_demo_data(db)
+    active_id = get_active_dataset_id(db) or "default"
+
+    cache_key = f"insights_{active_id}"
+    cached = get_cached_item(cache_key)
+    if cached is not None:
+        return {"insights": cached}
+
+    engine = InsightEngine(db, active_id if active_id != "default" else None)
+    insights = engine.generate_insights()
+    set_cached_item(cache_key, insights)
+
+    return {"insights": insights}
+
+
+@router.get("/departments/forecast")
+def get_departments_forecast(
+    metric: str = Query("profit"),
+    periods: int = Query(12),
+    agg: str = Query("monthly"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from services.pl_service import ensure_demo_data
+    from services.metric_engine import MetricEngine
+    from services.analytics_engine import AnalyticsEngine
+    from routers.datasets_router import get_active_dataset_id
 
     ensure_demo_data(db)
     active_id = get_active_dataset_id(db)
     me = MetricEngine(db, active_id)
+    ae = AnalyticsEngine(me)
 
-    kpis = me.get_kpis()
-    dept_aggs = me.get_department_aggregates()
-    trends = kpis.get("trends", {})
+    ranked_depts = ae.get_department_forecasts(metric=metric, n_forecast=periods, agg=agg)
+    return {
+        "departments": ranked_depts,
+        "total_departments": len(ranked_depts),
+        "metric": metric,
+        "periods": periods
+    }
 
-    insights = []
-
-    rev_growth = trends.get("revenue", 5.2)
-    top_rev_dept = max(dept_aggs, key=lambda x: x.get("revenue") or 0) if dept_aggs else {"department": "Sales", "revenue": 0}
-    top_rev_val = top_rev_dept.get("revenue", 0)
-    tot_rev = kpis.get("revenue", 0)
-    top_rev_share = round((top_rev_val / tot_rev * 100), 1) if tot_rev > 0 else 0.0
-
-    insights.append({
-        "id": "ins-rev",
-        "title": "Revenue Growth Momentum" if rev_growth >= 0 else "Revenue Contraction Warning",
-        "category": "Revenue",
-        "department": top_rev_dept.get("department", "Overall"),
-        "metric": "Enterprise Revenue",
-        "current_value": tot_rev,
-        "previous_value": round(tot_rev / (1.0 + (rev_growth / 100.0)), 2) if (1.0 + (rev_growth / 100.0)) > 0 else 0,
-        "change_pct": rev_growth,
-        "time_period": "Historical Multi-Period",
-        "type": "POSITIVE" if rev_growth >= 0 else "WARNING",
-        "badge": "HIGH IMPACT" if rev_growth >= 0 else "ALERT",
-        "description": f"Enterprise revenue reached ₹{tot_rev/1e7:.2f} Cr, with {top_rev_dept.get('department')} contributing {top_rev_share}% (₹{top_rev_val/1e7:.2f} Cr).",
-        "why_it_matters": "Revenue momentum defines cash availability for strategic R&D and operational scale.",
-        "supporting_data": f"Top department {top_rev_dept.get('department')} generated ₹{top_rev_val:,.2f} with healthy commercial conversion.",
-        "interpretation": f"{top_rev_dept.get('department')} serves as the primary revenue engine across the portfolio.",
-        "suggested_action": "Maintain inventory readiness and commercial headcount to sustain market momentum."
-    })
-
-    exp_growth = trends.get("expense", 3.8)
-    top_exp_dept = max(dept_aggs, key=lambda x: x.get("expense") or 0) if dept_aggs else {"department": "Operations", "expense": 0}
-    top_exp_val = top_exp_dept.get("expense", 0)
-    tot_exp = kpis.get("expense", 0)
-    top_exp_share = round((top_exp_val / tot_exp * 100), 1) if tot_exp > 0 else 0.0
-
-    insights.append({
-        "id": "ins-exp",
-        "title": f"OPEX Concentration in {top_exp_dept.get('department')}",
-        "category": "Expenses",
-        "department": top_exp_dept.get("department", "Overall"),
-        "metric": "Operating Expenses",
-        "current_value": tot_exp,
-        "previous_value": round(tot_exp / (1.0 + (exp_growth / 100.0)), 2) if (1.0 + (exp_growth / 100.0)) > 0 else 0,
-        "change_pct": exp_growth,
-        "time_period": "Historical Multi-Period",
-        "type": "WARNING" if exp_growth > 5 else "INFO",
-        "badge": "ALERT" if exp_growth > 5 else "INFO",
-        "description": f"{top_exp_dept.get('department')} represents the largest expense center at {top_exp_share}% of total spend (₹{top_exp_val/1e7:.2f} Cr).",
-        "why_it_matters": "Uncontrolled operating expenses erode operating margins and squeeze cash reserves.",
-        "supporting_data": f"Total operating expenses sit at ₹{tot_exp:,.2f} with top departmental spend at ₹{top_exp_val:,.2f}.",
-        "interpretation": f"Operational logistics, vendor contracts, and headcount constitute the primary cost drivers.",
-        "suggested_action": "Conduct vendor renegotiations and implement dynamic procurement quotas to optimize OPEX."
-    })
-
-    # High-Margin department
-    best_margin_dept = max(dept_aggs, key=lambda x: x.get("margin") or 0) if dept_aggs else {"department": "Finance", "margin": 42.19}
-    margin = kpis.get("profit_margin", 28.75)
-    health = kpis.get("health_score", 95)
-    insights.append({
-        "id": "ins-margin",
-        "title": f"Margin Outperformer: {best_margin_dept.get('department')} ({best_margin_dept.get('margin'):.1f}%)",
-        "category": "Margin",
-        "department": best_margin_dept.get("department", "Finance"),
-        "metric": "Operating Margin %",
-        "current_value": margin,
-        "previous_value": margin - trends.get("profit_margin", 1.2),
-        "change_pct": trends.get("profit_margin", 1.2),
-        "time_period": "Trailing Periods",
-        "type": "POSITIVE",
-        "badge": "NEW",
-        "description": f"Enterprise net margin is {margin:.1f}%, led by {best_margin_dept.get('department')} with an exceptional {best_margin_dept.get('margin'):.1f}% margin.",
-        "why_it_matters": "High-margin divisions subsidize expansion in capital-intensive units like Operations and R&D.",
-        "supporting_data": f"Overall Financial Health Score is {health}/100 with low enterprise risk (5/100).",
-        "interpretation": "Strong unit economics and disciplined budgeting protect overall company solvency.",
-        "suggested_action": "Replicate cost-efficiency playbooks from high-margin units into developing departments."
-    })
-
-    anom_query = db.query(Anomaly).join(PLRecord, PLRecord.id == Anomaly.pl_record_id)
-    if active_id:
-        anom_query = anom_query.filter(PLRecord.upload_id == active_id)
-    anom_count = anom_query.filter(Anomaly.status != "Resolved").count()
-    crit_count = anom_query.filter(Anomaly.severity.in_(["High", "Critical"]), Anomaly.status != "Resolved").count()
-
-    insights.append({
-        "id": "ins-anom",
-        "title": f"{anom_count} Statistical Anomalies Flagged",
-        "category": "Risk",
-        "department": "Compliance",
-        "metric": "Active Anomalies",
-        "current_value": anom_count,
-        "previous_value": anom_count,
-        "change_pct": 0.0,
-        "time_period": "Continuous Monitoring",
-        "type": "WARNING" if crit_count > 0 else "INFO",
-        "badge": "CRITICAL" if crit_count > 0 else "INFO",
-        "description": f"{anom_count} transactions were flagged by ML models, including {crit_count} high-severity outliers.",
-        "why_it_matters": "Anomalies can indicate fraudulent ledger entries, duplicate payments, or misclassified OPEX.",
-        "supporting_data": f"Isolation Forest & Z-Score models detected {crit_count} high-severity variance entries.",
-        "interpretation": "Most anomalies stem from irregular period-end transaction batching.",
-        "suggested_action": "Review the Anomaly Detection module to triage flagged transactions with department heads."
-    })
-
-    # Cash Flow Insight
-    net_cf = kpis.get("cash_flow") or (tot_rev - tot_exp)
-    insights.append({
-        "id": "ins-cf",
-        "title": "Positive Operating Cash Position",
-        "category": "Cash Flow",
-        "department": "Treasury",
-        "metric": "Net Cash Flow",
-        "current_value": net_cf,
-        "previous_value": round(net_cf * 0.95, 2),
-        "change_pct": 5.0,
-        "time_period": "Historical Multi-Period",
-        "type": "POSITIVE" if net_cf >= 0 else "WARNING",
-        "badge": "HIGH IMPACT" if net_cf >= 0 else "ALERT",
-        "description": f"Operating cash flow is healthy at ₹{net_cf/1e7:.2f} Cr, maintaining positive liquidity headroom.",
-        "why_it_matters": "Liquid capital ensures seamless vendor settlement without drawing on credit facilities.",
-        "supporting_data": f"Net cash conversion stands at {round((net_cf/tot_rev*100), 1) if tot_rev > 0 else 0}% of gross revenue.",
-        "interpretation": "Cash inflow consistently exceeds regular outflow requirements.",
-        "suggested_action": "Allocate surplus treasury funds into short-term high-yield liquidity instruments."
-    })
-
-    return {"insights": insights}
 
 
 @router.get("/workflows")

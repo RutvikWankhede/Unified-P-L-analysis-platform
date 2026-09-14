@@ -16,6 +16,6 @@ echo  [*] Using Python: %PYTHON%
 echo  [*] Starting platform...
 echo.
 
-%PYTHON% run_project.py
+%PYTHON% run.py
 
 pause

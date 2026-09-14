@@ -44,6 +44,22 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def ensure_schema_compatibility(target_engine):
+    try:
+        with target_engine.begin() as conn:
+            from sqlalchemy import inspect, text
+            inspector = inspect(conn)
+            if inspector.has_table("uploaded_files"):
+                cols = [c["name"] for c in inspector.get_columns("uploaded_files")]
+                if "is_seeded" not in cols:
+                    conn.execute(text("ALTER TABLE uploaded_files ADD COLUMN is_seeded BOOLEAN DEFAULT 0;"))
+    except Exception:
+        pass
+
+
+ensure_schema_compatibility(engine)
+
+
 def get_db():
     db = SessionLocal()
     try:

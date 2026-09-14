@@ -72,8 +72,12 @@
       <div>
         <div class="flex items-center gap-2.5">
           <h1 class="text-xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> REAL-TIME
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 cursor-pointer shadow-2xs" id="active-dataset-badge-header" data-active-dataset-container="true" title="Click to switch active dataset">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="active-dataset-name">unified_pnl_enterprise_demo</span>
+          </span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+            REAL-TIME
           </span>
         </div>
         <p class="text-[11px] text-slate-500 mt-0.5">Complete financial overview across all departments</p>
@@ -172,7 +176,7 @@
         <div id="sparkline-cashflow" class="sparkline-canvas"></div>
       </div>
 
-      <!-- 6. Forecast (QTD) -->
+      <!-- 6. Forecast -->
       <div class="dash-kpi custom-shadow">
         <div class="flex items-center justify-between">
           <div class="w-7 h-7 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
@@ -180,11 +184,11 @@
           </div>
         </div>
         <div class="mt-2">
-          <p class="text-[10px] text-slate-500 font-medium leading-none">Forecast (QTD)</p>
-          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-forecast">₹31.25 Cr</h3>
-          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1">
-            <span>↑ +8.1%</span>
-            <span class="text-[9px] text-slate-400 font-normal">vs last period</span>
+          <p class="text-[10px] text-slate-500 font-medium leading-none" id="kpi-forecast-label">Forecast</p>
+          <h3 class="text-base font-bold text-slate-900 tracking-tight mt-1" id="kpi-forecast">—</h3>
+          <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold mt-1" id="kpi-forecast-growth">
+            <span>—</span>
+            <span class="text-[9px] text-slate-400 font-normal">vs current baseline</span>
           </div>
         </div>
         <div id="sparkline-forecast" class="sparkline-canvas"></div>
@@ -510,9 +514,9 @@
               <!-- Range Selector: Top 5 / Top 10 / All Departments -->
               <div class="relative">
                 <select id="ctrl-budget-range" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-medium appearance-none cursor-pointer">
-                  <option value="top5">Top 5</option>
+                  <option value="top5" selected>Top 5</option>
                   <option value="top10">Top 10</option>
-                  <option value="all" selected>All Departments</option>
+                  <option value="all">All Departments</option>
                 </select>
                 <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
               </div>
@@ -685,6 +689,15 @@
         </button>
       </div>
 
+      <!-- Modal Filters -->
+      <div class="px-4 py-2 border-b border-slate-100 bg-white flex items-center gap-1.5 overflow-x-auto" id="rec-filter-tabs">
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs cursor-pointer transition-colors" data-filter="all">All (<span id="rec-count-all">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="Critical">Critical (<span id="rec-count-crit">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="High">High (<span id="rec-count-high">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="Medium">Medium (<span id="rec-count-med">0</span>)</button>
+        <button class="rec-filter-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" data-filter="Low">Low (<span id="rec-count-low">0</span>)</button>
+      </div>
+
       <!-- Modal Body -->
       <div class="p-4 overflow-y-auto space-y-3 flex-1" id="modal-recommendations-list">
         <!-- Populated dynamically with full details -->
@@ -700,7 +713,7 @@
     </div>
   </div>
 
-  <script type="module" src="js/dashboard_wiring.js"></script>
-  <script type="module" src="js/shell.js"></script>
+  <script type="module" src="js/dashboard_wiring.js?v=FORECAST_FIX_20260913_LIVE"></script>
+  <script type="module" src="js/shell.js?v=FORECAST_FIX_20260913_LIVE"></script>
 </body>
 </html>

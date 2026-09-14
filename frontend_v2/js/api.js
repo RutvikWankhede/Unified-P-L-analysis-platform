@@ -3,12 +3,17 @@
  * All HTTP calls go through this module. Never use raw fetch() in page scripts.
  */
 
-const API_BASE = window.__API_BASE__ || (
-  window.location.port === '3000'
-    ? `${window.location.protocol}//${window.location.hostname}:8000`
-    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? `${window.location.protocol}//${window.location.hostname}:8000` : '')
-);
-const WS_BASE = API_BASE.replace('http', 'ws');
+import './runtime_config.js';
+
+const API_BASE = (typeof window.__API_BASE__ !== 'undefined' && window.__API_BASE__ !== null)
+  ? window.__API_BASE__
+  : (
+    (window.location.port === '3000' || window.location.port === '80' || !window.location.port)
+      ? ''
+      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? `${window.location.protocol}//${window.location.hostname}:8000` : '')
+  );
+const WS_BASE = API_BASE ? API_BASE.replace('http', 'ws') : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+
 
 const endpoints = {
  // Auth
@@ -144,24 +149,30 @@ async function request(method, path, body = null, options = {}) {
  return response;
 }
 
-// Automatically map backend fields to frontend expected fields
+// Automatically map backend fields to frontend expected fields without deleting original keys
 function normalizeData(obj) {
- if (Array.isArray(obj)) {
- return obj.map(normalizeData);
- } else if (obj !== null && typeof obj === 'object') {
- const normalized = {};
- for (const [key, value] of Object.entries(obj)) {
- let newKey = key;
- if (key === 'total_revenue') newKey = 'revenue';
- else if (key === 'total_expense') newKey = 'expense';
- else if (key === 'net_profit') newKey = 'profit';
- else if (key === 'total_profit') newKey = 'profit';
- 
- normalized[newKey] = normalizeData(value);
- }
- return normalized;
- }
- return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(normalizeData);
+  } else if (obj !== null && typeof obj === 'object') {
+    const normalized = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const childVal = normalizeData(value);
+      normalized[key] = childVal;
+      
+      // Alias normalization (keep both keys available)
+      if (key === 'total_revenue') normalized['revenue'] = childVal;
+      else if (key === 'revenue') normalized['total_revenue'] = childVal;
+      else if (key === 'total_expense') normalized['expense'] = childVal;
+      else if (key === 'expense') normalized['total_expense'] = childVal;
+      else if (key === 'net_profit') { normalized['profit'] = childVal; normalized['total_profit'] = childVal; }
+      else if (key === 'profit') { normalized['net_profit'] = childVal; normalized['total_profit'] = childVal; }
+      else if (key === 'total_profit') { normalized['profit'] = childVal; normalized['net_profit'] = childVal; }
+      else if (key === 'tracked_departments') normalized['department_count'] = childVal;
+      else if (key === 'department_count') normalized['tracked_departments'] = childVal;
+    }
+    return normalized;
+  }
+  return obj;
 }
 
 async function _refreshAccessToken() {

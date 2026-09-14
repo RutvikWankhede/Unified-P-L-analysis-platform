@@ -86,7 +86,13 @@
     <!-- Top Header -->
     <header class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-xl font-bold text-slate-900 tracking-tight">Department Analysis</h1>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">Department Analysis</h1>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 cursor-pointer shadow-2xs" data-active-dataset-container="true" title="Click to switch active dataset">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="active-dataset-name">unified_pnl_enterprise_demo</span>
+          </span>
+        </div>
         <p class="text-[11px] text-slate-500 mt-0.5">Comprehensive departmental performance, margin analysis &amp; operational efficiency</p>
       </div>
     </header>
@@ -290,9 +296,9 @@
               <!-- Range Selector: Top 5 / Top 10 / All Departments -->
               <div class="relative">
                 <select id="ctrl-budget-range" class="bg-white border border-slate-200 text-slate-700 text-[11px] rounded-lg px-2.5 py-1 pr-6 focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-medium appearance-none cursor-pointer">
-                  <option value="top5">Top 5</option>
+                  <option value="top5" selected>Top 5</option>
                   <option value="top10">Top 10</option>
-                  <option value="all" selected>All Departments</option>
+                  <option value="all">All Departments</option>
                 </select>
                 <span class="material-symbols-outlined text-xs text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
               </div>

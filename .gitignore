@@ -42,6 +42,10 @@ enterprise_pl.db*
 pl_database.db*
 unified_pl.db*
 data/
+!data/default/
+!data/default/*
+!unified_pnl_enterprise_demo.csv
+!unified_pnl_enterprise_demo.xlsx
 uploads/
 !uploads/.gitkeep
 postgres/

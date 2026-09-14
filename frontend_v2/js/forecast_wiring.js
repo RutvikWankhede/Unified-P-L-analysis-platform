@@ -1,7 +1,7 @@
 import { api } from './api.js';
 import { initEchart, safeSetOption } from './chart-engine.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function initForecastWiring() {
     const formatCurrency = (val, isMargin = false) => {
         if (val === null || val === undefined || isNaN(val)) return isMargin ? '0.0%' : '₹0 Cr';
         if (isMargin) {
@@ -324,6 +324,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Dynamic Recommendations
         const recs = [];
+        if (data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
+            data.recommendations.forEach(r => {
+                if (typeof r === 'object' && r !== null) {
+                    recs.push(r.action || r.suggested_action || r.title || r.issue || r.description || '');
+                } else if (typeof r === 'string') {
+                    recs.push(r);
+                }
+            });
+        }
+
         if (metric === 'expense' && slope > 0) {
             recs.push('Audit departments with expanding OPEX trends to maintain cost alignment.');
         } else if (metric === 'profit' && slope < 0) {
@@ -337,7 +347,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         recs.push('Monitor leading volatility indicators if actuals breach the 95% confidence lower boundary.');
         recs.push('Evaluate Best Case vs Worst Case sensitivity scenarios during fiscal resource allocation.');
 
-        recs.slice(0, 3).forEach(txt => {
+        recs.filter(Boolean).slice(0, 3).forEach(item => {
+            const txt = (typeof item === 'object' && item !== null)
+                ? (item.action || item.suggested_action || item.title || item.issue || item.description || '')
+                : item;
             const el = document.createElement('div');
             el.className = 'flex items-start gap-2 text-xs text-slate-700 bg-emerald-50/40 p-2 rounded-lg border border-emerald-100/60';
             el.innerHTML = `
@@ -761,4 +774,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('resize', () => {
         forecastChart?.resize();
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initForecastWiring);
+} else {
+    initForecastWiring();
+}
+

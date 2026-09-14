@@ -1,42 +1,13 @@
 """
-run_project.py - Unified P&L Intelligence Platform Launcher
-=============================================================
-Starts the backend, frontend, verifies health, and opens browser.
-Usage: python run_project.py
+run_project.py - Wrapper delegating to run.py
 """
-
-import os
 import sys
-import time
-import json
 import subprocess
-import threading
-import urllib.request
-import urllib.error
-import webbrowser
 from pathlib import Path
 
-# Force UTF-8 on Windows
-if sys.platform == "win32":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
-
-# ─── Configuration ────────────────────────────────────────────────────────────
-
-BASE_DIR = Path(__file__).resolve().parent
-BACKEND_DIR = BASE_DIR / "unified-pl-system" / "backend"
-FRONTEND_DIR = BASE_DIR / "frontend_v2"
-VENV_DIR = BASE_DIR / "unified-pl-system" / "venv"
-
-BACKEND_PORT = 8000
-FRONTEND_PORT = 3000
-BACKEND_URL = f"http://127.0.0.1:{BACKEND_PORT}"
-FRONTEND_URL = f"http://127.0.0.1:{FRONTEND_PORT}"
-SWAGGER_URL = f"{BACKEND_URL}/docs"
-LOGIN_URL = f"{FRONTEND_URL}/login.html"
+if __name__ == "__main__":
+    run_script = Path(__file__).resolve().parent / "run.py"
+    sys.exit(subprocess.call([sys.executable, str(run_script)] + sys.argv[1:]))
 
 HEALTH_TIMEOUT = 30  # seconds to wait for backend
 HEALTH_INTERVAL = 1  # seconds between checks

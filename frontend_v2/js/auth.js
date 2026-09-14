@@ -118,8 +118,8 @@ document.addEventListener('DOMContentLoaded', async () => {
  window.location.href = 'anomaly.html';
  } else if (query.includes('forecast') || query.includes('predict') || query.includes('future')) {
  window.location.href = 'forecast.html';
- } else if (query.includes('workflow') || query.includes('pipeline') || query.includes('run')) {
- window.location.href = 'workflow.html';
+ } else if (query.includes('whatif') || query.includes('scenario') || query.includes('simulation') || query.includes('workflow') || query.includes('pipeline') || query.includes('run')) {
+ window.location.href = 'what-if.html';
  } else if (query.includes('sett') || query.includes('config') || query.includes('key')) {
  window.location.href = 'settings.html';
  } else if (query.includes('upload') || query.includes('dataset') || query.includes('csv')) {

@@ -68,6 +68,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  const DEPT_GROUPS = {
+    'commercial': ['sales', 'marketing', 'marketing & sales', 'sales & marketing', 'commercial'],
+    'technology': ['it', 'r&d', 'engineering', 'tech', 'technology', 'information technology'],
+    'operations': ['operations', 'logistics', 'procurement', 'supply chain'],
+    'corporate': ['finance', 'legal', 'human resources', 'hr', 'administration', 'admin'],
+  };
+
   async function loadDepartments() {
     try {
       const res = await api.get('/api/v1/pl/departments').catch(() => null);
@@ -86,6 +93,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deptSelect = document.getElementById('filter-anom-dept');
     if (!deptSelect) return;
 
+    const savedVal = deptSelect.value || currentDept || 'all';
+
     // Gather any additional departments present in anomalies
     const deptSet = new Set(departments);
     allAnomalies.forEach(a => {
@@ -94,13 +103,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const sortedDepts = Array.from(deptSet).sort();
-    deptSelect.innerHTML = '<option value="all" selected>All Departments</option>';
+    let html = '<option value="all">All Departments</option>';
+    
+    // Group Aggregations
+    html += '<optgroup label="Department Groups / Aggregations">';
+    html += '<option value="Commercial">Commercial (Sales & Marketing)</option>';
+    html += '<option value="Technology">Technology (IT & R&D)</option>';
+    html += '<option value="Operations">Operations (Logistics & Procurement)</option>';
+    html += '<option value="Corporate">Corporate / G&A</option>';
+    html += '</optgroup>';
+
+    // Specific Departments
+    html += '<optgroup label="Specific Operating Units">';
     sortedDepts.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d;
-      opt.textContent = d;
-      deptSelect.appendChild(opt);
+      html += `<option value="${d}">${d}</option>`;
     });
+    html += '</optgroup>';
+
+    deptSelect.innerHTML = html;
+    if (Array.from(deptSelect.options).some(o => o.value.toLowerCase() === savedVal.toLowerCase())) {
+      deptSelect.value = savedVal;
+    } else {
+      deptSelect.value = 'all';
+    }
   }
 
   async function fetchAnomalies() {
@@ -117,9 +142,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getFilteredAnomalies() {
+    if (currentDept === 'all' || !currentDept) return allAnomalies;
+    const cDeptLower = currentDept.trim().toLowerCase();
+    const groupDepts = DEPT_GROUPS[cDeptLower] || [];
+
     return allAnomalies.filter(a => {
-      const d = (a.department || a.domain || (a.pl_record && a.pl_record.domain) || '').toLowerCase();
-      return (currentDept === 'all') || (d === currentDept.toLowerCase());
+      const d = (a.department || a.domain || (a.pl_record && a.pl_record.domain) || '').trim().toLowerCase();
+      if (!d) return false;
+      if (d === cDeptLower) return true;
+      if (groupDepts.includes(d)) return true;
+      if (groupDepts.some(cand => d.includes(cand) || cand.includes(d))) return true;
+      return false;
     });
   }
 
@@ -260,9 +293,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       activeDepts = ['Sales', 'Operations', 'Finance', 'IT', 'R&D', 'Marketing', 'Procurement', 'Logistics'];
     }
 
-    const displayDepts = currentDept === 'all'
-      ? activeDepts
-      : activeDepts.filter(d => d.toLowerCase() === currentDept.toLowerCase());
+    const cDeptLower = (currentDept || 'all').trim().toLowerCase();
+    let displayDepts = [];
+
+    if (cDeptLower === 'all') {
+      displayDepts = activeDepts;
+    } else if (DEPT_GROUPS[cDeptLower]) {
+      const groupList = DEPT_GROUPS[cDeptLower];
+      displayDepts = activeDepts.filter(d => {
+        const dLow = d.toLowerCase();
+        return groupList.includes(dLow) || groupList.some(cand => dLow.includes(cand) || cand.includes(dLow));
+      });
+      if (displayDepts.length === 0) {
+        // Fallback to group names if active departments aren't mapped
+        displayDepts = activeDepts.filter(d => dLow === cDeptLower);
+      }
+    } else {
+      displayDepts = activeDepts.filter(d => d.toLowerCase() === cDeptLower);
+      if (displayDepts.length === 0) {
+        displayDepts = [currentDept];
+      }
+    }
+
+    if (displayDepts.length === 0 || (filtered.length === 0 && currentDept !== 'all')) {
+      container.innerHTML = `
+        <div class="py-12 px-6 text-center text-slate-500 font-medium flex flex-col items-center justify-center gap-2 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+          <span class="material-symbols-outlined text-3xl text-slate-400">info</span>
+          <p class="text-sm font-semibold text-slate-700">No anomaly data available for ${currentDept}</p>
+          <p class="text-xs text-slate-500">${currentDept} is not represented with flagged outliers in the active dataset.</p>
+        </div>
+      `;
+      const legendMax = document.getElementById('legend-scale-max');
+      if (legendMax) legendMax.textContent = '0';
+      return;
+    }
 
     // Matrix rows: Critical, High, Medium, Low (top-to-bottom)
     const severityLevels = [
@@ -809,9 +873,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   function openAnomaliesModal(filterDept = null, filterSev = null) {
     let list = getFilteredAnomalies();
     if (filterDept && filterDept !== 'all') {
+      const fdLow = filterDept.trim().toLowerCase();
+      const groupList = DEPT_GROUPS[fdLow];
       list = list.filter(a => {
         const d = (a.department || a.domain || (a.pl_record && a.pl_record.domain) || '').toLowerCase();
-        return d === filterDept.toLowerCase();
+        if (d === fdLow) return true;
+        if (groupList && (groupList.includes(d) || groupList.some(cand => d.includes(cand) || cand.includes(d)))) return true;
+        return false;
       });
     }
     if (filterSev && filterSev !== 'all') {
