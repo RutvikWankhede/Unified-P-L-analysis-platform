@@ -639,7 +639,7 @@ def write_frontend_runtime_config(backend_port: int, frontend_port: int, fronten
     Generate js/runtime_config.js in all frontend locations so client scripts
     always communicate with the active dynamically selected backend port.
     """
-    content = f"""// Auto-generated runtime configuration by run.py on {time.strftime('%Y-%m-%d %H:%M:%S')}
+    content = f"""// Auto-generated runtime configuration by run.py
 // DO NOT EDIT MANUALLY - This ensures frontend communicates with active backend port.
 window.__BACKEND_PORT__ = {backend_port};
 window.__API_BASE__ = "http://127.0.0.1:{backend_port}";
@@ -650,12 +650,17 @@ window.__FRONTEND_PORT__ = {frontend_port};
         ROOT_DIR / "frontend_v2" / "js",
         ROOT_DIR / "unified-pl-system" / "frontend_v2" / "js",
     ]
+    seen_files = set()
     for d in dirs:
         if d.parent.exists():
             d.mkdir(parents=True, exist_ok=True)
-            cfg_file = d / "runtime_config.js"
+            cfg_file = (d / "runtime_config.js").resolve()
+            if cfg_file in seen_files:
+                continue
+            seen_files.add(cfg_file)
             try:
-                cfg_file.write_text(content, encoding="utf-8")
+                if not cfg_file.exists() or cfg_file.read_text(encoding="utf-8") != content:
+                    cfg_file.write_text(content, encoding="utf-8")
             except Exception as e:
                 warn(f"Failed to write {cfg_file}: {e}")
 
