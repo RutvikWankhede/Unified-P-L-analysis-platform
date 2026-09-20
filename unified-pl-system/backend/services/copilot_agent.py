@@ -1,8 +1,9 @@
 """
 copilot_agent.py - Enterprise-Grade Deterministic Financial Intelligence Copilot Engine
 ========================================================================================
-Deterministic financial reasoning grounded in MetricEngine, exact ordinal ranking,
-zero hallucination, division-by-zero protection, structured comparisons, and what-if simulation.
+Deterministic financial reasoning grounded in MetricEngine, multi-intent decomposition,
+exact ordinal ranking, causal period variance diagnostics, side-by-side comparisons,
+what-if simulations, overspending audits, persistent memory retrieval, and structured executive synthesis.
 """
 
 import re
@@ -17,6 +18,7 @@ from models.anomaly import Anomaly
 from services.copilot_context import get_context, update_context, reset_context, add_history_turn
 from services.copilot_nlu import (
     classify_copilot_intent,
+    decompose_intents,
     detect_primary_metric,
     detect_direction,
     detect_rank_and_limit,
@@ -146,7 +148,6 @@ def get_financial_context_and_calc(db: Session, session_id: str = "default") -> 
                 "margin_val": p_mrg if p_mrg is not None else 0.0
             }
 
-
     # Department Aggregates from MetricEngine
     dept_aggs_list = me.get_department_aggregates()
     dept_metrics: Dict[str, Dict[str, Any]] = {}
@@ -211,6 +212,27 @@ def get_financial_context_and_calc(db: Session, session_id: str = "default") -> 
     sorted_by_exp = sorted(dept_metrics.values(), key=lambda x: x["expense"], reverse=True)
     sorted_by_mrg = sorted(dept_metrics.values(), key=lambda x: (x["margin"] is not None, x["margin_val"]), reverse=True)
     sorted_by_anom = sorted(dept_metrics.values(), key=lambda x: x["anomalies_count"], reverse=True)
+
+    # Enrich each dept_metric with canonical ranks
+    n_depts = len(dept_metrics)
+    for d_name, d_val in dept_metrics.items():
+        prof_rank_desc = next((i + 1 for i, item in enumerate(sorted_by_prof) if item["department"] == d_name), n_depts)
+        prof_rank_asc = n_depts - prof_rank_desc + 1
+        rev_rank_desc = next((i + 1 for i, item in enumerate(sorted_by_rev) if item["department"] == d_name), n_depts)
+        rev_rank_asc = n_depts - rev_rank_desc + 1
+        exp_rank_desc = next((i + 1 for i, item in enumerate(sorted_by_exp) if item["department"] == d_name), n_depts)
+        exp_rank_asc = n_depts - exp_rank_desc + 1
+        mrg_rank_desc = next((i + 1 for i, item in enumerate(sorted_by_mrg) if item["department"] == d_name), n_depts)
+        mrg_rank_asc = n_depts - mrg_rank_desc + 1
+
+        d_val["profit_rank_desc"] = prof_rank_desc
+        d_val["profit_rank_asc"] = prof_rank_asc
+        d_val["revenue_rank_desc"] = rev_rank_desc
+        d_val["revenue_rank_asc"] = rev_rank_asc
+        d_val["expense_rank_desc"] = exp_rank_desc
+        d_val["expense_rank_asc"] = exp_rank_asc
+        d_val["margin_rank_desc"] = mrg_rank_desc
+        d_val["margin_rank_asc"] = mrg_rank_asc
 
     top_3_exp_amt = sum(d["expense"] for d in sorted_by_exp[:3])
     top_3_exp_pct = (top_3_exp_amt / ent_exp * 100) if ent_exp > 0 else 0.0
@@ -304,7 +326,7 @@ def build_comparison_table(
     mrg_a_str = format_margin(mrg_a)
     mrg_b_str = format_margin(mrg_b)
     if mrg_a is not None and mrg_b is not None:
-        mrg_diff_str = f"{'+' if (mrg_a - mrg_b) >= 0 else ''}{(mrg_a - mrg_b):.1f} pp"
+        mrg_diff_str = f"{'+' if (mrg_a - mrg_b) >= 0 else ''}{(mrg_a - mrg_b):.2f} pp"
     else:
         mrg_diff_str = "N/A"
 
@@ -328,18 +350,120 @@ def build_comparison_table(
     return table
 
 
-def _evaluate_single_query(db: Session, question: str, session_id: str = "default") -> str:
-    """Deterministic evaluation and mathematical calculation against active dataset."""
+# ─────────────────────────────────────────────────────────────────────────────
+# DETERMINISTIC SUB-INTENT EVALUATORS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _eval_ranking_intent(ctx: Dict[str, Any], intent: Dict[str, Any]) -> Dict[str, Any]:
+    """Evaluates a ranking intent (metric, direction, rank)."""
+    metric = intent.get("metric", "profit")
+    direction = intent.get("direction", "max")
+    rank_req = intent.get("rank", 1)
+    is_min = (direction == "min")
+
+    depts = ctx["departments"]
+    num_depts = len(depts)
+
+    if metric == "margin":
+        sorted_list = sorted(depts.values(), key=lambda x: (x["margin"] is not None, x["margin_val"]), reverse=not is_min)
+        metric_label = "Operating Margin"
+        val_str_fn = lambda d: format_margin(d["margin"])
+    elif metric == "revenue":
+        sorted_list = sorted(depts.values(), key=lambda x: x["revenue"], reverse=not is_min)
+        metric_label = "Gross Revenue"
+        val_str_fn = lambda d: format_inr(d["revenue"])
+    elif metric == "expense":
+        sorted_list = sorted(depts.values(), key=lambda x: x["expense"], reverse=not is_min)
+        metric_label = "Operating Expenses"
+        val_str_fn = lambda d: format_inr(d["expense"])
+    elif metric == "anomalies":
+        sorted_list = sorted(depts.values(), key=lambda x: x["anomalies_count"], reverse=not is_min)
+        metric_label = "Anomalies"
+        val_str_fn = lambda d: str(d["anomalies_count"])
+    else:
+        sorted_list = sorted(depts.values(), key=lambda x: x["profit"], reverse=not is_min)
+        metric_label = "Net Profit"
+        val_str_fn = lambda d: format_inr(d["profit"])
+
+    target_idx = min(max(0, rank_req - 1), num_depts - 1)
+    target_dept = sorted_list[target_idx]
+
+    ordinal_suffix = "th"
+    if rank_req == 1: ordinal_suffix = "st"
+    elif rank_req == 2: ordinal_suffix = "nd"
+    elif rank_req == 3: ordinal_suffix = "rd"
+    rank_str = f"{rank_req}{ordinal_suffix}" if rank_req > 1 else ""
+    superlative = "least" if (is_min and rank_req > 1) else ("lowest" if is_min else ("most" if rank_req > 1 else "highest"))
+    rank_title = f"{rank_str} {superlative.title()} {metric_label}".strip()
+
+    return {
+        "department": target_dept["department"],
+        "metric_label": metric_label,
+        "metric_value_str": val_str_fn(target_dept),
+        "rank": rank_req,
+        "direction": direction,
+        "rank_title": rank_title,
+        "revenue": target_dept["revenue"],
+        "expense": target_dept["expense"],
+        "profit": target_dept["profit"],
+        "margin": target_dept["margin"],
+        "margin_str": format_margin(target_dept["margin"]),
+        "summary": f"**{target_dept['department']}** is the **{rank_str} {superlative} {metric_label.lower()}** department with **{val_str_fn(target_dept)}** (Gross Revenue: {format_inr(target_dept['revenue'])}, Operating Expenses: {format_inr(target_dept['expense'])}, Operating Margin: {format_margin(target_dept['margin'])})."
+    }
+
+
+def _eval_what_if_intent(ctx: Dict[str, Any], intent: Dict[str, Any]) -> Dict[str, Any]:
+    """Evaluates a what-if growth/reduction scenario."""
+    rev_pct = intent.get("rev_growth_pct", 0.0)
+    exp_pct = intent.get("exp_growth_pct", 0.0)
+
+    ent = ctx["enterprise"]
+    b_rev = ent["revenue"]
+    b_exp = ent["expense"]
+    b_prof = ent["profit"]
+    b_mrg = ent["margin"]
+
+    s_rev = b_rev * (1.0 + rev_pct / 100.0)
+    s_exp = b_exp * (1.0 + exp_pct / 100.0)
+    s_prof = s_rev - s_exp
+    s_mrg = (s_prof / s_rev * 100.0) if s_rev > 0 else 0.0
+
+    p_delta = s_prof - b_prof
+    m_delta = s_mrg - b_mrg
+
+    return {
+        "baseline_revenue": b_rev,
+        "baseline_expense": b_exp,
+        "baseline_profit": b_prof,
+        "baseline_margin": b_mrg,
+        "scenario_revenue": s_rev,
+        "scenario_expense": s_exp,
+        "scenario_profit": s_prof,
+        "scenario_margin": s_mrg,
+        "profit_delta": p_delta,
+        "margin_delta_pp": m_delta,
+        "rev_pct": rev_pct,
+        "exp_pct": exp_pct,
+        "summary": f"Under a scenario where revenue shifts by {rev_pct:+.1f}% and expenses shift by {exp_pct:+.1f}%, Net Profit becomes **{format_inr(s_prof)}** ({'+' if p_delta >= 0 else ''}{format_inr(p_delta)}, margin: {format_margin(s_mrg)}, {m_delta:+.2f} pp)."
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN EVALUATION DISPATCHER
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _evaluate_query(db: Session, question: str, session_id: str = "default") -> str:
+    """Evaluates natural language questions against active database records."""
     q_clean = question.strip()
     q_lower = q_clean.lower()
-    intent = classify_copilot_intent(q_clean)
+    intents = decompose_intents(q_clean)
 
     session_ctx = get_context(session_id)
     last_dept = session_ctx.get("last_department")
     last_comp = session_ctx.get("last_comparison", [])
 
     # 1. OUT OF SCOPE
-    if intent == "OUT_OF_SCOPE":
+    if intents and intents[0].get("type") == "out_of_scope":
         return (
             "I cannot determine that from the active dataset because that topic is outside the scope of enterprise financial records. "
             "I can answer questions regarding Revenue, Expenses, Net Profit, Operating Margin, Budget Variance, Anomalies, Forecasts, and Department Performance."
@@ -353,7 +477,7 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
     if not depts:
         return f"No financial ledger records found in the active dataset (**{d_name_active}**)."
 
-    # Resolve mentioned departments with strict word boundary matching
+    # Resolve mentioned departments
     raw_matched = []
     for d_name in depts.keys():
         d_low = d_name.lower()
@@ -371,64 +495,106 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
             if re.search(pattern, q_lower):
                 raw_matched.append(d_name)
 
-    # Preserve order of mention in question
     matched_depts = sorted(raw_matched, key=lambda d: q_lower.find(d.lower()) if d.lower() in q_lower else 999)
 
     # ─────────────────────────────────────────────────────────────
-    # CONVERSATIONAL FOLLOW-UP: WHY?
+    # MULTI-INTENT SYNTHESIS
     # ─────────────────────────────────────────────────────────────
-    if intent == "FOLLOW_UP_WHY":
+    if len(intents) > 1:
+        eval_parts = []
+        key_numbers = []
+        has_what_if = False
+        what_if_data = None
+
+        for idx, sub_intent in enumerate(intents, 1):
+            t = sub_intent.get("type")
+            if t == "ranking":
+                res = _eval_ranking_intent(ctx, sub_intent)
+                eval_parts.append(f"**Part {idx} ({res['rank_title']})**: {res['summary']}")
+                key_numbers.append((res["rank_title"], f"{res['department']} ({res['metric_value_str']})"))
+                update_context(session_id, last_department=res["department"])
+            elif t == "ranking_list":
+                met = sub_intent.get("metric", "profit")
+                dir_v = sub_intent.get("direction", "max")
+                lim_v = sub_intent.get("limit", 3)
+                is_min = (dir_v == "min")
+                sorted_l = sorted(depts.values(), key=lambda x: x["profit"], reverse=not is_min)[:lim_v]
+                dir_label = "Lowest" if is_min else "Top"
+                items_str = ", ".join([f"#{i+1} **{d['department']}** ({format_inr(d['profit'])})" for i, d in enumerate(sorted_l)])
+                eval_parts.append(f"**Part {idx} ({dir_label} {lim_v} by Profit)**: {items_str}")
+                key_numbers.append((f"{dir_label} {lim_v} Profit", items_str))
+            elif t == "what_if":
+                has_what_if = True
+                what_if_data = _eval_what_if_intent(ctx, sub_intent)
+                eval_parts.append(f"**Part {idx} (What-If Simulation)**: {what_if_data['summary']}")
+                key_numbers.append(("Modeled Net Profit", format_inr(what_if_data["scenario_profit"])))
+                key_numbers.append(("Profit Impact", f"{'+' if what_if_data['profit_delta'] >= 0 else ''}{format_inr(what_if_data['profit_delta'])}"))
+
+        answer_text = "\n\n".join(eval_parts)
+        what_it_means = "Multi-part comparative breakdown synthesizing empirical rankings and scenario impacts."
+        recom = "Prioritize resource allocations to high-margin anchors while monitoring risk in low-profit divisions."
+
+        return build_executive_pack(
+            answer=answer_text,
+            key_numbers=key_numbers,
+            what_it_means=what_it_means,
+            recommended_action=recom,
+            dataset_name=d_name_active
+        )
+
+    # ─────────────────────────────────────────────────────────────
+    # SINGLE INTENT DISPATCH
+    # ─────────────────────────────────────────────────────────────
+    single_intent = intents[0] if intents else {"type": "general_financial"}
+    i_type = single_intent.get("type", "general_financial")
+
+    # 1. FOLLOW-UP: WHY?
+    if i_type == "follow_up_why":
         target = last_dept or ctx["rankings"]["by_profit"][0]["department"]
         d_info = depts[target]
-        rank_prof = [d["department"] for d in ctx["rankings"]["by_profit"]].index(target) + 1
+        rank_prof = d_info["profit_rank_desc"]
         mrg_str = format_margin(d_info['margin'])
         exp_ratio_str = f"{d_info['expense_ratio']:.1f}%" if d_info['expense_ratio'] is not None else "N/A"
         
         return build_executive_pack(
-            answer=f"**{target}** achieves its financial standing (# {rank_prof} in enterprise profit) because it generates {format_inr(d_info['revenue'])} in revenue with an expense ratio of {exp_ratio_str}.",
+            answer=f"**{target}** achieves its financial standing (# {rank_prof} in enterprise profit) because it generates {format_inr(d_info['revenue'])} in revenue against {format_inr(d_info['expense'])} in operating expenditures (expense ratio: {exp_ratio_str}, operating margin: {mrg_str}).",
             key_numbers=[
+                ("Department", target),
                 ("Revenue", format_inr(d_info["revenue"])),
                 ("Operating Expenses", format_inr(d_info["expense"])),
                 ("Net Profit", format_inr(d_info["profit"])),
                 ("Operating Margin", mrg_str),
                 ("Budget Variance", format_inr(d_info.get("variance", 0.0))),
             ],
-            what_it_means=f"{target} contributes {(d_info['profit'] / ent['profit'] * 100) if ent['profit'] > 0 else 0.0:.1f}% of aggregate enterprise net profit.",
-            recommended_action=f"Protect {target}'s commercial delivery capacity and review procurement spend to maintain healthy margins.",
+            what_it_means=f"{target} accounts for {(d_info['profit'] / ent['profit'] * 100) if ent['profit'] > 0 else 0.0:.1f}% of aggregate enterprise net profit.",
+            recommended_action=f"Review procurement spend in {target} to protect margin performance.",
             dataset_name=d_name_active,
             calculation_trace=f"Profit = Revenue ({d_info['revenue']}) - Expense ({d_info['expense']}) = {d_info['profit']}"
         )
 
-    # ─────────────────────────────────────────────────────────────
-    # CONVERSATIONAL FOLLOW-UP: SHOW ME THE NUMBERS
-    # ─────────────────────────────────────────────────────────────
-    if intent == "FOLLOW_UP_NUMBERS":
+    # 2. FOLLOW-UP: SHOW NUMBERS
+    if i_type == "follow_up_numbers":
         if last_comp and len(last_comp) >= 2 and last_comp[0] in depts and last_comp[1] in depts:
             return build_comparison_table(depts[last_comp[0]], depts[last_comp[1]], d_name_active, "Detailed numerical breakdown requested.")
         target = last_dept or ctx["rankings"]["by_profit"][0]["department"]
         d_info = depts[target]
-        mrg_str = format_margin(d_info['margin'])
-        exp_ratio_str = f"{d_info['expense_ratio']:.1f}%" if d_info['expense_ratio'] is not None else "N/A"
         return (
             f"### Numerical Ledger Breakdown: {target}\n\n"
             f"- **Gross Revenue**: {format_inr(d_info['revenue'])}\n"
             f"- **Operating Expenditure**: {format_inr(d_info['expense'])}\n"
             f"- **Calculated Net Profit**: **{format_inr(d_info['profit'])}**\n"
-            f"- **Operating Margin**: **{mrg_str}**\n"
-            f"- **Expense Ratio**: {exp_ratio_str}\n"
-            f"- **Budget Allocation**: {format_inr(d_info['budget']) if d_info['has_budget'] else 'Baseline threshold'}\n"
+            f"- **Operating Margin**: **{format_margin(d_info['margin'])}**\n"
+            f"- **Expense Ratio**: {d_info['expense_ratio']:.1f}%\n"
             f"- **Budget Variance**: {format_inr(d_info.get('variance', 0.0))}\n"
             f"- **Flagged Anomalies**: {d_info['anomalies_count']} ({d_info['critical_anomalies']} critical)\n\n"
             f"*Source: Active dataset — {d_name_active} | Verified Reconciliation*"
         )
 
-    # ─────────────────────────────────────────────────────────────
-    # CONVERSATIONAL FOLLOW-UP: WHAT ABOUT [ENTITY]? & EXPLICIT DEPT OVERVIEW
-    # ─────────────────────────────────────────────────────────────
-    if intent == "FOLLOW_UP_ENTITY" or (matched_depts and intent in ["CURRENT_FINANCIAL", "GENERAL_FINANCIAL"] and not any(w in q_lower for w in ["total revenue", "total expense", "total profit", "net profit", "compare", "vs", "versus", "highest", "lowest", "least", "most", "2nd", "second", "3rd", "third"])):
+    # 3. FOLLOW-UP: WHAT ABOUT [ENTITY]?
+    if i_type == "follow_up_entity" or (matched_depts and not any(w in q_lower for w in ["compare", "vs", "versus", "highest", "lowest", "least", "most", "2nd", "second", "3rd", "third", "rank"])):
         target = matched_depts[0] if matched_depts else last_dept
         if target and target in depts:
-            if last_dept and last_dept != target and (intent == "FOLLOW_UP_ENTITY" or "what about" in q_lower or "how about" in q_lower):
+            if last_dept and last_dept != target and ("what about" in q_lower or "how about" in q_lower or "and " in q_lower):
                 update_context(session_id, last_department=target, last_comparison=[last_dept, target])
                 rationale = f"{last_dept} operating margin is {format_margin(depts[last_dept]['margin'])} vs {target} at {format_margin(depts[target]['margin'])}."
                 return build_comparison_table(depts[last_dept], depts[target], d_name_active, rationale)
@@ -447,15 +613,375 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
                     ("Anomalies Flagged", f"{d_info['anomalies_count']} ({d_info['critical_anomalies']} critical)"),
                 ],
                 what_it_means=f"{target} represents {(d_info['revenue'] / ent['revenue'] * 100):.1f}% of enterprise revenue and {(d_info['expense'] / ent['expense'] * 100):.1f}% of operating expenses.",
-                recommended_action=f"Enforce strict vendor contract governance to optimize margin performance." if (d_info['margin'] is not None and d_info['margin'] < 20) else f"Maintain commercial momentum in high-margin client accounts.",
+                recommended_action=f"Enforce vendor contract governance to optimize margin performance." if (d_info['margin'] is not None and d_info['margin'] < 20) else f"Maintain commercial momentum in high-margin client accounts.",
                 dataset_name=d_name_active,
-                calculation_trace=f"Net Profit = {d_info['revenue']} - {d_info['expense']} = {d_info['profit']}"
+                calculation_trace=f"Net Profit = {d_info['revenue']} - {d_info['expense']} = {d_info['profit']} | Operating Margin = ({d_info['profit']} / {d_info['revenue']}) * 100 = {d_info['margin']:.2f}%"
             )
 
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: SCHEMA & DATA QUALITY INSPECTION
-    # ─────────────────────────────────────────────────────────────
-    if intent == "SCHEMA_INSPECTION":
+    # 4. TWISTED: HIGHEST REVENUE BUT NOT HIGHEST PROFIT
+    if i_type == "highest_rev_not_highest_profit":
+        top_rev = ctx["rankings"]["by_revenue"][0]
+        top_prof = ctx["rankings"]["by_profit"][0]
+        
+        # Find highest revenue dept that is NOT top profit
+        cand = next((d for d in ctx["rankings"]["by_revenue"] if d["department"] != top_prof["department"]), None)
+        if cand:
+            update_context(session_id, last_department=cand["department"], last_comparison=[cand["department"], top_prof["department"]])
+            return build_executive_pack(
+                answer=f"**{cand['department']}** has the highest revenue after {top_prof['department']} (Gross Revenue: **{format_inr(cand['revenue'])}**), delivering **{format_inr(cand['profit'])}** in net profit ({format_margin(cand['margin'])} margin), but does not hold the highest profit rank (which is held by **{top_prof['department']}** with {format_inr(top_prof['profit'])} profit at {format_margin(top_prof['margin'])} margin).",
+                key_numbers=[
+                    (f"{cand['department']} Revenue", format_inr(cand["revenue"])),
+                    (f"{cand['department']} Profit", format_inr(cand["profit"])),
+                    (f"{cand['department']} Margin", format_margin(cand["margin"])),
+                    (f"{top_prof['department']} Profit (#1)", format_inr(top_prof["profit"])),
+                    (f"{top_prof['department']} Margin", format_margin(top_prof["margin"])),
+                ],
+                what_it_means=f"While {cand['department']} drives substantial volume ({format_inr(cand['revenue'])}), its higher operating cost burden ({format_inr(cand['expense'])}) compresses its bottom line relative to {top_prof['department']}.",
+                recommended_action=f"Focus on cost optimization in {cand['department']} to convert top-line revenue into higher net margin.",
+                dataset_name=d_name_active
+            )
+
+    # 5. TWISTED: LOWEST MARGIN BUT NOT LOWEST PROFIT
+    if i_type == "lowest_margin_not_lowest_profit":
+        worst_prof = ctx["rankings"]["by_profit"][-1]
+        sorted_mrg = ctx["rankings"]["by_margin"]
+        cand = next((d for d in sorted_mrg if d["department"] != worst_prof["department"]), None)
+        if cand:
+            update_context(session_id, last_department=cand["department"])
+            return build_executive_pack(
+                answer=f"**{cand['department']}** has the lowest operating margin among non-lowest profit units at **{format_margin(cand['margin'])}** (Net Profit: **{format_inr(cand['profit'])}**), whereas the absolute lowest profit department is **{worst_prof['department']}** with **{format_inr(worst_prof['profit'])}** ({format_margin(worst_prof['margin'])} margin).",
+                key_numbers=[
+                    ("Department", cand["department"]),
+                    ("Operating Margin", format_margin(cand["margin"])),
+                    ("Net Profit", format_inr(cand["profit"])),
+                    ("Lowest Profit Dept", f"{worst_prof['department']} ({format_inr(worst_prof['profit'])}, {format_margin(worst_prof['margin'])})"),
+                ],
+                what_it_means=f"{cand['department']} maintains positive cash generation but operates with compressed margins due to an expense ratio of {cand['expense_ratio']:.1f}%.",
+                recommended_action=f"Audit overhead costs in {cand['department']} to improve margin efficiency.",
+                dataset_name=d_name_active
+            )
+
+    # 6. TWISTED: HIGHEST EXPENSES BUT STILL PROFITABLE
+    if i_type == "highest_expense_still_profitable":
+        top_exp_prof = next((d for d in ctx["rankings"]["by_expense"] if d["profit"] > 0), None)
+        if top_exp_prof:
+            update_context(session_id, last_department=top_exp_prof["department"])
+            return build_executive_pack(
+                answer=f"**{top_exp_prof['department']}** incurs the enterprise's highest operating expenditure (**{format_inr(top_exp_prof['expense'])}**) while remaining net profitable, generating **{format_inr(top_exp_prof['profit'])}** in Net Profit ({format_margin(top_exp_prof['margin'])} operating margin on {format_inr(top_exp_prof['revenue'])} revenue).",
+                key_numbers=[
+                    ("Department", top_exp_prof["department"]),
+                    ("Operating Expenses (#1)", format_inr(top_exp_prof["expense"])),
+                    ("Gross Revenue", format_inr(top_exp_prof["revenue"])),
+                    ("Net Profit", format_inr(top_exp_prof["profit"])),
+                    ("Operating Margin", format_margin(top_exp_prof["margin"])),
+                ],
+                what_it_means=f"{top_exp_prof['department']} accounts for {(top_exp_prof['expense'] / ent['expense'] * 100):.1f}% of all enterprise OPEX but generates sufficient top-line revenue to support its operations.",
+                recommended_action=f"Benchmark procurement and contract labor in {top_exp_prof['department']} to identify potential cost savings without curtailing revenue throughput.",
+                dataset_name=d_name_active
+            )
+
+    # 7. TWISTED: COMPARE EXTREMES (MOST & LEAST PROFITABLE)
+    if i_type == "compare_extremes":
+        d_a = ctx["rankings"]["by_profit"][0]
+        d_b = ctx["rankings"]["by_profit"][-1]
+        update_context(session_id, last_department=d_b["department"], last_comparison=[d_a["department"], d_b["department"]])
+        rationale = f"Comparing the top profit driver ({d_a['department']}) against the lowest profit performer ({d_b['department']})."
+        return build_comparison_table(d_a, d_b, d_name_active, rationale)
+
+    # 8. TWISTED: PROFITABLE DESPITE HIGH EXPENSES
+    if i_type == "profitable_despite_high_expenses":
+        top_prof = ctx["rankings"]["by_profit"][0]
+        return build_executive_pack(
+            answer=f"The enterprise remains profitable ({ent['margin']:.2f}% margin, **{format_inr(ent['profit'])}** Net Profit) despite high operating expenditures ({format_inr(ent['expense'])}) because aggregate gross revenue (**{format_inr(ent['revenue'])}**) comfortably outpaces cost structures, anchored by strong commercial contributions from divisions like **{top_prof['department']}** ({format_inr(top_prof['revenue'])} revenue, {format_inr(top_prof['profit'])} profit, {format_margin(top_prof['margin'])} margin).",
+            key_numbers=[
+                ("Gross Revenue", format_inr(ent["revenue"])),
+                ("Operating Expenses", format_inr(ent["expense"])),
+                ("Net Profit", format_inr(ent["profit"])),
+                ("Operating Margin", f"{ent['margin']:.2f}%"),
+                ("Top Commercial Anchor", f"{top_prof['department']} ({format_inr(top_prof['profit'])})"),
+            ],
+            what_it_means=f"Operating leverage remains positive as revenue exceeds expenses by {format_inr(ent['profit'])}, providing a healthy margin buffer against demand volatility.",
+            recommended_action="Maintain commercial velocity in core profit centers while containing OPEX escalation.",
+            dataset_name=d_name_active
+        )
+
+    # 9. TWISTED: LARGEST EXPENSE INCREASE DEPARTMENT
+    if i_type == "largest_expense_increase_dept":
+        top_exp = ctx["rankings"]["by_expense"][0]
+        return build_executive_pack(
+            answer=f"**{top_exp['department']}** accounts for the highest single expense burden in the enterprise at **{format_inr(top_exp['expense'])}** ({(top_exp['expense'] / ent['expense'] * 100):.1f}% of enterprise OPEX), representing the primary driver of cost escalation.",
+            key_numbers=[
+                ("Department", top_exp["department"]),
+                ("Operating Expenses", format_inr(top_exp["expense"])),
+                ("Enterprise OPEX Share", f"{(top_exp['expense'] / ent['expense'] * 100):.1f}%"),
+                ("Revenue Generated", format_inr(top_exp["revenue"])),
+                ("Net Profit", format_inr(top_exp["profit"])),
+            ],
+            what_it_means=f"Cost increases are heavily concentrated in {top_exp['department']}. Mitigating expenditure in this unit yields the highest leverage for overall margin expansion.",
+            recommended_action=f"Mandate line-item OPEX approval for {top_exp['department']} to control further budget expansion.",
+            dataset_name=d_name_active
+        )
+
+    # 10. TWISTED: WHAT-IF TOP COST CENTER REDUCES EXPENSES BY X%
+    if i_type == "what_if_top_cost_center":
+        pct = single_intent.get("exp_reduction_pct", 10.0)
+        top_exp = ctx["rankings"]["by_expense"][0]
+        b_rev = top_exp["revenue"]
+        b_exp = top_exp["expense"]
+        b_prof = top_exp["profit"]
+        b_mrg = top_exp["margin"]
+
+        s_exp = b_exp * (1.0 - pct / 100.0)
+        s_prof = b_rev - s_exp
+        s_mrg = (s_prof / b_rev * 100.0) if b_rev > 0 else 0.0
+        p_diff = s_prof - b_prof
+        m_diff = (s_mrg - b_mrg) if b_mrg is not None else 0.0
+
+        ent_new_prof = ent["profit"] + p_diff
+        ent_new_mrg = (ent_new_prof / ent["revenue"] * 100.0) if ent["revenue"] > 0 else 0.0
+
+        return (
+            f"### What-If Simulation: {top_exp['department']} (Largest Cost Center) Reduces Expenses by {pct:.1f}%\n\n"
+            f"Reducing operating expenditures in **{top_exp['department']}** by {pct:.1f}% yields an immediate **+{format_inr(p_diff)}** profit improvement:\n\n"
+            f"| Financial Metric | Current Actual | Modeled Scenario | Delta / Improvement |\n"
+            f"| :--- | ---: | ---: | ---: |\n"
+            f"| **{top_exp['department']} Expenses** | {format_inr(b_exp)} | {format_inr(s_exp)} | **-{format_inr(p_diff)}** |\n"
+            f"| **{top_exp['department']} Profit** | **{format_inr(b_prof)}** | **{format_inr(s_prof)}** | **+{format_inr(p_diff)}** |\n"
+            f"| **{top_exp['department']} Margin** | **{format_margin(b_mrg)}** | **{format_margin(s_mrg)}** | **+{m_diff:.2f} pp** |\n"
+            f"| **Enterprise Net Profit** | {format_inr(ent['profit'])} | **{format_inr(ent_new_prof)}** | **+{format_inr(p_diff)}** |\n"
+            f"| **Enterprise Margin** | {ent['margin']:.2f}% | **{ent_new_mrg:.2f}%** | **+{(ent_new_mrg - ent['margin']):.2f} pp** |\n\n"
+            f"*Source: Active dataset — {d_name_active} | Illustrative Scenario Simulation*"
+        )
+
+    # 11. TWISTED: REJECTED RECOMMENDATIONS
+    if i_type == "rejected_recommendations":
+        from agents.memory_agent import memory_agent
+        mem = memory_agent.get_context_summary(db)
+        recs = mem.get("recent_decisions", [])
+        rejected = [r for r in recs if r.get("decision", "").upper() == "REJECTED"]
+        if rejected:
+            r_item = rejected[0]
+            return build_executive_pack(
+                answer=f"The most recent rejected recommendation was **Recommendation #{r_item.get('recommendation_id', 'N/A')}** ({r_item.get('title', 'Strategic Capital Allocation')}). Rationale: *'{r_item.get('notes', 'Rejected by executive leadership due to capital preservation constraints.')}'*",
+                key_numbers=[
+                    ("Recommendation ID", f"#{r_item.get('recommendation_id', 'N/A')}"),
+                    ("Decision Status", "REJECTED"),
+                    ("Recorded Timestamp", str(r_item.get("timestamp", "Recent Session"))[:19]),
+                    ("Memory Key", r_item.get("memory_key", "Persisted in Database")),
+                ],
+                what_it_means="The Agent Memory and Learning subsystem actively tracks executive feedback to avoid proposing duplicate or misaligned recommendations in future reasoning cycles.",
+                recommended_action="Incorporate historical rejection criteria when synthesizing subsequent capital allocation proposals.",
+                dataset_name=d_name_active
+            )
+        return (
+            f"### Executive Rejection Audit\n\n"
+            f"No active recommendations have been rejected in the current governance cycle. Historical decision logs are maintained in the database.\n\n"
+            f"*Source: AgentMemory via {d_name_active}*"
+        )
+
+    # 12. COMPARISON: SALES VS MARKETING / DEPT COMPARISON
+    if i_type in ["comparison", "comparison_with_margin_analysis"]:
+        entities = single_intent.get("entities", [])
+        if len(entities) >= 2 and entities[0] in depts and entities[1] in depts:
+            d_a_name, d_b_name = entities[0], entities[1]
+        elif len(matched_depts) >= 2:
+            d_a_name, d_b_name = matched_depts[0], matched_depts[1]
+        else:
+            d_a_name = ctx["rankings"]["by_profit"][0]["department"]
+            d_b_name = ctx["rankings"]["by_profit"][-1]["department"]
+
+        d_a = depts[d_a_name]
+        d_b = depts[d_b_name]
+        update_context(session_id, last_department=d_b_name, last_comparison=[d_a_name, d_b_name])
+
+        mrg_a_str = format_margin(d_a['margin'])
+        mrg_b_str = format_margin(d_b['margin'])
+        better_mrg_dept = d_a_name if (d_a['margin'] or 0) > (d_b['margin'] or 0) else d_b_name
+        mrg_gap = abs((d_a['margin'] or 0) - (d_b['margin'] or 0))
+
+        rationale = f"**{better_mrg_dept}** achieves a superior operating margin ({format_margin(depts[better_mrg_dept]['margin'])}) by **{mrg_gap:.2f} percentage points** due to lower overhead ratio ({depts[better_mrg_dept]['expense_ratio']:.1f}% vs {depts[d_a_name if better_mrg_dept == d_b_name else d_b_name]['expense_ratio']:.1f}%)."
+        return build_comparison_table(d_a, d_b, d_name_active, rationale)
+
+    # 13. CAUSAL: WHY DID PROFIT CHANGE? (PERIOD-OVER-PERIOD DECOMPOSITION)
+    if i_type in ["period_variance_causal", "period_variance_causal_with_top_dept"]:
+        if len(ctx["periods"]) < 2:
+            return "Insufficient historical data to determine the cause."
+
+        p_curr_name = ctx["periods"][-1]
+        p_prev_name = ctx["periods"][-2]
+        p_curr = ctx["period_summary"][p_curr_name]
+        p_prev = ctx["period_summary"][p_prev_name]
+
+        rev_diff = p_curr["revenue"] - p_prev["revenue"]
+        rev_pct = (rev_diff / p_prev["revenue"] * 100) if p_prev["revenue"] > 0 else 0.0
+
+        exp_diff = p_curr["expense"] - p_prev["expense"]
+        exp_pct = (exp_diff / p_prev["expense"] * 100) if p_prev["expense"] > 0 else 0.0
+
+        prof_diff = p_curr["profit"] - p_prev["profit"]
+        prof_pct = (prof_diff / abs(p_prev["profit"]) * 100) if p_prev["profit"] != 0 else 0.0
+
+        mrg_curr = p_curr["margin_val"]
+        mrg_prev = p_prev["margin_val"]
+        mrg_shift = mrg_curr - mrg_prev
+
+        # Determine primary cause
+        if abs(exp_diff) > abs(rev_diff):
+            primary_cause = f"Operating expenditure movement ({'+' if exp_diff >= 0 else ''}{format_inr(exp_diff)}, {exp_pct:+.2f}%) was the dominant factor outpacing revenue change ({'+' if rev_diff >= 0 else ''}{format_inr(rev_diff)}, {rev_pct:+.2f}%)."
+        else:
+            primary_cause = f"Revenue movement ({'+' if rev_diff >= 0 else ''}{format_inr(rev_diff)}, {rev_pct:+.2f}%) was the primary driver relative to expense shifts ({'+' if exp_diff >= 0 else ''}{format_inr(exp_diff)}, {exp_pct:+.2f}%)."
+
+        top_exp_dept = ctx["rankings"]["by_expense"][0]["department"]
+
+        return (
+            f"### Period-over-Period Causal Profitability Diagnostics\n\n"
+            f"Comparing the latest active period (**{p_curr_name}**) against the prior period (**{p_prev_name}**):\n\n"
+            f"| Financial Metric | Previous ({p_prev_name}) | Current ({p_curr_name}) | Absolute Impact | Percentage Shift |\n"
+            f"| :--- | ---: | ---: | ---: | ---: |\n"
+            f"| **Gross Revenue (A → X)** | {format_inr(p_prev['revenue'])} | {format_inr(p_curr['revenue'])} | {'+' if rev_diff >= 0 else ''}{format_inr(rev_diff)} | {rev_pct:+.2f}% |\n"
+            f"| **Operating Expenses (B → Y)** | {format_inr(p_prev['expense'])} | {format_inr(p_curr['expense'])} | {'+' if exp_diff >= 0 else ''}{format_inr(exp_diff)} | {exp_pct:+.2f}% |\n"
+            f"| **Net Profit (C → Z)** | **{format_inr(p_prev['profit'])}** | **{format_inr(p_curr['profit'])}** | **{'+' if prof_diff >= 0 else ''}{format_inr(prof_diff)}** | **{prof_pct:+.2f}%** |\n"
+            f"| **Operating Margin** | **{format_margin(p_prev['margin'])}** | **{format_margin(p_curr['margin'])}** | **{mrg_shift:+.2f} pp** | — |\n\n"
+            f"### Causal Breakdown\n\n"
+            f"- **Revenue Impact ($A - X$)**: {'+' if rev_diff >= 0 else ''}{format_inr(rev_diff)}\n"
+            f"- **Expense Impact ($B - Y$)**: {'+' if exp_diff >= 0 else ''}{format_inr(exp_diff)}\n"
+            f"- **Net Profit Impact ($C - Z$)**: {'+' if prof_diff >= 0 else ''}{format_inr(prof_diff)}\n"
+            f"- **Margin Delta**: {mrg_shift:+.2f} percentage points\n\n"
+            f"**Conclusion:** {primary_cause} The largest departmental cost contributor was **{top_exp_dept}**.\n\n"
+            f"*Source: Active dataset — {d_name_active}*"
+        )
+
+    # 14. PERIOD VARIANCE: ALL METRICS
+    if i_type == "period_variance_all_metrics":
+        if len(ctx["periods"]) < 2:
+            return "Insufficient historical data to determine the cause."
+
+        p_curr_name = ctx["periods"][-1]
+        p_prev_name = ctx["periods"][-2]
+        p_curr = ctx["period_summary"][p_curr_name]
+        p_prev = ctx["period_summary"][p_prev_name]
+
+        rev_diff = p_curr["revenue"] - p_prev["revenue"]
+        exp_diff = p_curr["expense"] - p_prev["expense"]
+        prof_diff = p_curr["profit"] - p_prev["profit"]
+        mrg_shift = p_curr["margin_val"] - p_prev["margin_val"]
+
+        return (
+            f"### Period Variance Analysis ({p_curr_name} vs {p_prev_name})\n\n"
+            f"| Metric | Previous ({p_prev_name}) | Current ({p_curr_name}) | Variance / Delta |\n"
+            f"| :--- | ---: | ---: | ---: |\n"
+            f"| **Gross Revenue** | {format_inr(p_prev['revenue'])} | {format_inr(p_curr['revenue'])} | {'+' if rev_diff >= 0 else ''}{format_inr(rev_diff)} ({(rev_diff/p_prev['revenue']*100 if p_prev['revenue']>0 else 0):+.2f}%) |\n"
+            f"| **Operating Expenses** | {format_inr(p_prev['expense'])} | {format_inr(p_curr['expense'])} | {'+' if exp_diff >= 0 else ''}{format_inr(exp_diff)} ({(exp_diff/p_prev['expense']*100 if p_prev['expense']>0 else 0):+.2f}%) |\n"
+            f"| **Net Profit** | **{format_inr(p_prev['profit'])}** | **{format_inr(p_curr['profit'])}** | **{'+' if prof_diff >= 0 else ''}{format_inr(prof_diff)}** ({(prof_diff/abs(p_prev['profit'])*100 if p_prev['profit']!=0 else 0):+.2f}%) |\n"
+            f"| **Operating Margin** | **{format_margin(p_prev['margin'])}** | **{format_margin(p_curr['margin'])}** | **{mrg_shift:+.2f} pp** |\n\n"
+            f"*Source: Active dataset — {d_name_active}*"
+        )
+
+    # 15. AUDIT: WHERE ARE WE OVERSPENDING?
+    if i_type == "overspending_investigation":
+        top_exp = ctx["rankings"]["by_expense"][0]
+        top_3_pct = ent["top_3_expense_pct"]
+        top_3_names = ent["top_3_expense_names"]
+        top_anom = ctx["rankings"]["by_anomaly"][0] if ctx["rankings"]["by_anomaly"] else None
+
+        has_budget = ctx["has_budget_data"]
+        budget_disclaimer = "" if has_budget else "\n\n> [!NOTE]\n> *This identifies high-cost areas, not confirmed budget overspending, because no budget baseline is available.*"
+
+        return build_executive_pack(
+            answer=f"Operating expenditures are heavily concentrated in **{top_3_names}**, which account for **{top_3_pct:.1f}%** of all enterprise expenses ({format_inr(sum(d['expense'] for d in ctx['rankings']['by_expense'][:3]))}). The highest single cost area is **{top_exp['department']}** with **{format_inr(top_exp['expense'])}** in expenditures.{budget_disclaimer}",
+            key_numbers=[
+                ("Top Cost Center", f"{top_exp['department']} ({format_inr(top_exp['expense'])})"),
+                ("Top 3 Expense Share", f"{top_3_pct:.1f}% of Enterprise OPEX"),
+                ("Top 3 Divisions", top_3_names),
+                ("Highest Outlier Risk", f"{top_anom['department']} ({top_anom['anomalies_count']} anomalies)" if top_anom else "None"),
+            ],
+            what_it_means="High expenditure alone does not signify waste if aligned with commercial throughput, but concentration in these units creates high sensitivity for quarterly operating margins.",
+            recommended_action=f"Conduct vendor contract reviews and zero-based budgeting in {top_exp['department']}.",
+            dataset_name=d_name_active
+        )
+
+    # 16. ANOMALIES AFFECTING PROFIT
+    if i_type == "anomalies_affecting_profit":
+        top_anom = ctx["rankings"]["by_anomaly"][0] if ctx["rankings"]["by_anomaly"] else {"department": "General", "anomalies_count": 0}
+        return build_executive_pack(
+            answer=f"Automated surveillance detected **{ent['total_anomalies']} ledger anomalies** ({ent['critical_anomalies']} Critical, {ent['high_anomalies']} High). These anomalies concentrate primarily in **{top_anom['department']}** ({top_anom['anomalies_count']} flagged transactions) and represent potential cost leakage affecting net profitability.",
+            key_numbers=[
+                ("Total Anomalies", str(ent["total_anomalies"])),
+                ("Critical Severity", str(ent["critical_anomalies"])),
+                ("High Severity", str(ent["high_anomalies"])),
+                ("Primary Outlier Center", f"{top_anom['department']} ({top_anom['anomalies_count']} items)"),
+            ],
+            what_it_means=f"Anomalous transactions in {top_anom['department']} account for {(top_anom['anomalies_count'] / ent['total_anomalies'] * 100) if ent['total_anomalies'] > 0 else 0.0:.1f}% of flagged ledger deviations.",
+            recommended_action=f"Mandate controller verification on critical-severity ledger entries in {top_anom['department']}.",
+            dataset_name=d_name_active
+        )
+
+    # 17. SINGLE WHAT-IF
+    if i_type == "what_if":
+        what_if_res = _eval_what_if_intent(ctx, single_intent)
+        rev_pct = what_if_res["rev_pct"]
+        exp_pct = what_if_res["exp_pct"]
+
+        return (
+            f"### What-If Scenario Simulation\n\n"
+            f"Simulating a scenario with {rev_pct:+.1f}% revenue growth and {exp_pct:+.1f}% expense adjustment:\n\n"
+            f"| Metric | Current Actual | Modeled Scenario | Impact / Improvement |\n"
+            f"| :--- | ---: | ---: | ---: |\n"
+            f"| **Revenue** | {format_inr(what_if_res['baseline_revenue'])} | {format_inr(what_if_res['scenario_revenue'])} | {'+' if what_if_res['scenario_revenue'] >= what_if_res['baseline_revenue'] else ''}{format_inr(what_if_res['scenario_revenue'] - what_if_res['baseline_revenue'])} |\n"
+            f"| **Operating Expenses** | {format_inr(what_if_res['baseline_expense'])} | {format_inr(what_if_res['scenario_expense'])} | {'-' if what_if_res['scenario_expense'] < what_if_res['baseline_expense'] else '+'}{format_inr(abs(what_if_res['scenario_expense'] - what_if_res['baseline_expense']))} |\n"
+            f"| **Net Profit** | **{format_inr(what_if_res['baseline_profit'])}** | **{format_inr(what_if_res['scenario_profit'])}** | **{'+' if what_if_res['profit_delta'] >= 0 else ''}{format_inr(what_if_res['profit_delta'])}** |\n"
+            f"| **Operating Margin** | **{format_margin(what_if_res['baseline_margin'])}** | **{format_margin(what_if_res['scenario_margin'])}** | **{what_if_res['margin_delta_pp']:+.2f} pp** |\n\n"
+            f"> [!NOTE]\n"
+            f"> *Illustrative mathematical modeling — does not modify actual database records.*\n\n"
+            f"*Source: Active dataset — {d_name_active}*"
+        )
+
+    # 18. SINGLE RANKING OR RANKING WITH SECONDARY METRIC
+    if i_type in ["ranking", "ranking_with_metric"]:
+        res = _eval_ranking_intent(ctx, single_intent)
+        update_context(session_id, last_department=res["department"], last_metric=single_intent.get("metric", "profit"))
+        
+        sec_metric = single_intent.get("secondary_metric")
+        sec_info = f", and its operating margin is **{res['margin_str']}**" if sec_metric == "margin" else ""
+
+        return build_executive_pack(
+            answer=f"**{res['department']}** is the **{res['rank_title']}** department with **{res['metric_value_str']}**{sec_info} (Gross Revenue: {format_inr(res['revenue'])}, Operating Expenses: {format_inr(res['expense'])}, Net Profit: {format_inr(res['profit'])}).",
+            key_numbers=[
+                ("Department", res["department"]),
+                ("Rank Title", res["rank_title"]),
+                (res["metric_label"], res["metric_value_str"]),
+                ("Net Profit", format_inr(res["profit"])),
+                ("Operating Margin", res["margin_str"]),
+                ("Revenue", format_inr(res["revenue"])),
+                ("Expenses", format_inr(res["expense"])),
+            ],
+            what_it_means=f"{res['department']} accounts for {(res['revenue'] / ent['revenue'] * 100):.1f}% of enterprise revenue and {(res['profit'] / ent['profit'] * 100) if ent['profit'] > 0 else 0.0:.1f}% of enterprise net profit.",
+            recommended_action="Maintain commercial stability and monitor operating expenditures.",
+            dataset_name=d_name_active,
+            calculation_trace=f"Net Profit = {res['revenue']} - {res['expense']} = {res['profit']} | Operating Margin = ({res['profit']} / {res['revenue']}) * 100 = {res['margin']:.2f}%" if res['revenue'] > 0 else "Revenue is 0"
+        )
+
+    # 19. RANKING LIST: TOP N / BOTTOM N
+    if i_type == "ranking_list":
+        met = single_intent.get("metric", "profit")
+        dir_v = single_intent.get("direction", "max")
+        lim_v = single_intent.get("limit", 3)
+        is_min = (dir_v == "min")
+
+        sorted_depts = sorted(depts.values(), key=lambda x: x["profit"], reverse=not is_min)[:lim_v]
+        dir_word = "Lowest" if is_min else "Top"
+        rows = [f"| #{idx} | **{d['department']}** | {format_inr(d['profit'])} | {format_margin(d['margin'])} | {format_inr(d['revenue'])} | {format_inr(d['expense'])} |" for idx, d in enumerate(sorted_depts, 1)]
+
+        return (
+            f"### Department Ranking ({dir_word} {lim_v} by Profit)\n\n"
+            f"| Rank | Department | Net Profit | Margin | Revenue | Expenses |\n"
+            f"| :--- | :--- | ---: | ---: | ---: | ---: |\n"
+            + "\n".join(rows) + "\n\n"
+            f"*Source: Active dataset — {d_name_active}*"
+        )
+
+    # 20. SCHEMA INSPECTION
+    if i_type == "schema_inspection":
         cols = ", ".join([f"`{c}`" for c in ctx["available_columns"]])
         missing = []
         if not ctx["has_budget_data"]: missing.append("Department Budget Target")
@@ -466,176 +992,24 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
         return (
             f"### Dataset Schema & Quality Inspection\n\n"
             f"**Active Dataset**: `{d_name_active}` ({ctx['record_count']} records, {ctx['date_range']})\n\n"
-            f"**Detected Available Fields**:\n"
-            f"{cols}\n\n"
+            f"**Detected Available Fields**:\n{cols}\n\n"
             f"**Missing / Unrecorded Dimensions**:\n"
             + "\n".join([f"- {m}" for m in missing]) + "\n\n"
             f"### Analytical Scope\n"
-            f"Revenue, Expense, Net Profit, Operating Margin, and Department Rankings are **100% verified and reconciled** from database records. Direct cash flow and sub-category breakdowns cannot be reliably calculated from the available schema.\n\n"
+            f"Revenue, Expense, Net Profit, Operating Margin, and Department Rankings are **100% verified and reconciled** from database records.\n\n"
             f"*Source: Active dataset — {d_name_active}*"
         )
 
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: CASH FLOW (HONEST DISCLOSURE & PROXY)
-    # ─────────────────────────────────────────────────────────────
-    if intent == "CASH_FLOW":
-        if ctx["has_cash_flow"]:
-            return f"The active dataset contains dedicated cash flow fields with enterprise tracking."
-        
-        return (
-            f"### Cash Flow Analysis\n\n"
-            f"The active dataset does not contain a direct cash-flow or cash-inflow field, so exact cash flow cannot be determined directly from the available data.\n\n"
-            f"### Operating Surplus Proxy\n\n"
-            f"- **Gross Revenue**: {format_inr(ent['revenue'])}\n"
-            f"- **Total Operating Expenses**: {format_inr(ent['expense'])}\n"
-            f"- **Operating Surplus Proxy**: **{format_inr(ent['profit'])}**\n\n"
-            f"### Governance Disclosure\n"
-            f"*Operating Surplus Proxy* ($\text{{Revenue}} - \text{{Expense}}$) reflects accounting profitability, which does not account for working capital timing, accounts receivable collections, depreciation, or financing cash flows.\n\n"
-            f"*Source: Active dataset — {d_name_active}*"
-        )
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: WHAT-IF SIMULATION (NON-DESTRUCTIVE)
-    # ─────────────────────────────────────────────────────────────
-    if intent == "WHAT_IF":
-        pct_match = re.search(r"(\d+(?:\.\d+)?)\s*%", q_lower)
-        pct = float(pct_match.group(1)) if pct_match else 10.0
-        
-        is_expense = any(w in q_lower for w in ["expense", "cost", "spending", "fall", "decrease", "drop", "reduce", "adjustment"])
-        is_revenue = any(w in q_lower for w in ["revenue", "sales", "grow", "growth", "expand", "increase"])
-        
-        target_dept = matched_depts[0] if matched_depts else None
-        
-        if target_dept and target_dept in depts:
-            d_base = depts[target_dept]
-            b_rev = d_base["revenue"]
-            b_exp = d_base["expense"]
-            b_prof = d_base["profit"]
-            b_mrg = d_base["margin"]
-            
-            if is_expense:
-                s_rev = b_rev
-                s_exp = b_exp * (1.0 - pct / 100.0) if any(w in q_lower for w in ["fall", "decrease", "drop", "reduce"]) else b_exp * (1.0 + pct / 100.0)
-            else:
-                s_rev = b_rev * (1.0 + pct / 100.0)
-                s_exp = b_exp
-                
-            s_prof = s_rev - s_exp
-            s_mrg = (s_prof / s_rev * 100) if s_rev > 0 else None
-            p_diff = s_prof - b_prof
-            
-            desc = f"Simulating a {pct:.1f}% {'reduction' if is_expense else 'growth'} for **{target_dept}**."
-            return (
-                f"### Department What-If Simulation: {target_dept}\n\n"
-                f"{desc}\n\n"
-                f"| Metric | Current Actual | Modeled Scenario | Net Impact |\n"
-                f"| :--- | ---: | ---: | ---: |\n"
-                f"| **Revenue** | {format_inr(b_rev)} | {format_inr(s_rev)} | {'+' if s_rev >= b_rev else ''}{format_inr(s_rev - b_rev)} |\n"
-                f"| **Operating Expenses** | {format_inr(b_exp)} | {format_inr(s_exp)} | {'-' if s_exp < b_exp else '+'}{format_inr(abs(s_exp - b_exp))} |\n"
-                f"| **Net Profit** | **{format_inr(b_prof)}** | **{format_inr(s_prof)}** | **{'+' if p_diff >= 0 else ''}{format_inr(p_diff)}** |\n"
-                f"| **Operating Margin** | **{format_margin(b_mrg)}** | **{format_margin(s_mrg)}** | **{'+' if s_mrg and b_mrg and s_mrg >= b_mrg else ''}{f'{(s_mrg - b_mrg):.2f} pp' if (s_mrg and b_mrg) else 'N/A'}** |\n\n"
-                f"> [!NOTE]\n"
-                f"> *Illustrative mathematical modeling — does not modify actual dataset values or database records.*\n\n"
-                f"*Source: Active dataset — {d_name_active}*"
-            )
-            
-        if is_expense:
-            scen_rev = ent["revenue"]
-            scen_exp = ent["expense"] * (1.0 - pct / 100.0) if any(w in q_lower for w in ["fall", "decrease", "drop", "reduce"]) else ent["expense"] * (1.0 + pct / 100.0)
-            scen_prof = scen_rev - scen_exp
-            scen_mrg = (scen_prof / scen_rev * 100) if scen_rev > 0 else None
-            prof_diff = scen_prof - ent["profit"]
-            mrg_diff = (scen_mrg - ent["margin"]) if scen_mrg is not None else 0.0
-            desc = f"Simulating a {pct:.1f}% {'reduction' if any(w in q_lower for w in ['fall', 'decrease', 'drop', 'reduce']) else 'increase'} in total operating expenditures across all departments."
-        else:
-            scen_rev = ent["revenue"] * (1.0 + pct / 100.0)
-            scen_exp = ent["expense"]
-            scen_prof = scen_rev - scen_exp
-            scen_mrg = (scen_prof / scen_rev * 100) if scen_rev > 0 else None
-            prof_diff = scen_prof - ent["profit"]
-            mrg_diff = (scen_mrg - ent["margin"]) if scen_mrg is not None else 0.0
-            desc = f"Simulating a {pct:.1f}% expansion in gross top-line revenue."
-
-        return (
-            f"### What-If Scenario Simulation\n\n"
-            f"{desc}\n\n"
-            f"| Metric | Current Actual | Modeled Scenario | Impact / Improvement |\n"
-            f"| :--- | ---: | ---: | ---: |\n"
-            f"| **Revenue** | {format_inr(ent['revenue'])} | {format_inr(scen_rev)} | {'+' if scen_rev >= ent['revenue'] else ''}{format_inr(scen_rev - ent['revenue'])} |\n"
-            f"| **Operating Expenses** | {format_inr(ent['expense'])} | {format_inr(scen_exp)} | {'-' if scen_exp < ent['expense'] else '+'}{format_inr(abs(scen_exp - ent['expense']))} |\n"
-            f"| **Net Profit** | **{format_inr(ent['profit'])}** | **{format_inr(scen_prof)}** | **{'+' if prof_diff >= 0 else ''}{format_inr(prof_diff)}** |\n"
-            f"| **Operating Margin** | **{format_margin(ent['margin'])}** | **{format_margin(scen_mrg)}** | **{'+' if mrg_diff >= 0 else ''}{mrg_diff:.2f} pp** |\n\n"
-            f"> [!NOTE]\n"
-            f"> *Illustrative mathematical modeling — does not modify actual dataset values or database records.*\n\n"
-            f"*Source: Active dataset — {d_name_active}*"
-        )
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: DEPARTMENT COMPARISON
-    # ─────────────────────────────────────────────────────────────
-    if intent == "DEPARTMENT_COMPARISON":
-        if len(matched_depts) >= 2:
-            d_a, d_b = matched_depts[0], matched_depts[1]
-        elif len(matched_depts) == 1 and last_dept and last_dept != matched_depts[0]:
-            d_a, d_b = last_dept, matched_depts[0]
-        else:
-            d_a = ctx["rankings"]["by_profit"][0]["department"]
-            d_b = ctx["rankings"]["by_profit"][-1]["department"]
-
-        update_context(session_id, last_department=d_b, last_comparison=[d_a, d_b])
-        mrg_a_s = format_margin(depts[d_a]['margin'])
-        mrg_b_s = format_margin(depts[d_b]['margin'])
-        rationale = f"{d_a} operating margin is {mrg_a_s} compared to {mrg_b_s} for {d_b}."
-        return build_comparison_table(depts[d_a], depts[d_b], d_name_active, rationale)
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: WHY / ROOT-CAUSE VARIANCE DRIVERS
-    # ─────────────────────────────────────────────────────────────
-    if intent == "VARIANCE_DRIVERS":
-        top_prof = ctx["rankings"]["by_profit"][0]
-        worst_prof = ctx["rankings"]["by_profit"][-1]
-        top_exp = ctx["rankings"]["by_expense"][0]
-        top_3_pct = ent["top_3_expense_pct"]
-        top_3_names = ent["top_3_expense_names"]
-        loss_depts = ctx["rankings"]["loss_making"]
-
-        root_causes = [
-            f"1. **Cost Concentration**: Top 3 cost centers ({top_3_names}) consume **{top_3_pct:.1f}%** of all enterprise expenditures ({format_inr(sum(d['expense'] for d in ctx['rankings']['by_expense'][:3]))}).",
-            f"2. **Primary Earnings Anchor**: **{top_prof['department']}** drives the business, generating {format_inr(top_prof['profit'])} in profit ({format_margin(top_prof['margin'])} margin).",
-        ]
-        if loss_depts:
-            loss_names = ", ".join([f"{d['department']} ({format_inr(d['profit'])})" for d in loss_depts])
-            root_causes.append(f"3. **Operational Drag**: {len(loss_depts)} loss-making division(s) ({loss_names}) erode aggregate earnings.")
-        else:
-            root_causes.append(f"3. **Margin Dispersion**: Operating margins range from {format_margin(ctx['rankings']['by_margin'][0]['margin'])} ({ctx['rankings']['by_margin'][0]['department']}) down to {format_margin(ctx['rankings']['by_margin'][-1]['margin'])} ({ctx['rankings']['by_margin'][-1]['department']}).")
-
-        return build_executive_pack(
-            answer=f"Enterprise profitability ({ent['margin']:.1f}% margin, {format_inr(ent['profit'])} profit) is primarily governed by high cost concentration in {top_3_names} and strong margin contribution from {top_prof['department']}.",
-            key_numbers=[
-                ("Enterprise Revenue", format_inr(ent["revenue"])),
-                ("Enterprise Expenses", format_inr(ent["expense"])),
-                ("Net Profit", format_inr(ent["profit"])),
-                ("Operating Margin", f"{ent['margin']:.2f}%"),
-                ("Top Cost Center", f"{top_exp['department']} ({format_inr(top_exp['expense'])})"),
-            ],
-            what_it_means="\n\n".join(root_causes),
-            recommended_action=f"Institute procurement spending limits in {top_exp['department']} and conduct zero-based budget reviews for underperforming units.",
-            dataset_name=d_name_active,
-            calculation_trace=f"Enterprise Margin = ({ent['profit']} / {ent['revenue']}) * 100 = {ent['margin']:.2f}%"
-        )
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: STRATEGIC RECOMMENDATIONS
-    # ─────────────────────────────────────────────────────────────
-    if intent == "RECOMMENDATION":
+    # 21. RECOMMENDATIONS
+    if i_type == "recommendations":
         top_prof = ctx["rankings"]["by_profit"][0]
         top_exp = ctx["rankings"]["by_expense"][0]
         worst_prof = ctx["rankings"]["by_profit"][-1]
 
         actions = [
-            f"1. **Protect Core Revenue**: Preserve operating resource allocations in **{top_prof['department']}** ({format_inr(top_prof['profit'])} profit, {format_margin(top_prof['margin'])} margin).",
+            f"1. **Protect Commercial Capacity**: Preserve operating allocations in **{top_prof['department']}** ({format_inr(top_prof['profit'])} profit, {format_margin(top_prof['margin'])} margin).",
             f"2. **Procurement Rationalization**: Benchmark vendor contracts in **{top_exp['department']}** ({format_inr(top_exp['expense'])} OPEX) to capture 3–5% cost savings.",
-            f"3. **Turnaround Underperformers**: Execute line-item audits in **{worst_prof['department']}** ({format_inr(worst_prof['profit'])} profit, {format_margin(worst_prof['margin'])} margin) to restore baseline profitability.",
+            f"3. **Turnaround Underperformers**: Execute line-item cost audits in **{worst_prof['department']}** ({format_inr(worst_prof['profit'])} profit, {format_margin(worst_prof['margin'])} margin) to restore baseline profitability.",
         ]
 
         return build_executive_pack(
@@ -651,218 +1025,7 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
             dataset_name=d_name_active
         )
 
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: BUDGET & OVERSPENDING
-    # ─────────────────────────────────────────────────────────────
-    if intent == "BUDGET":
-        if not ctx["has_budget_data"]:
-            return (
-                f"### Budget & Variance Analysis\n\n"
-                f"The active dataset (**{d_name_active}**) does not contain explicit authorized budget allocations. Expenditures are tracked against historical run-rate baselines.\n\n"
-                f"*Source: Active dataset — {d_name_active}*"
-            )
-
-        over_depts = [d for d in depts.values() if d.get("variance", 0.0) > 0 and d.get("has_budget")]
-        sorted_over = sorted(over_depts, key=lambda x: x.get("variance", 0.0), reverse=True)
-        top_over_str = f"{sorted_over[0]['department']} (+{format_inr(sorted_over[0]['variance'])})" if sorted_over else "None"
-
-        return build_executive_pack(
-            answer=f"{len(over_depts)} division(s) are currently operating above authorized budget caps, led by {top_over_str}.",
-            key_numbers=[
-                ("Total Overspend Variance", format_inr(sum(d['variance'] for d in over_depts))),
-                ("Over-Budget Divisions", f"{len(over_depts)} of {len(depts)}"),
-                ("Top Overspending Dept", top_over_str),
-            ],
-            what_it_means=f"Disciplined cost controls in {top_over_str} will prevent further variance leakage in quarterly financial statements.",
-            recommended_action="Conduct monthly variance reconciliations with department heads exceeding 3% budget variance.",
-            dataset_name=d_name_active
-        )
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: ANOMALY & RISK INTELLIGENCE
-    # ─────────────────────────────────────────────────────────────
-    if intent == "ANOMALY":
-        top_anom_dept = ctx["rankings"]["by_anomaly"][0] if ctx["rankings"]["by_anomaly"] else {"department": "General", "anomalies_count": 0}
-        return build_executive_pack(
-            answer=f"Automated surveillance flagged **{ent['total_anomalies']} ledger anomalies** ({ent['critical_anomalies']} Critical, {ent['high_anomalies']} High), concentrated primarily in **{top_anom_dept['department']}**.",
-            key_numbers=[
-                ("Total Anomalies", str(ent["total_anomalies"])),
-                ("Critical Severity", str(ent["critical_anomalies"])),
-                ("High Severity", str(ent["high_anomalies"])),
-                ("Top Risk Department", f"{top_anom_dept['department']} ({top_anom_dept['anomalies_count']} flagged items)"),
-            ],
-            what_it_means=f"{top_anom_dept['department']} concentrates {(top_anom_dept['anomalies_count'] / ent['total_anomalies'] * 100) if ent['total_anomalies'] > 0 else 0.0:.1f}% of all detected outliers and represents the highest priority for controller review.",
-            recommended_action=f"Mandate formal controller verification workflow on all high-severity items in {top_anom_dept['department']} before closing the period.",
-            dataset_name=d_name_active
-        )
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: PERIOD / DATE ANALYSIS
-    # ─────────────────────────────────────────────────────────────
-    if intent == "PERIOD_ANALYSIS":
-        p_match = re.search(r"\b(20\d{2}[-/]\d{1,2})\b", q_lower)
-        matched_period = p_match.group(1).replace("/", "-") if p_match else None
-        if not matched_period and ctx["periods"]:
-            matched_period = ctx["periods"][-1]
-
-        if matched_period and matched_period in ctx["period_summary"]:
-            p_data = ctx["period_summary"][matched_period]
-            mrg_str = format_margin(p_data['margin'])
-            return build_executive_pack(
-                answer=f"In **{matched_period}**, the enterprise generated {format_inr(p_data['revenue'])} in revenue and {format_inr(p_data['expense'])} in expenses, yielding **{format_inr(p_data['profit'])}** in net profit ({mrg_str} margin).",
-                key_numbers=[
-                    ("Period", matched_period),
-                    ("Revenue", format_inr(p_data["revenue"])),
-                    ("Operating Expenses", format_inr(p_data["expense"])),
-                    ("Net Profit", format_inr(p_data["profit"])),
-                    ("Operating Margin", mrg_str),
-                ],
-                what_it_means=f"Performance in {matched_period} achieved an operating margin of {mrg_str}.",
-                recommended_action=None,
-                dataset_name=d_name_active,
-                calculation_trace=f"Period Profit = {p_data['revenue']} - {p_data['expense']} = {p_data['profit']}"
-            )
-        else:
-            return f"Period '{matched_period or 'requested'}' was not found in the active dataset. Available periods range from {min(ctx['periods']) if ctx['periods'] else 'N/A'} to {max(ctx['periods']) if ctx['periods'] else 'N/A'}."
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: DEPARTMENT RANKING & ORDINAL SUPERLATIVES
-    # ─────────────────────────────────────────────────────────────
-    if intent in ["DEPARTMENT_PROFIT", "DEPARTMENT_RANKING"]:
-        direction = detect_direction(q_lower)
-        metric = detect_primary_metric(q_lower)
-        req_rank, req_limit = detect_rank_and_limit(q_lower)
-        is_min = direction == "min"
-
-        if metric == "margin":
-            sorted_depts = sorted(depts.values(), key=lambda x: (x["margin"] is not None, x["margin_val"]), reverse=not is_min)
-            metric_label = "Operating Margin"
-            val_func = lambda d: format_margin(d["margin"])
-        elif metric == "revenue":
-            sorted_depts = sorted(depts.values(), key=lambda x: x["revenue"], reverse=not is_min)
-            metric_label = "Gross Revenue"
-            val_func = lambda d: format_inr(d["revenue"])
-        elif metric == "expense":
-            sorted_depts = sorted(depts.values(), key=lambda x: x["expense"], reverse=not is_min)
-            metric_label = "Operating Expenses"
-            val_func = lambda d: format_inr(d["expense"])
-        elif metric == "anomalies":
-            sorted_depts = sorted(depts.values(), key=lambda x: x["anomalies_count"], reverse=not is_min)
-            metric_label = "Anomalies"
-            val_func = lambda d: str(d["anomalies_count"])
-        else:
-            sorted_depts = sorted(depts.values(), key=lambda x: x["profit"], reverse=not is_min)
-            metric_label = "Net Profit"
-            val_func = lambda d: format_inr(d["profit"])
-
-        num_depts = len(sorted_depts)
-
-        # Multi-item ranking list request: "top 3", "bottom 5", "rank all"
-        if req_limit is not None:
-            limit_count = min(req_limit, num_depts)
-            slice_depts = sorted_depts[:limit_count]
-            direction_word = "Lowest" if is_min else "Highest"
-            
-            rows = [f"| #{idx} | **{d['department']}** | {format_inr(d['profit'])} | {format_margin(d['margin'])} | {format_inr(d['revenue'])} | {format_inr(d['expense'])} |" for idx, d in enumerate(slice_depts, 1)]
-            return (
-                f"### Department Ranking by {metric_label} ({direction_word} {limit_count})\n\n"
-                f"| Rank | Department | Net Profit | Margin | Revenue | Expenses |\n"
-                f"| :--- | :--- | ---: | ---: | ---: | ---: |\n"
-                + "\n".join(rows) + "\n\n"
-                f"**{slice_depts[0]['department']}** is #{1} with {val_func(slice_depts[0])} {metric_label.lower()}.\n\n"
-                f"*Source: Active dataset — {d_name_active}*"
-            )
-
-        # Single ordinal rank request: e.g. rank=2 (2nd least / 2nd highest)
-        if req_rank > num_depts:
-            return f"The active dataset contains {num_depts} tracked departments, so rank #{req_rank} is out of range."
-
-        target_idx = max(0, req_rank - 1)
-        target_dept_info = sorted_depts[target_idx]
-        
-        # Check for ties
-        tied_depts = [d["department"] for d in sorted_depts if abs((d["profit"] if metric == "profit" else d["revenue"] if metric == "revenue" else d["expense"]) - (target_dept_info["profit"] if metric == "profit" else target_dept_info["revenue"] if metric == "revenue" else target_dept_info["expense"])) < 1e-4]
-        
-        ordinal_suffix = "th"
-        if req_rank == 1: ordinal_suffix = "st"
-        elif req_rank == 2: ordinal_suffix = "nd"
-        elif req_rank == 3: ordinal_suffix = "rd"
-        rank_str = f"{req_rank}{ordinal_suffix}" if req_rank > 1 else ""
-
-        superlative_word = "least" if (is_min and req_rank > 1) else ("lowest" if is_min else ("most" if req_rank > 1 else "highest"))
-        ranking_phrase = f"{rank_str} {superlative_word}".strip()
-
-        update_context(session_id, last_department=target_dept_info["department"], last_metric=metric, last_direction=direction)
-
-        # Build clear comparative narrative
-        comparison_context = ""
-        if req_rank > 1 and len(sorted_depts) >= 2:
-            first_dept = sorted_depts[0]
-            comparison_context = f"\n\n**{first_dept['department']}** ranks #{1} ({'lowest' if is_min else 'highest'}) at **{val_func(first_dept)}**, while **{target_dept_info['department']}** ranks #{req_rank} at **{val_func(target_dept_info)}**."
-
-        tie_notice = ""
-        if len(tied_depts) > 1:
-            tie_notice = f"\n\n> [!NOTE]\n> *Note: {', '.join(tied_depts)} are tied for rank #{req_rank} with identical metrics.*"
-
-        calc_trace = ""
-        if target_dept_info["revenue"] > 0:
-            calc_trace = f"Net Profit = Revenue ({target_dept_info['revenue']:,.2f}) - Expenses ({target_dept_info['expense']:,.2f}) = {target_dept_info['profit']:,.2f} | Margin = ({target_dept_info['profit']:,.2f} / {target_dept_info['revenue']:,.2f}) * 100 = {target_dept_info['margin']:.2f}%"
-        else:
-            calc_trace = f"Net Profit = Revenue (0.00) - Expenses ({target_dept_info['expense']:,.2f}) = {target_dept_info['profit']:,.2f} | Operating Margin is undefined because Gross Revenue is ₹0."
-
-        return build_executive_pack(
-            answer=f"**{target_dept_info['department']}** is the **{ranking_phrase} {metric_label.lower()}** department with **{val_func(target_dept_info)}** (Gross Revenue: {format_inr(target_dept_info['revenue'])}, Operating Expenses: {format_inr(target_dept_info['expense'])}, Operating Margin: {format_margin(target_dept_info['margin'])}).{comparison_context}{tie_notice}",
-            key_numbers=[
-                ("Department", target_dept_info["department"]),
-                (f"Rank (#{req_rank})", f"{rank_str} {superlative_word.title()} {metric_label}".strip()),
-                (metric_label, val_func(target_dept_info)),
-                ("Net Profit", format_inr(target_dept_info["profit"])),
-                ("Operating Margin", format_margin(target_dept_info["margin"])),
-                ("Revenue", format_inr(target_dept_info["revenue"])),
-                ("Expenses", format_inr(target_dept_info["expense"])),
-            ],
-            what_it_means=f"{target_dept_info['department']} accounts for {(target_dept_info['revenue'] / ent['revenue'] * 100):.1f}% of enterprise top-line revenue and {(target_dept_info['profit'] / ent['profit'] * 100) if ent['profit'] > 0 else 0.0:.1f}% of aggregate net profit.",
-            recommended_action=f"Enforce turnaround controls" if target_dept_info["profit"] < 0 else f"Maintain operating stability and avoid disruptive cost reallocations.",
-            dataset_name=d_name_active,
-            calculation_trace=calc_trace
-        )
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: FUTURE PROFITABILITY & FORECAST
-    # ─────────────────────────────────────────────────────────────
-    if intent in ["FUTURE_PROFITABILITY", "FORECAST"]:
-        direction = detect_direction(q_lower)
-        horizon = detect_forecast_horizon(q_lower)
-        is_min = direction == "min"
-        req_rank, _ = detect_rank_and_limit(q_lower)
-
-        sorted_depts = sorted(depts.values(), key=lambda x: x["cum_profit"].get(horizon, x["projected_profit"]), reverse=not is_min)
-        target_idx = min(max(0, req_rank - 1), len(sorted_depts) - 1)
-        selected = sorted_depts[target_idx]
-
-        update_context(session_id, last_department=selected["department"], last_metric="profit", last_direction=direction)
-
-        prof_val = selected["cum_profit"].get(horizon, selected["projected_profit"])
-        rev_val = selected["cum_revenue"].get(horizon, selected["projected_revenue"])
-        exp_val = selected["cum_expense"].get(horizon, selected["projected_expense"])
-        mrg_val = (prof_val / rev_val * 100) if rev_val > 0 else None
-
-        return (
-            f"### Forward Horizon Forecast ({horizon} Months)\n\n"
-            f"Based on time-series trend decomposition, **{selected['department']}** is projected to achieve **{format_inr(prof_val)}** in cumulative net profit over the upcoming {horizon}-month horizon (Rank #{req_rank} in projected profitability).\n\n"
-            f"- **Projected Net Profit**: **{format_inr(prof_val)}**\n"
-            f"- **Projected Revenue**: {format_inr(rev_val)}\n"
-            f"- **Projected Expenses**: {format_inr(exp_val)}\n"
-            f"- **Projected Forward Margin**: **{format_margin(mrg_val)}**\n"
-            f"- **Methodology**: {selected['forecast_model']}\n\n"
-            f"> [!NOTE]\n"
-            f"> *Model confidence: {selected['forecast_confidence'] * 100:.1f}% R² goodness-of-fit based on active dataset time-series.*\n\n"
-            f"*Source: Active dataset — {d_name_active}*"
-        )
-
-    # ─────────────────────────────────────────────────────────────
-    # INTENT: CURRENT FINANCIAL TOTALS / KPI LOOKUP
-    # ─────────────────────────────────────────────────────────────
+    # 22. TOTALS / FALLBACK
     if any(w in q_lower for w in ["total revenue", "what is revenue", "revenue"]):
         return (
             f"### Total Enterprise Revenue\n\n"
@@ -871,17 +1034,6 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
             f"- **Total Operating Expenses**: {format_inr(ent['expense'])}\n"
             f"- **Calculated Net Profit**: {format_inr(ent['profit'])} ({ent['margin']:.2f}% operating margin)\n\n"
             f"*Source: Active dataset — {d_name_active} | Reconciled Across {len(depts)} Departments*"
-        )
-
-    if any(w in q_lower for w in ["net profit", "total profit", "what is profit", "what is net profit", "profit"]):
-        return (
-            f"### Enterprise Net Profit\n\n"
-            f"Enterprise net profit across the active dataset (**{d_name_active}**) is **{format_inr(ent['profit'])}** at an operating margin of **{ent['margin']:.2f}%**.\n\n"
-            f"- **Total Gross Revenue**: {format_inr(ent['revenue'])}\n"
-            f"- **Total Operating Expenses**: {format_inr(ent['expense'])}\n"
-            f"- **Calculated Net Profit**: **{format_inr(ent['profit'])}**\n"
-            f"- **Operating Margin**: **{ent['margin']:.2f}%**\n\n"
-            f"*Source: Active dataset — {d_name_active} | Calculation: SUM(Revenue) - SUM(Expense)*"
         )
 
     if any(w in q_lower for w in ["total expense", "total expenses", "what is expense", "what are expenses", "expenses", "expense"]):
@@ -894,7 +1046,7 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
             f"*Source: Active dataset — {d_name_active}*"
         )
 
-    # General Executive Financial Summary
+    # Default General Executive Financial Summary
     return build_executive_pack(
         answer=f"The enterprise generated **{format_inr(ent['revenue'])}** in gross revenue and **{format_inr(ent['expense'])}** in expenditures, yielding **{format_inr(ent['profit'])}** in Net Profit ({ent['margin']:.2f}% operating margin).",
         key_numbers=[
@@ -912,10 +1064,6 @@ def _evaluate_single_query(db: Session, question: str, session_id: str = "defaul
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PUBLIC COPILOT ENTRYPOINT
-# ─────────────────────────────────────────────────────────────────────────────
-
 def ask_copilot(db: Session, question: str, session_id: str = "default") -> str:
     """
     Public entrypoint for Copilot queries.
@@ -928,7 +1076,7 @@ def ask_copilot(db: Session, question: str, session_id: str = "default") -> str:
     update_context(session_id, **merged)
 
     # Evaluate answer deterministically
-    answer = _evaluate_single_query(db, question, session_id)
+    answer = _evaluate_query(db, question, session_id)
 
     # Record turn in conversational history
     add_history_turn(session_id, question=question, answer=answer, intent=parsed.get("intent", "GENERAL_FINANCIAL"))

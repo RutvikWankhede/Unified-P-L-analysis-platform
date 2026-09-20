@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
 
+    # Camunda 7 BPMN REST Engine Configuration
+    CAMUNDA_URL: str = os.getenv("CAMUNDA_URL", os.getenv("CAMUNDA_ENGINE_URL", "http://localhost:8080/engine-rest"))
+    CAMUNDA_ENGINE_URL: str = os.getenv("CAMUNDA_ENGINE_URL", os.getenv("CAMUNDA_URL", "http://localhost:8080/engine-rest"))
+
     # Domain Contamination Configurations
     CONTAM_RETAIL: float = 0.03
     CONTAM_CORPORATE: float = 0.05

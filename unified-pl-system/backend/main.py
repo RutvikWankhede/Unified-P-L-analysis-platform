@@ -76,6 +76,20 @@ async def lifespan(app: FastAPI):
             await asyncio.to_thread(_verify_and_init_db)
             logger.info("[BACKEND] Database ready")
             print("[BACKEND] Database ready", flush=True)
+            # Initialize Camunda BPMN Auto-Deployment and External Task Workers
+            try:
+                from camunda.client import camunda_client
+                from camunda.workers import camunda_worker_service
+                bpmn_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "camunda", "pl_financial_workflow.bpmn")
+                if os.path.exists(bpmn_file):
+                    dep = camunda_client.deploy_bpmn(bpmn_file)
+                    if dep:
+                        logger.info(f"[CAMUNDA] Workflow deployed successfully: {dep.get('id')}")
+                camunda_worker_service.start()
+                logger.info("[CAMUNDA] Background External Task Worker daemon started.")
+            except Exception as camunda_err:
+                logger.warning(f"[CAMUNDA] Worker initialization notice: {camunda_err}")
+
             logger.info("[BACKEND] Core services ready")
             print("[BACKEND] Core services ready", flush=True)
             logger.info("[BACKEND] Application startup complete")
@@ -98,6 +112,11 @@ async def lifespan(app: FastAPI):
 
     logger.info("[BACKEND] Shutting down Unified P&L AI Platform.")
     print("[BACKEND] Shutdown complete.", flush=True)
+    try:
+        from camunda.workers import camunda_worker_service
+        camunda_worker_service.stop()
+    except Exception:
+        pass
     try:
         engine.dispose()
     except Exception:

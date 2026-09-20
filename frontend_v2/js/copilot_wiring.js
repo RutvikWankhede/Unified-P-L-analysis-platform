@@ -60,9 +60,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatHistory.scrollTop = chatHistory.scrollHeight;
     }
 
-    function appendAiMessage(text) {
+    function renderTraceAccordion(trace) {
+        if (!trace || !trace.planned_steps) return '';
+        const stepsHtml = (trace.planned_steps || []).map(s => `<li style="margin: 2px 0;">${escapeHtml(s)}</li>`).join('');
+        const toolsHtml = (trace.executed_tools || []).map(t => `
+            <div style="margin: 4px 0; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 4px; font-size: 11px;">
+                <strong style="color: #4f46e5;">⚡ ${escapeHtml(t.tool_name)}</strong> 
+                <span style="opacity: 0.6; font-size: 10px;">(${t.execution_time_ms}ms)</span>: 
+                <span>${escapeHtml(t.summary_output)}</span>
+            </div>
+        `).join('');
+
+        const valHtml = trace.validation_result ? `
+            <div style="margin-top: 6px; padding: 4px 8px; background: rgba(16,185,129,0.08); border-left: 3px solid #10b981; border-radius: 2px; font-size: 11px;">
+                <strong>🛡️ Validation Guardrail:</strong> ${trace.validation_result.is_valid ? '<span style="color:#10b981;">Passed (Accounting Equations Verified)</span>' : '<span style="color:#f59e0b;">Self-Correction Applied</span>'}
+            </div>
+        ` : '';
+
+        return `
+            <details style="margin-top: 8px; font-size: 11px; background: rgba(99,102,241,0.04); border: 1px solid rgba(99,102,241,0.15); border-radius: 8px; padding: 6px 10px;">
+                <summary style="cursor: pointer; font-weight: 600; color: #4f46e5; display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">account_tree</span>
+                    Agent Execution Trace (${trace.total_time_ms || 0}ms, ${(trace.executed_tools || []).length} Tools)
+                </summary>
+                <div style="margin-top: 8px; border-top: 1px solid rgba(99,102,241,0.1); padding-top: 6px;">
+                    <div style="font-weight: 600; margin-bottom: 2px; color: #334155;">1. ReAct Goal Deconstruct:</div>
+                    <ol style="padding-left: 18px; margin: 0; color: #64748b;">${stepsHtml}</ol>
+                    <div style="font-weight: 600; margin-top: 6px; margin-bottom: 2px; color: #334155;">2. Tool Invocations:</div>
+                    <div>${toolsHtml}</div>
+                    ${valHtml}
+                </div>
+            </details>
+        `;
+    }
+
+    function appendAiMessage(text, trace = null) {
         if (!chatHistory) return;
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const traceHtml = trace ? renderTraceAccordion(trace) : '';
         const aiHtml = `
         <div class="flex items-start gap-3 max-w-[92%]">
             <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-600">
@@ -71,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="space-y-1 w-full">
                 <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl rounded-tl-none shadow-xs text-xs leading-relaxed text-slate-800 space-y-2">
                     ${formatAiResponse(text)}
+                    ${traceHtml}
                 </div>
                 <span class="text-[9px] text-slate-400 ml-1">${timeStr}</span>
             </div>
@@ -170,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="bg-slate-50 border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-xs">
                 <p class="text-xs text-slate-400 italic flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span>
-                    Analyzing active P&amp;L dataset...
+                    Orchestrating agent workflow &amp; validating calculations...
                 </p>
             </div>
         </div>`;
@@ -185,7 +221,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             document.getElementById(typingId)?.remove();
             const answer = res.answer || res.response || res.explanation || 'Analyzed financial dataset based on active P&L records.';
-            appendAiMessage(answer);
+            const trace = res.trace || null;
+            appendAiMessage(answer, trace);
         } catch (e) {
             document.getElementById(typingId)?.remove();
             appendAiMessage("Unable to retrieve the active dataset right now. Please retry.");
@@ -218,4 +255,3 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadCopilotContext();
 });
-

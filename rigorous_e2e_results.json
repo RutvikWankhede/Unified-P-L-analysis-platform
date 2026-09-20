@@ -1,0 +1,340 @@
+{
+  "experiment_1": {
+    "records": 73715,
+    "active_dataset": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+  },
+  "experiment_2": {
+    "camunda_live": false,
+    "engine_url": "http://localhost:8080/engine-rest",
+    "engine_type": "Integrated Fallback Engine",
+    "bpmn_exists": true,
+    "process_definition_key": "Process_PLFinancialOrchestration"
+  },
+  "experiment_3": {
+    "goal": "Why did profitability change and what should management investigate?",
+    "planned_steps": [
+      "1. Fetch enterprise KPIs and active dataset profile",
+      "2. Analyze period-over-period trend variance",
+      "3. Perform departmental breakdown to identify primary cost drivers",
+      "4. Check for critical ledger anomalies",
+      "5. Generate prioritized recovery recommendations",
+      "6. Validate mathematical calculations against ground truth"
+    ],
+    "executed_tools": [
+      {
+        "tool_name": "get_kpis",
+        "arguments": {
+          "scope": "Enterprise"
+        },
+        "summary_output": "Rev: \u20b927.80 Cr, Exp: \u20b919.81 Cr, Profit: \u20b97.99 Cr (28.8%)",
+        "execution_time_ms": 179,
+        "status": "SUCCESS"
+      },
+      {
+        "tool_name": "get_department_analysis",
+        "arguments": {
+          "metric": "profit",
+          "sort_order": "desc"
+        },
+        "summary_output": "Ranked 12 departments. Top: Sales",
+        "execution_time_ms": 30,
+        "status": "SUCCESS"
+      },
+      {
+        "tool_name": "detect_anomalies",
+        "arguments": {},
+        "summary_output": "Found 95 outliers (0 critical)",
+        "execution_time_ms": 9597,
+        "status": "SUCCESS"
+      },
+      {
+        "tool_name": "generate_recommendations",
+        "arguments": {},
+        "summary_output": "Generated 8 recommendations",
+        "execution_time_ms": 939,
+        "status": "SUCCESS"
+      },
+      {
+        "tool_name": "get_memory_feedback",
+        "arguments": {},
+        "summary_output": "Retrieved 1 historical manager decisions",
+        "execution_time_ms": 7,
+        "status": "SUCCESS"
+      }
+    ],
+    "final_answer": "### Answer\n\nEnterprise profitability (28.8% margin, \u20b97.99 Cr profit) is primarily governed by high cost concentration in Operations, Sales, R&D and strong margin contribution from Sales.\n\n### Key Numbers\n\n- **Enterprise Revenue**: \u20b927.80 Cr\n- **Enterprise Expenses**: \u20b919.81 Cr\n- **Net Profit**: \u20b97.99 Cr\n- **Operating Margin**: 28.75%\n- **Top Cost Center**: Operations (\u20b93.22 Cr)\n\n### What it means\n\n1. **Cost Concentration**: Top 3 cost centers (Operations, Sales, R&D) consume **41.4%** of all enterprise expenditures (\u20b98.19 Cr).\n\n2. **Primary Earnings Anchor**: **Sales** drives the business, generating \u20b91.70 Cr in profit (39.14% margin).\n\n3. **Margin Dispersion**: Operating margins range from 42.19% (Finance) down to 13.83% (Marketing).\n\n### Recommended action\n\nInstitute procurement spending limits in Operations and conduct zero-based budget reviews for underperforming units.\n\n*Source: Active dataset \u2014 unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Enterprise Margin = (79922140.02 / 277988276.87) * 100 = 28.75%`\n</details>",
+    "elapsed_ms": 11762
+  },
+  "experiment_4": {
+    "get_kpis": {
+      "input": {
+        "dept": null
+      },
+      "actual_output": {
+        "revenue": 277988276.87,
+        "expense": 198066136.85,
+        "profit": 79922140.02,
+        "margin": 28.75
+      },
+      "data_source": "MetricEngine via SQLite pl_records",
+      "invoked_by_agent": true
+    },
+    "get_department_analysis": {
+      "input": {
+        "metric": "profit",
+        "limit": 5,
+        "sort_order": "asc"
+      },
+      "actual_output": {
+        "total_departments": 12,
+        "lowest_performer": {
+          "department": "Sales",
+          "revenue": 43352390.56,
+          "expense": 26384525.37,
+          "profit": 16967865.19,
+          "margin": 39.14,
+          "vs_prev_period_pct": null
+        }
+      },
+      "data_source": "MetricEngine department grouping",
+      "invoked_by_agent": true
+    },
+    "compare_periods": {
+      "input": {
+        "dept": null
+      },
+      "actual_output": {
+        "current_period": {
+          "period": "2026-12",
+          "revenue": 3019008.97,
+          "expense": 2803626.15,
+          "profit": 215382.83,
+          "margin": 7.134222923491346
+        },
+        "previous_period": {
+          "period": "2026-11",
+          "revenue": 1982010.67,
+          "expense": 1476315.1,
+          "profit": 505695.57,
+          "margin": 25.514270818733785
+        },
+        "profit_change_pct": -57.41
+      },
+      "data_source": "MetricEngine monthly aggregate series",
+      "invoked_by_agent": true
+    },
+    "run_forecast": {
+      "input": {
+        "metric": "revenue",
+        "horizon": 3
+      },
+      "actual_output": {
+        "horizon": 3,
+        "model_version": "v1.2.0-linear",
+        "historical_accuracy": 74.8
+      },
+      "data_source": "Scikit-learn LinearRegression over monthly ledger series",
+      "invoked_by_agent": true
+    },
+    "detect_anomalies_tool": {
+      "input": {
+        "dept": null
+      },
+      "actual_output": {
+        "total_anomalies": 95,
+        "critical": 0,
+        "high": 5
+      },
+      "data_source": "Scikit-learn IsolationForest across ledger amounts",
+      "invoked_by_agent": true
+    },
+    "generate_recommendations_tool": {
+      "input": {},
+      "actual_output": {
+        "recommendations_count": 8,
+        "top_recommendation": "Triage 190 Flagged Ledger Anomalies (Administration)"
+      },
+      "data_source": "RecommendationEngine derived from variance & anomaly metrics",
+      "invoked_by_agent": true
+    },
+    "run_what_if_tool": {
+      "input": {
+        "rev_growth_pct": 0.0,
+        "exp_growth_pct": 10.0
+      },
+      "actual_output": {
+        "baseline_profit": 79922140.02000001,
+        "simulated_profit": 60115526.33500001,
+        "profit_delta": -19806613.685000002
+      },
+      "data_source": "Deterministic stress-test calculation engine",
+      "invoked_by_agent": true
+    }
+  },
+  "experiment_5": {
+    "valid_passed": true,
+    "hallucination_caught": true,
+    "discrepancies_caught": [
+      "Equation violation: Claimed Rev (999,999,999.00) - Exp (1.00) != Profit (500.00)",
+      "Revenue mismatch: Claimed \u20b9999,999,999.00 != Database \u20b9277,988,276.87",
+      "Expense mismatch: Claimed \u20b91.00 != Database \u20b9198,066,136.85",
+      "Profit mismatch: Claimed \u20b9500.00 != Database \u20b979,922,140.02"
+    ],
+    "corrected_payload": {
+      "revenue": 277988276.87,
+      "expense": 198066136.85,
+      "profit": 79922140.02000001,
+      "margin": 28.750183612014418,
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+    },
+    "ranking_verified": true
+  },
+  "experiment_6": {
+    "decision_persisted": {
+      "timestamp": "2026-09-20T16:35:10.351239",
+      "recommendation_id": 991,
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+      "department": "Enterprise",
+      "action_type": "Monitor & Log",
+      "decision": "REJECTED",
+      "notes": "Rejected CapEx expansion due to high interest rates in Q4.",
+      "user_id": 1
+    },
+    "retrieved_in_subsequent_execution": true,
+    "learning_feedback_processed": {
+      "decision_recorded": "REJECTED",
+      "notes": "Rejected CapEx expansion due to high interest rates in Q4.",
+      "status": "Memory updated"
+    }
+  },
+  "experiment_7": {
+    "initial_status": "RUNNING",
+    "paused_status": "PENDING_APPROVAL",
+    "resumed_step": "generate_report",
+    "final_status": "RUNNING"
+  },
+  "experiment_8": {
+    "calculation": {
+      "baseline": {
+        "revenue": 277988276.87,
+        "expense": 198066136.85,
+        "profit": 79922140.02000001,
+        "margin": 28.750183612014418
+      },
+      "scenario": {
+        "rev_growth_pct": 0.0,
+        "exp_growth_pct": 10.0,
+        "revenue": 277988276.87,
+        "expense": 217872750.535,
+        "profit": 60115526.33500001,
+        "margin": 21.62520197321586
+      },
+      "simulated": {
+        "rev_growth_pct": 0.0,
+        "exp_growth_pct": 10.0,
+        "revenue": 277988276.87,
+        "expense": 217872750.535,
+        "profit": 60115526.33500001,
+        "margin": 21.62520197321586
+      },
+      "impact": {
+        "profit_delta": -19806613.685000002,
+        "margin_delta_pct": -7.124981638798559,
+        "is_profitable": true
+      },
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+    },
+    "risk_severity": "HIGH (Severe Margin Dilution)",
+    "strategic_recommendation": "Re-evaluate procurement terms and variable overheads to protect operating profitability.",
+    "narrative": "### What-If Stress-Test Assessment\n\nUnder a **+0.0% Revenue** and **+10.0% Expense** adjustment:\n\n- **Projected Net Profit:** **\u20b96.01 Cr** (Delta: -\u20b91.98 Cr vs baseline \u20b97.99 Cr)\n- **Projected Operating Margin:** **21.63%** (Shift: -7.12% pts)\n- **Projected Gross Revenue:** \u20b927.80 Cr\n- **Projected Expenditures:** \u20b921.79 Cr\n\n**Risk Severity:** `HIGH (Severe Margin Dilution)`\n\n**Strategic Recommendation:** Re-evaluate procurement terms and variable overheads to protect operating profitability.\n\n*Source: Active dataset simulation calculations*"
+  },
+  "experiment_9": [
+    {
+      "step": 1,
+      "agent": "FinancialOrchestratorAgent",
+      "action": "Formulate execution plan and parse user goal"
+    },
+    {
+      "step": 2,
+      "agent": "AgentToolsRegistry",
+      "action": "Invoke get_kpis() -> Query MetricEngine ground truth"
+    },
+    {
+      "step": 3,
+      "agent": "AgentToolsRegistry",
+      "action": "Invoke get_department_analysis() -> Group and rank cost drivers"
+    },
+    {
+      "step": 4,
+      "agent": "AgentToolsRegistry",
+      "action": "Invoke detect_anomalies_tool() -> ML Isolation Forest outlier detection"
+    },
+    {
+      "step": 5,
+      "agent": "AgentToolsRegistry",
+      "action": "Invoke generate_recommendations_tool() -> Synthesize cost recovery actions"
+    },
+    {
+      "step": 6,
+      "agent": "AgentMemory",
+      "action": "Invoke get_context_summary() -> Retrieve past manager decisions"
+    },
+    {
+      "step": 7,
+      "agent": "FinancialValidationAgent",
+      "action": "validate_kpis() -> Verify accounting identity Rev - Exp = Profit"
+    },
+    {
+      "step": 8,
+      "agent": "AILog Service",
+      "action": "Persist ExecutionTrace with timing and tool payloads into database"
+    }
+  ],
+  "experiment_10": [
+    {
+      "id": 102,
+      "agent_name": "FinancialOrchestratorAgent",
+      "action": "execute_query",
+      "execution_time_ms": 1603,
+      "status": "SUCCESS",
+      "created_at": "2026-09-20 16:35:27.975960"
+    },
+    {
+      "id": 101,
+      "agent_name": "LearningAgent",
+      "action": "process_recommendation_feedback",
+      "execution_time_ms": 50,
+      "status": "SUCCESS",
+      "created_at": "2026-09-20 16:35:10.374157"
+    },
+    {
+      "id": 100,
+      "agent_name": "FinancialOrchestratorAgent",
+      "action": "execute_query",
+      "execution_time_ms": 11754,
+      "status": "SUCCESS",
+      "created_at": "2026-09-20 16:35:01.374509"
+    },
+    {
+      "id": 99,
+      "agent_name": "FinancialOrchestratorAgent",
+      "action": "execute_query",
+      "execution_time_ms": 1447,
+      "status": "SUCCESS",
+      "created_at": "2026-09-20 16:33:35.337056"
+    },
+    {
+      "id": 98,
+      "agent_name": "LearningAgent",
+      "action": "process_recommendation_feedback",
+      "execution_time_ms": 50,
+      "status": "SUCCESS",
+      "created_at": "2026-09-20 16:33:23.556218"
+    }
+  ],
+  "experiment_11": {
+    "status": "FAILED",
+    "error_step": "manager_approval",
+    "error_message": "Workflow rejected during executive review: Intentionally rejected: budget limit exceeded"
+  }
+}

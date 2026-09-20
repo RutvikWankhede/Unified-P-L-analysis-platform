@@ -46,6 +46,37 @@ def list_workflow_instances(limit: int = Query(50, ge=1, le=200), db: Session = 
     return workflow_service.list_instances(db, limit=limit)
 
 
+@router.get("/bpmn")
+def get_bpmn_xml():
+    """Returns the official BPMN 2.0 XML definition for the P&L workflow."""
+    bpmn_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "camunda", "pl_financial_workflow.bpmn")
+    if os.path.exists(bpmn_path):
+        with open(bpmn_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return Response(content=content, media_type="application/xml")
+    return Response(content="<bpmn:definitions/>", media_type="application/xml")
+
+
+@router.get("/camunda-status")
+@router.get("/engine-status")
+def get_camunda_status():
+    """Checks whether external Camunda REST engine is reachable."""
+    url = workflow_service.engine_url
+    is_connected = False
+    try:
+        import requests
+        r = requests.get(f"{url}/version", timeout=1.0)
+        is_connected = r.status_code == 200
+    except Exception:
+        is_connected = False
+
+    return {
+        "engine_url": url,
+        "is_connected": is_connected,
+        "engine_type": "Camunda BPMN 7.x" if is_connected else "Integrated Enterprise BPMN State Machine",
+    }
+
+
 @router.get("/instances/{instance_id}")
 @router.get("/{instance_id}")
 @router.get("/{instance_id}/status")
@@ -123,31 +154,4 @@ def cancel_workflow(request: Request, instance_id: str, db: Session = Depends(ge
     return inst
 
 
-@router.get("/bpmn")
-def get_bpmn_xml():
-    """Returns the official BPMN 2.0 XML definition for the P&L workflow."""
-    bpmn_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "camunda", "pl_financial_workflow.bpmn")
-    if os.path.exists(bpmn_path):
-        with open(bpmn_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        return Response(content=content, media_type="application/xml")
-    return Response(content="<bpmn:definitions/>", media_type="application/xml")
 
-
-@router.get("/camunda-status")
-def get_camunda_status():
-    """Checks whether external Camunda REST engine is reachable."""
-    url = workflow_service.engine_url
-    is_connected = False
-    try:
-        import requests
-        r = requests.get(f"{url}/version", timeout=1.0)
-        is_connected = r.status_code == 200
-    except Exception:
-        is_connected = False
-
-    return {
-        "engine_url": url,
-        "is_connected": is_connected,
-        "engine_type": "Camunda BPMN 7.x" if is_connected else "Integrated Enterprise BPMN State Machine",
-    }

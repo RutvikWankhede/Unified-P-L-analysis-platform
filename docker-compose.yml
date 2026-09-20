@@ -11,6 +11,8 @@ services:
       - DATABASE_URL=sqlite:////app/data/enterprise_pl.db
       - SECRET_KEY=${SECRET_KEY:-supersecretkey-unified-pl-2025}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000}
+      - CAMUNDA_URL=${CAMUNDA_URL:-http://camunda:8080/engine-rest}
+      - CAMUNDA_ENGINE_URL=${CAMUNDA_ENGINE_URL:-http://camunda:8080/engine-rest}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ENABLE_COPILOT=true
@@ -20,12 +22,34 @@ services:
     volumes:
       - pl_data:/app/data
       - pl_uploads:/app/uploads
+    depends_on:
+      camunda:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/system/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
+    networks:
+      - pl_network
+    restart: unless-stopped
+
+  camunda:
+    image: camunda/camunda-bpm-platform:run-latest
+    container_name: unified_pl_camunda
+    ports:
+      - "8080:8080"
+    environment:
+      - CAMUNDA_BPM_RUN_AUTH_ENABLED=false
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/engine-rest/version || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - pl_network
     restart: unless-stopped
 
   frontend:
@@ -43,7 +67,14 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+    networks:
+      - pl_network
     restart: unless-stopped
+
+networks:
+  pl_network:
+    name: unified_pl_network
+    driver: bridge
 
 volumes:
   pl_data:

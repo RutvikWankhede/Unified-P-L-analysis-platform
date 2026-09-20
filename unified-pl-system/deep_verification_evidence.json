@@ -1,0 +1,664 @@
+{
+  "services": {
+    "backend_health_status": 200,
+    "frontend_login_status": 200,
+    "backend_url": "http://127.0.0.1:8000",
+    "frontend_url": "http://127.0.0.1:3000"
+  },
+  "camunda_reachability": {
+    "engine_url": "http://localhost:8080/engine-rest",
+    "is_live": false,
+    "engine_type": "Integrated Fallback Engine"
+  },
+  "bpmn": {
+    "file_exists": true,
+    "deployed_live": false,
+    "deployment_info": null
+  },
+  "workflow_start": {
+    "db_id": 7,
+    "process_instance_id": "pl-wf-dd483474",
+    "initial_status": "RUNNING",
+    "initial_step": "upload_data"
+  },
+  "hitl": {
+    "paused_at_approval": false,
+    "final_status": "RUNNING"
+  },
+  "worker": {
+    "daemon_active": true,
+    "topics": [
+      "upload_data",
+      "validate_data",
+      "process_pl",
+      "anomaly_detection",
+      "forecast",
+      "risk_assessment",
+      "generate_report"
+    ]
+  },
+  "ground_truth": {
+    "record_count": 1800,
+    "revenue": 277988276.87,
+    "expense": 198066136.85,
+    "profit": 79922140.02,
+    "margin": 28.75,
+    "lowest_dept": {
+      "department": "Human Resources",
+      "revenue": 8379915.44,
+      "expense": 6232216.33,
+      "profit": 2147699.11,
+      "margin": 25.63,
+      "vs_prev_period_pct": 6315.3
+    },
+    "second_lowest_dept": {
+      "department": "Legal",
+      "revenue": 11187527.24,
+      "expense": 8423892.18,
+      "profit": 2763635.05,
+      "margin": 24.7,
+      "vs_prev_period_pct": 6547.2
+    },
+    "validation_agent_pass": true,
+    "validation_agent_caught_hallucination": true,
+    "validation_agent_corrected": {
+      "revenue": 277988276.87,
+      "expense": 198066136.85,
+      "profit": 79922140.02000001,
+      "margin": 28.750183612014418,
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+    }
+  },
+  "copilot_traces": [
+    {
+      "query": "What is total revenue?",
+      "id": "total_revenue",
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "executed_tools": [
+        {
+          "tool_name": "get_kpis",
+          "arguments": {
+            "scope": "Enterprise"
+          },
+          "summary_output": "Rev: \u20b927.80 Cr, Exp: \u20b919.81 Cr, Profit: \u20b97.99 Cr (28.8%)",
+          "execution_time_ms": 314,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_memory_feedback",
+          "arguments": {},
+          "summary_output": "Retrieved 10 historical manager decisions",
+          "execution_time_ms": 6,
+          "status": "SUCCESS"
+        }
+      ],
+      "is_valid": true,
+      "total_time_ms": 1909,
+      "final_answer": "### Total Enterprise Revenue\n\nTotal enterprise gross revenue across the active dataset (**unified_pnl_enterprise_demo.xlsx**) is **\u20b927.80 Cr**.\n\n- **Total Gross Revenue**: **\u20b927.80 Cr**\n- **Total Operating Expenses**: \u20b919.81 Cr\n- **Calculated Net Profit**: \u20b97.99 Cr (28.75% operating margin)\n\n*Source: Active dataset \u2014 unified_pnl_enterprise_demo.xlsx | Reconciled Across 12 Departments*"
+    },
+    {
+      "query": "Which department has the lowest profit?",
+      "id": "lowest_profit_dept",
+      "planned_steps": [
+        "1. Fetch departmental performance metrics",
+        "2. Rank departments by profit (min)",
+        "3. Validate ranking and exact metric against database ground truth",
+        "4. Synthesize executive scorecard"
+      ],
+      "executed_tools": [
+        {
+          "tool_name": "get_kpis",
+          "arguments": {
+            "scope": "Enterprise"
+          },
+          "summary_output": "Rev: \u20b927.80 Cr, Exp: \u20b919.81 Cr, Profit: \u20b97.99 Cr (28.8%)",
+          "execution_time_ms": 412,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_department_analysis",
+          "arguments": {
+            "metric": "profit",
+            "sort_order": "asc"
+          },
+          "summary_output": "Ranked 12 departments. Top: Human Resources",
+          "execution_time_ms": 143,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_memory_feedback",
+          "arguments": {},
+          "summary_output": "Retrieved 10 historical manager decisions",
+          "execution_time_ms": 3,
+          "status": "SUCCESS"
+        }
+      ],
+      "is_valid": true,
+      "total_time_ms": 1982,
+      "final_answer": "### Answer\n\n**Human Resources** is the **lowest net profit** department with **\u20b921.48 L** (Gross Revenue: \u20b983.80 L, Operating Expenses: \u20b962.32 L, Operating Margin: 25.63%).\n\n### Key Numbers\n\n- **Department**: Human Resources\n- **Rank (#1)**: Lowest Net Profit\n- **Net Profit**: \u20b921.48 L\n- **Net Profit**: \u20b921.48 L\n- **Operating Margin**: 25.63%\n- **Revenue**: \u20b983.80 L\n- **Expenses**: \u20b962.32 L\n\n### What it means\n\nHuman Resources accounts for 3.0% of enterprise top-line revenue and 2.7% of aggregate net profit.\n\n### Recommended action\n\nMaintain operating stability and avoid disruptive cost reallocations.\n\n*Source: Active dataset \u2014 unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Net Profit = Revenue (8,379,915.44) - Expenses (6,232,216.33) = 2,147,699.11 | Margin = (2,147,699.11 / 8,379,915.44) * 100 = 25.63%`\n</details>"
+    },
+    {
+      "query": "Which department has the second-lowest profit?",
+      "id": "second_lowest_profit_dept",
+      "planned_steps": [
+        "1. Fetch departmental performance metrics",
+        "2. Rank departments by profit (min)",
+        "3. Validate ranking and exact metric against database ground truth",
+        "4. Synthesize executive scorecard"
+      ],
+      "executed_tools": [
+        {
+          "tool_name": "get_kpis",
+          "arguments": {
+            "scope": "Enterprise"
+          },
+          "summary_output": "Rev: \u20b927.80 Cr, Exp: \u20b919.81 Cr, Profit: \u20b97.99 Cr (28.8%)",
+          "execution_time_ms": 269,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_department_analysis",
+          "arguments": {
+            "metric": "profit",
+            "sort_order": "asc"
+          },
+          "summary_output": "Ranked 12 departments. Top: Human Resources",
+          "execution_time_ms": 56,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_memory_feedback",
+          "arguments": {},
+          "summary_output": "Retrieved 10 historical manager decisions",
+          "execution_time_ms": 2,
+          "status": "SUCCESS"
+        }
+      ],
+      "is_valid": true,
+      "total_time_ms": 1604,
+      "final_answer": "### Answer\n\n**Legal** is the **2nd least net profit** department with **\u20b927.64 L** (Gross Revenue: \u20b91.12 Cr, Operating Expenses: \u20b984.24 L, Operating Margin: 24.70%).\n\n**Human Resources** ranks #1 (lowest) at **\u20b921.48 L**, while **Legal** ranks #2 at **\u20b927.64 L**.\n\n### Key Numbers\n\n- **Department**: Legal\n- **Rank (#2)**: 2nd Least Net Profit\n- **Net Profit**: \u20b927.64 L\n- **Net Profit**: \u20b927.64 L\n- **Operating Margin**: 24.70%\n- **Revenue**: \u20b91.12 Cr\n- **Expenses**: \u20b984.24 L\n\n### What it means\n\nLegal accounts for 4.0% of enterprise top-line revenue and 3.5% of aggregate net profit.\n\n### Recommended action\n\nMaintain operating stability and avoid disruptive cost reallocations.\n\n*Source: Active dataset \u2014 unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Net Profit = Revenue (11,187,527.24) - Expenses (8,423,892.18) = 2,763,635.05 | Margin = (2,763,635.05 / 11,187,527.24) * 100 = 24.70%`\n</details>"
+    },
+    {
+      "query": "What is the operating margin of that department?",
+      "id": "department_margin",
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "executed_tools": [
+        {
+          "tool_name": "get_kpis",
+          "arguments": {
+            "scope": "Enterprise"
+          },
+          "summary_output": "Rev: \u20b927.80 Cr, Exp: \u20b919.81 Cr, Profit: \u20b97.99 Cr (28.8%)",
+          "execution_time_ms": 271,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_department_analysis",
+          "arguments": {
+            "metric": "margin",
+            "sort_order": "desc"
+          },
+          "summary_output": "Ranked 12 departments. Top: Finance",
+          "execution_time_ms": 47,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_memory_feedback",
+          "arguments": {},
+          "summary_output": "Retrieved 10 historical manager decisions",
+          "execution_time_ms": 2,
+          "status": "SUCCESS"
+        }
+      ],
+      "is_valid": true,
+      "total_time_ms": 1598,
+      "final_answer": "### Answer\n\n**Legal** generated \u20b91.12 Cr in revenue and \u20b984.24 L in expenses, delivering **\u20b927.64 L** in net profit (24.70% operating margin).\n\n### Key Numbers\n\n- **Revenue**: \u20b91.12 Cr\n- **Operating Expenses**: \u20b984.24 L\n- **Net Profit**: \u20b927.64 L\n- **Operating Margin**: 24.70%\n- **Budget Status**: Baseline tracked\n- **Anomalies Flagged**: 8 (0 critical)\n\n### What it means\n\nLegal represents 4.0% of enterprise revenue and 4.3% of operating expenses.\n\n### Recommended action\n\nMaintain commercial momentum in high-margin client accounts.\n\n*Source: Active dataset \u2014 unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Net Profit = 11187527.24 - 8423892.18 = 2763635.05 | Operating Margin = (2763635.05 / 11187527.24) * 100 = 24.70%`\n</details>"
+    },
+    {
+      "query": "What changed compared with the previous period?",
+      "id": "period_variance",
+      "planned_steps": [
+        "1. Fetch enterprise KPIs and active dataset profile",
+        "2. Analyze period-over-period trend variance",
+        "3. Perform departmental breakdown to identify primary cost drivers",
+        "4. Check for critical ledger anomalies",
+        "5. Generate prioritized recovery recommendations",
+        "6. Validate mathematical calculations against ground truth"
+      ],
+      "executed_tools": [
+        {
+          "tool_name": "get_kpis",
+          "arguments": {
+            "scope": "Enterprise"
+          },
+          "summary_output": "Rev: \u20b927.80 Cr, Exp: \u20b919.81 Cr, Profit: \u20b97.99 Cr (28.8%)",
+          "execution_time_ms": 309,
+          "status": "SUCCESS"
+        },
+        {
+          "tool_name": "get_memory_feedback",
+          "arguments": {},
+          "summary_output": "Retrieved 10 historical manager decisions",
+          "execution_time_ms": 2,
+          "status": "SUCCESS"
+        }
+      ],
+      "is_valid": true,
+      "total_time_ms": 1461,
+      "final_answer": "### Period-over-Period Financial Variance Analysis\n\nComparing the latest active period (**2026-12**) with the previous period (**2026-11**):\n\n| Metric | Previous (2026-11) | Current (2026-12) | Absolute Variance | Percentage Change |\n| :--- | ---: | ---: | ---: | ---: |\n| **Gross Revenue** | \u20b919.82 L | \u20b930.19 L | +\u20b910.37 L | +52.32% |\n| **Operating Expenses** | \u20b914.76 L | \u20b928.04 L | +\u20b913.27 L | +89.91% |\n| **Net Profit** | **\u20b95.06 L** | **\u20b92.15 L** | **-\u20b92.90 L** | **-57.41%** |\n| **Operating Margin** | **25.51%** | **7.13%** | **-18.38 pp** | \u2014 |\n\n**Key Driver:** Net profit shifted by **-\u20b92.90 L** (-57.41%) as revenue moved by +52.32% while operating expenses changed by +89.91%.\n\n*Source: Active dataset \u2014 unified_pnl_enterprise_demo.xlsx*"
+    }
+  ],
+  "memory": {
+    "decision_persisted": {
+      "timestamp": "2026-09-20T16:25:19.857238",
+      "recommendation_id": 777,
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+      "department": "Enterprise",
+      "action_type": "General Action",
+      "decision": "APPROVED",
+      "notes": "Authorized vendor renegotiation to trim OPEX by \u20b91.2 Cr.",
+      "user_id": 1
+    },
+    "directive_persisted": {
+      "timestamp": "2026-09-20T16:25:19.864560",
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+      "category": "RiskGovernance",
+      "directive": "Enforce maximum 15% budget variance limit in Supply Chain.",
+      "user_id": 1
+    },
+    "context_summary": {
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+      "recent_decisions": [
+        {
+          "timestamp": "2026-09-20T10:14:12.535769",
+          "recommendation_id": 88,
+          "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+          "department": "Enterprise",
+          "action_type": "General Action",
+          "decision": "MODIFIED",
+          "notes": "Adjusted cloud infrastructure migration to phased 6-month plan.",
+          "user_id": 1
+        },
+        {
+          "timestamp": "2026-09-20T10:12:19.516435",
+          "recommendation_id": 88,
+          "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+          "department": "Enterprise",
+          "action_type": "General Action",
+          "decision": "MODIFIED",
+          "notes": "Adjusted cloud infrastructure migration to phased 6-month plan.",
+          "user_id": 1
+        },
+        {
+          "timestamp": "2026-09-20T10:14:04.192726",
+          "recommendation_id": 77,
+          "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+          "department": "Enterprise",
+          "action_type": "General Action",
+          "decision": "APPROVED",
+          "notes": "Authorized 10% OPEX reduction in Marketing.",
+          "user_id": 1
+        },
+        {
+          "timestamp": "2026-09-20T10:12:10.807103",
+          "recommendation_id": 77,
+          "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+          "department": "Enterprise",
+          "action_type": "General Action",
+          "decision": "APPROVED",
+          "notes": "Authorized 10% OPEX reduction in Marketing.",
+          "user_id": 1
+        },
+        {
+          "timestamp": "2026-09-20T10:11:22.595389",
+          "recommendation_id": 77,
+          "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f",
+          "department": "Enterprise",
+          "action_type": "General Action",
+          "decision": "APPROVED",
+          "notes": "Authorized 10% OPEX reduction in Marketing.",
+          "user_id": 1
+        }
+      ],
+      "approved_count": 5,
+      "rejected_count": 3,
+      "active_directives": []
+    },
+    "learning_result": {
+      "decision_recorded": "REJECTED",
+      "notes": "CapEx cost too high for current quarter.",
+      "status": "Memory updated"
+    }
+  },
+  "what_if": {
+    "calculation": {
+      "baseline": {
+        "revenue": 277988276.87,
+        "expense": 198066136.85,
+        "profit": 79922140.02000001,
+        "margin": 28.750183612014418
+      },
+      "scenario": {
+        "rev_growth_pct": -12.0,
+        "exp_growth_pct": 8.0,
+        "revenue": 244629683.6456,
+        "expense": 213911427.798,
+        "profit": 30718255.847599983,
+        "margin": 12.557043523835867
+      },
+      "simulated": {
+        "rev_growth_pct": -12.0,
+        "exp_growth_pct": 8.0,
+        "revenue": 244629683.6456,
+        "expense": 213911427.798,
+        "profit": 30718255.847599983,
+        "margin": 12.557043523835867
+      },
+      "impact": {
+        "profit_delta": -49203884.17240003,
+        "margin_delta_pct": -16.193140088178552,
+        "is_profitable": true
+      },
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+    },
+    "risk_severity": "HIGH (Severe Margin Dilution)",
+    "strategic_recommendation": "Re-evaluate procurement terms and variable overheads to protect operating profitability.",
+    "narrative": "### What-If Stress-Test Assessment\n\nUnder a **-12.0% Revenue** and **+8.0% Expense** adjustment:\n\n- **Projected Net Profit:** **\u20b93.07 Cr** (Delta: -\u20b94.92 Cr vs baseline \u20b97.99 Cr)\n- **Projected Operating Margin:** **12.56%** (Shift: -16.19% pts)\n- **Projected Gross Revenue:** \u20b924.46 Cr\n- **Projected Expenditures:** \u20b921.39 Cr\n\n**Risk Severity:** `HIGH (Severe Margin Dilution)`\n\n**Strategic Recommendation:** Re-evaluate procurement terms and variable overheads to protect operating profitability.\n\n*Source: Active dataset simulation calculations*"
+  },
+  "ml": {
+    "forecast": {
+      "domain": "All",
+      "horizon_periods": 3,
+      "forecast_result": {
+        "predictions": {
+          "revenue": [
+            351800.9518278907,
+            351896.2350435269,
+            351991.5182591631
+          ],
+          "expense": [
+            252393.35948083288,
+            252465.10170967283,
+            252536.8439385128
+          ],
+          "profit": [
+            99407.59234705783,
+            99431.13333385409,
+            99454.67432065029
+          ]
+        },
+        "metrics": {
+          "revenue": {
+            "rmse": 108469.86,
+            "mape": 15.14,
+            "mae": 75069.65,
+            "confidence": 84.9
+          },
+          "expense": {
+            "rmse": 533207.09,
+            "mape": 35.26,
+            "mae": 330082.51,
+            "confidence": 64.7
+          }
+        },
+        "metadata": {
+          "model_version": "v1.2.0-linear",
+          "training_date": "2026-09-20T21:55:24.794217",
+          "historical_accuracy": 74.8,
+          "feature_importance": {
+            "trend": 0.85,
+            "seasonality": 0.15
+          }
+        }
+      },
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+    },
+    "anomalies": {
+      "total_records_analyzed": 1800,
+      "total_anomalies_detected": 95,
+      "critical_anomalies": 0,
+      "high_anomalies": 5,
+      "top_anomalies": [
+        {
+          "pl_record_id": 254,
+          "anomaly_score": 0.035840175326088186,
+          "severity": "Low",
+          "is_anomaly": true,
+          "percentile_rank": 44.21052631578947,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 418,
+          "anomaly_score": 0.03388150145671798,
+          "severity": "Low",
+          "is_anomaly": true,
+          "percentile_rank": 40.0,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1536,
+          "anomaly_score": 0.04087260074225041,
+          "severity": "Low",
+          "is_anomaly": true,
+          "percentile_rank": 51.57894736842105,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1017,
+          "anomaly_score": 0.1497701272575659,
+          "severity": "Medium",
+          "is_anomaly": true,
+          "percentile_rank": 82.10526315789473,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1031,
+          "anomaly_score": 0.0034522118337064756,
+          "severity": "Low",
+          "is_anomaly": true,
+          "percentile_rank": 9.473684210526315,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1211,
+          "anomaly_score": 0.20325525646648057,
+          "severity": "Medium",
+          "is_anomaly": true,
+          "percentile_rank": 94.73684210526315,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1535,
+          "anomaly_score": 0.1763639865786364,
+          "severity": "Medium",
+          "is_anomaly": true,
+          "percentile_rank": 86.3157894736842,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1589,
+          "anomaly_score": 0.004185397571167426,
+          "severity": "Low",
+          "is_anomaly": true,
+          "percentile_rank": 11.578947368421051,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1599,
+          "anomaly_score": 0.00524705264720382,
+          "severity": "Low",
+          "is_anomaly": true,
+          "percentile_rank": 12.631578947368421,
+          "status": "open"
+        },
+        {
+          "pl_record_id": 1665,
+          "anomaly_score": 0.019306751623284324,
+          "severity": "Low",
+          "is_anomaly": true,
+          "percentile_rank": 27.36842105263158,
+          "status": "open"
+        }
+      ],
+      "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+    }
+  },
+  "recommendations": {
+    "recommendations_count": 8,
+    "recommendations": [
+      {
+        "id": "rec-cost-velocity",
+        "category": "cost_reduction",
+        "priority": "High",
+        "title": "Arrest Expense Growth Velocity Outpacing Revenue",
+        "evidence": "Operating expenses grew at 89.9% period-over-period vs revenue growth of 52.3% (net divergence of +37.6%).",
+        "reason": "Expense expansion velocity exceeding top-line growth causes negative operating leverage and margin compression.",
+        "business_impact": "Unchecked cost inflation erodes gross margin gains achieved by sales expansion.",
+        "financial_impact": 5941984,
+        "confidence": 93,
+        "department": "Finance",
+        "metric": "Expense Growth vs Revenue Growth",
+        "suggested_action": "Tie department expenditure approvals strictly to verified revenue milestone achievements.",
+        "expected_benefit": "Prevent \u20b90.59 Cr in annual cost inflation by restoring positive operating leverage",
+        "action_button": "Audit Cost Trajectory",
+        "action_url": "departments.html"
+      },
+      {
+        "id": "rec-anomaly-triage",
+        "category": "risk_mitigation",
+        "priority": "High",
+        "title": "Triage 95 Flagged Ledger Anomalies (Administration)",
+        "evidence": "95 transactions flagged (including 5 high-severity), with 10 entries clustered in Administration.",
+        "reason": "Unresolved transaction outliers risk audit adjustments, duplicate vendor payments, and reporting discrepancies.",
+        "business_impact": "Statistical anomalies in ledger postings may indicate fraudulent activity, misclassification, or double billing.",
+        "financial_impact": 5500000,
+        "confidence": 96,
+        "department": "Administration",
+        "metric": "Ledger Anomalies",
+        "suggested_action": "Review flagged transactions in Administration and route high-severity outliers to department heads for formal sign-off.",
+        "expected_benefit": "Eliminate unverified ledger postings and ensure 100% compliance with corporate audit standards",
+        "action_button": "Triage Anomalies",
+        "action_url": "anomalies.html"
+      },
+      {
+        "id": "rec-forecast-hedging",
+        "category": "cost_reduction",
+        "priority": "High",
+        "title": "Implement Proactive Cost Hedging Against Forecast Contraction",
+        "evidence": "12-month profit forecast indicates downward slope with projected earnings of \u20b92.10 Cr.",
+        "reason": "Forward deceleration in operating earnings signals potential margin compression across subsequent periods.",
+        "business_impact": "Failing to adjust cost commitments during demand softening results in rapid operating margin decay.",
+        "financial_impact": 1262073,
+        "confidence": 91,
+        "department": "Enterprise",
+        "metric": "12M Forward Forecast",
+        "suggested_action": "Implement variable cost gating and freeze discretionary expenditures to insulate operating profit.",
+        "expected_benefit": "Protect baseline profitability against projected macroeconomic headwinds",
+        "action_button": "View Forecast Scenarios",
+        "action_url": "forecast.html"
+      },
+      {
+        "id": "rec-margin-rep",
+        "category": "margin_expansion",
+        "priority": "Medium",
+        "title": "Replicate Efficiency Playbook from Finance",
+        "evidence": "Finance achieved a 42.2% operating margin vs enterprise average 28.8%.",
+        "reason": "Unit-level operational controls in Finance can serve as an internal benchmark for lower-margin divisions.",
+        "business_impact": "Standardizing operational efficiencies across all business units elevates aggregate enterprise margin.",
+        "financial_impact": 3996107,
+        "confidence": 90,
+        "department": "Finance",
+        "metric": "Operating Margin %",
+        "suggested_action": "Benchmark cost-per-unit metrics and standardize procurement policies modeled after Finance.",
+        "expected_benefit": "Potential +1.0% to +2.0% blended margin expansion across secondary business units",
+        "action_button": "Benchmark Cost Metrics",
+        "action_url": "departments.html"
+      },
+      {
+        "id": "rec-revenue-growth",
+        "category": "revenue_growth",
+        "priority": "Medium",
+        "title": "Scale Commercial Expansion in Operations",
+        "evidence": "Operations generates \u20b94.61 Cr (16.6% of enterprise revenue).",
+        "reason": "Strong commercial momentum in Operations provides immediate leverage for high-value contract expansion.",
+        "business_impact": "Accelerating top-line revenue in proven profit engines compounds enterprise gross margins.",
+        "financial_impact": 2768110,
+        "confidence": 89,
+        "department": "Operations",
+        "metric": "Gross Revenue",
+        "suggested_action": "Expand high-margin service offerings and cross-sell multi-year enterprise contracts within Operations.",
+        "expected_benefit": "Potential \u20b90.28 Cr top-line ARR expansion (+6% commercial lift)",
+        "action_button": "Review Sales Pipeline",
+        "action_url": "forecast.html"
+      },
+      {
+        "id": "rec-opex-opt",
+        "category": "cost_reduction",
+        "priority": "Medium",
+        "title": "Optimize OPEX in Operations",
+        "evidence": "Operations incurs \u20b93.22 Cr, representing 16.2% of total enterprise operating expenses.",
+        "reason": "The heavy OPEX concentration in Operations makes enterprise EBITDA sensitive to cost inflation.",
+        "business_impact": "Unchecked operational overhead in primary cost centers limits operating leverage during market fluctuations.",
+        "financial_impact": 2574409,
+        "confidence": 91,
+        "department": "Operations",
+        "metric": "Operating Expenses",
+        "suggested_action": "Consolidate key supplier contracts, renegotiate SLA rate cards, and introduce automated procurement workflows in Operations.",
+        "expected_benefit": "Estimated annual cost savings of \u20b90.26 Cr (~8% reduction in departmental overhead)",
+        "action_button": "Audit Department Spend",
+        "action_url": "departments.html"
+      },
+      {
+        "id": "rec-margin-enhance-marketing",
+        "category": "margin_expansion",
+        "priority": "Medium",
+        "title": "Enhance Operating Margin in Marketing",
+        "evidence": "Marketing operating margin is compressed at 13.8%, trailing the enterprise benchmark of 28.8%.",
+        "reason": "High variable cost ratios in Marketing restrict operating leverage as transaction volumes scale.",
+        "business_impact": "Sub-par departmental margins dilute overall portfolio returns and suppress blended ROCE.",
+        "financial_impact": 635571,
+        "confidence": 89,
+        "department": "Marketing",
+        "metric": "Operating Margin %",
+        "suggested_action": "Audit vendor rate cards, eliminate low-margin legacy contracts, and automate manual operational touchpoints in Marketing.",
+        "expected_benefit": "Recover +250 bps in operating margin, generating an additional \u20b90.06 Cr in operating profit",
+        "action_button": "Audit Division Margin",
+        "action_url": "departments.html"
+      },
+      {
+        "id": "rec-data-governance",
+        "category": "governance",
+        "priority": "Low",
+        "title": "Enrich Ledger Schema with Cash Flow Dimensions",
+        "evidence": "Active dataset does not contain dedicated columns for Cash Flow, utilizing proxy calculations for advanced analytics.",
+        "reason": "Complete ledger schema attributes enable full variance modeling and true cash flow accounting.",
+        "business_impact": "Enriching core datasets unlocks precision FP&A forecasting and eliminates estimation assumptions.",
+        "financial_impact": 0,
+        "confidence": 98,
+        "department": "Data Operations",
+        "metric": "Schema Completeness",
+        "suggested_action": "Include Cash Flow columns in future monthly ledger uploads to activate automated budget variance tracking.",
+        "expected_benefit": "Enable 100% granular variance tracking and automated cash conversion audits",
+        "action_button": "Upload Enriched Dataset",
+        "action_url": "upload.html"
+      }
+    ],
+    "dataset_id": "899540e5-fa49-49e8-b87a-6965b44fd71f"
+  },
+  "dataset_independence": {
+    "dataset_a_revenue": 277988276.87,
+    "dataset_a_profit": 79922140.02,
+    "dataset_b_revenue": 16526230.25,
+    "dataset_b_profit": 4026232.28,
+    "is_dynamic": true
+  },
+  "ai_logs_count": 10
+}

@@ -36,7 +36,7 @@ app.dependency_overrides[get_db] = override_get_db
 
 
 @pytest.fixture(autouse=True)
-def setup_database():
+def setup_database(request: pytest.FixtureRequest):
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     # Create test user
@@ -48,6 +48,8 @@ def setup_database():
     )
     db.add(user)
     db.commit()
+    from services.pl_service import ensure_demo_data
+    ensure_demo_data(db, force=True)
     db.close()
     yield
     Base.metadata.drop_all(bind=engine)

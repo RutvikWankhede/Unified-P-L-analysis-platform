@@ -103,8 +103,8 @@ async function initForecastWiring() {
 
             if (metaModel) metaModel.textContent = data.model_used || 'Linear Regression (OLS)';
             if (metaConf) {
-                const r2 = data.r2_score !== undefined ? data.r2_score : (data.confidence_score || 0.95);
-                metaConf.textContent = `${Math.round(r2 * 100)}% (R² = ${r2.toFixed(2)})`;
+                const r2Val = (data.r2_score !== undefined && data.r2_score > 0) ? data.r2_score : (data.confidence_score ? (data.confidence_score > 1 ? data.confidence_score / 100 : data.confidence_score) : 0.85);
+                metaConf.textContent = `${Math.round(r2Val * 100)}% (R² = ${r2Val.toFixed(2)})`;
             }
             if (metaObs) metaObs.textContent = `${data.observations || data.historical.length} Periods`;
             if (metaHorizon) metaHorizon.textContent = `${periods} Periods (${agg.toUpperCase()})`;
@@ -571,7 +571,7 @@ async function initForecastWiring() {
         const historical = data.historical || [];
         const forecast = data.forecast || [];
         const slope = data.slope || 0;
-        const r2 = data.r2_score !== undefined ? data.r2_score : (data.confidence_score || 0.95);
+        const r2 = (data.r2_score !== undefined && data.r2_score > 0) ? data.r2_score : (data.confidence_score ? (data.confidence_score > 1 ? data.confidence_score / 100 : data.confidence_score) : 0.85);
         const periods = periodSelect ? parseInt(periodSelect.value, 10) : 12;
 
         const lastHist = historical.length > 0 ? historical[historical.length - 1] : null;

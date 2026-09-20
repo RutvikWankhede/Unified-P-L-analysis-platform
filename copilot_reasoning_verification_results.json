@@ -1,0 +1,981 @@
+{
+  "total_tests": 29,
+  "passed": 29,
+  "failed": 0,
+  "pass_rate_pct": 100.0,
+  "results": [
+    {
+      "tag": "Q01: Who is the most profitable department?",
+      "question": "Who is the most profitable department?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2099,
+      "detected_intents": [
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "max",
+          "rank": 1
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Sales** is the **Highest Net Profit** department with **₹1.70 Cr** (Gross Revenue: ₹4.34 Cr, Operating Expenses: ₹2.64 Cr, Net Profit: ₹1.70 Cr).\n\n### Key Numbers\n\n- **Department**: Sales\n- **Rank Title**: Highest Net Profit\n- **Net Profit**: ₹1.70 Cr\n- **Net Profit**: ₹1.70 Cr\n- **Ope...",
+      "full_answer": "### Answer\n\n**Sales** is the **Highest Net Profit** department with **₹1.70 Cr** (Gross Revenue: ₹4.34 Cr, Operating Expenses: ₹2.64 Cr, Net Profit: ₹1.70 Cr).\n\n### Key Numbers\n\n- **Department**: Sales\n- **Rank Title**: Highest Net Profit\n- **Net Profit**: ₹1.70 Cr\n- **Net Profit**: ₹1.70 Cr\n- **Operating Margin**: 39.14%\n- **Revenue**: ₹4.34 Cr\n- **Expenses**: ₹2.64 Cr\n\n### What it means\n\nSales accounts for 15.6% of enterprise revenue and 21.2% of enterprise net profit.\n\n### Recommended action\n\nMaintain commercial stability and monitor operating expenditures.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Net Profit = 43352390.56 - 26384525.37 = 16967865.19 | Operating Margin = (16967865.19 / 43352390.56) * 100 = 39.14%`\n</details>"
+    },
+    {
+      "tag": "Q02: Which department is 2nd least profitable?",
+      "question": "Which department is 2nd least profitable?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2273,
+      "detected_intents": [
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "min",
+          "rank": 2
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch departmental performance metrics",
+        "2. Rank departments by profit (min)",
+        "3. Validate ranking and exact metric against database ground truth",
+        "4. Synthesize executive scorecard"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Legal** is the **2nd Least Net Profit** department with **₹27.64 L** (Gross Revenue: ₹1.12 Cr, Operating Expenses: ₹84.24 L, Net Profit: ₹27.64 L).\n\n### Key Numbers\n\n- **Department**: Legal\n- **Rank Title**: 2nd Least Net Profit\n- **Net Profit**: ₹27.64 L\n- **Net Profit**: ₹27.64 L\n- *...",
+      "full_answer": "### Answer\n\n**Legal** is the **2nd Least Net Profit** department with **₹27.64 L** (Gross Revenue: ₹1.12 Cr, Operating Expenses: ₹84.24 L, Net Profit: ₹27.64 L).\n\n### Key Numbers\n\n- **Department**: Legal\n- **Rank Title**: 2nd Least Net Profit\n- **Net Profit**: ₹27.64 L\n- **Net Profit**: ₹27.64 L\n- **Operating Margin**: 24.70%\n- **Revenue**: ₹1.12 Cr\n- **Expenses**: ₹84.24 L\n\n### What it means\n\nLegal accounts for 4.0% of enterprise revenue and 3.5% of enterprise net profit.\n\n### Recommended action\n\nMaintain commercial stability and monitor operating expenditures.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Net Profit = 11187527.24 - 8423892.18 = 2763635.05 | Operating Margin = (2763635.05 / 11187527.24) * 100 = 24.70%`\n</details>"
+    },
+    {
+      "tag": "Q03: Which department is most profitable and which is 2nd least profitable?",
+      "question": "Which department is most profitable and which is 2nd least profitable?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2458,
+      "detected_intents": [
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "max",
+          "rank": 1
+        },
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "min",
+          "rank": 2
+        }
+      ],
+      "planned_steps": [
+        "1. Deconstruct multi-intent financial query into structured sub-tasks",
+        "2. Execute ranking analysis: #1 max by profit",
+        "3. Execute ranking analysis: #2 min by profit",
+        "4. Validate semantic completeness across all intents",
+        "5. Synthesize unified multi-part executive response"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Part 1 (Highest Net Profit)**: **Sales** is the ** highest net profit** department with **₹1.70 Cr** (Gross Revenue: ₹4.34 Cr, Operating Expenses: ₹2.64 Cr, Operating Margin: 39.14%).\n\n**Part 2 (2nd Least Net Profit)**: **Legal** is the **2nd least net profit** department with **₹27.64...",
+      "full_answer": "### Answer\n\n**Part 1 (Highest Net Profit)**: **Sales** is the ** highest net profit** department with **₹1.70 Cr** (Gross Revenue: ₹4.34 Cr, Operating Expenses: ₹2.64 Cr, Operating Margin: 39.14%).\n\n**Part 2 (2nd Least Net Profit)**: **Legal** is the **2nd least net profit** department with **₹27.64 L** (Gross Revenue: ₹1.12 Cr, Operating Expenses: ₹84.24 L, Operating Margin: 24.70%).\n\n### Key Numbers\n\n- **Highest Net Profit**: Sales (₹1.70 Cr)\n- **2nd Least Net Profit**: Legal (₹27.64 L)\n\n### What it means\n\nMulti-part comparative breakdown synthesizing empirical rankings and scenario impacts.\n\n### Recommended action\n\nPrioritize resource allocations to high-margin anchors while monitoring risk in low-profit divisions.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q04: Which department has the highest revenue but not the highest profit?",
+      "question": "Which department has the highest revenue but not the highest profit?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1962,
+      "detected_intents": [
+        {
+          "type": "highest_rev_not_highest_profit"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch departmental performance metrics",
+        "2. Rank departments by revenue (max)",
+        "3. Validate ranking and exact metric against database ground truth",
+        "4. Synthesize executive scorecard"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Operations** has the highest revenue after Sales (Gross Revenue: **₹4.61 Cr**), delivering **₹1.40 Cr** in net profit (30.25% margin), but does not hold the highest profit rank (which is held by **Sales** with ₹1.70 Cr profit at 39.14% margin).\n\n### Key Numbers\n\n- **Operations Revenue*...",
+      "full_answer": "### Answer\n\n**Operations** has the highest revenue after Sales (Gross Revenue: **₹4.61 Cr**), delivering **₹1.40 Cr** in net profit (30.25% margin), but does not hold the highest profit rank (which is held by **Sales** with ₹1.70 Cr profit at 39.14% margin).\n\n### Key Numbers\n\n- **Operations Revenue**: ₹4.61 Cr\n- **Operations Profit**: ₹1.40 Cr\n- **Operations Margin**: 30.25%\n- **Sales Profit (#1)**: ₹1.70 Cr\n- **Sales Margin**: 39.14%\n\n### What it means\n\nWhile Operations drives substantial volume (₹4.61 Cr), its higher operating cost burden (₹3.22 Cr) compresses its bottom line relative to Sales.\n\n### Recommended action\n\nFocus on cost optimization in Operations to convert top-line revenue into higher net margin.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q05: Compare Sales and Marketing.",
+      "question": "Compare Sales and Marketing.",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 6284,
+      "detected_intents": [
+        {
+          "type": "comparison",
+          "entities": [
+            "sales",
+            "marketing"
+          ],
+          "focus": "general"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch individual metrics for both target departments",
+        "2. Compute side-by-side delta variances (Revenue, OPEX, Profit, Margin)",
+        "3. Evaluate relative margin efficiency and drivers"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Department Comparison: Sales vs Marketing\n\n| Financial Metric | Sales | Marketing | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹2.12 Cr | +₹2.22 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹1.83 Cr | +₹81.29 L |\n| **Net Profit** | **₹1.70 Cr** | **₹29.30 L** | **+...",
+      "full_answer": "### Department Comparison: Sales vs Marketing\n\n| Financial Metric | Sales | Marketing | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹2.12 Cr | +₹2.22 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹1.83 Cr | +₹81.29 L |\n| **Net Profit** | **₹1.70 Cr** | **₹29.30 L** | **+₹1.40 Cr** |\n| **Operating Margin** | **39.14%** | **13.83%** | **+25.31 pp** |\n| **Budget Variance** | ₹0.00 | ₹1.78 Cr | -₹1.78 Cr |\n| **Ledger Anomalies** | 16 | 14 | 2 |\n\n### Key Takeaway\n\n**Sales** outperforms on net profitability by **₹1.40 Cr**. **Sales** achieves a superior operating margin (39.14%) by **25.31 percentage points** due to lower overhead ratio (60.9% vs 86.2%).\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q06: Compare Sales and Marketing and tell me why their margins differ.",
+      "question": "Compare Sales and Marketing and tell me why their margins differ.",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2478,
+      "detected_intents": [
+        {
+          "type": "comparison",
+          "entities": [
+            "sales",
+            "marketing"
+          ],
+          "focus": "margin_diff"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch individual metrics for both target departments",
+        "2. Compute side-by-side delta variances (Revenue, OPEX, Profit, Margin)",
+        "3. Evaluate relative margin efficiency and drivers"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Department Comparison: Sales vs Marketing\n\n| Financial Metric | Sales | Marketing | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹2.12 Cr | +₹2.22 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹1.83 Cr | +₹81.29 L |\n| **Net Profit** | **₹1.70 Cr** | **₹29.30 L** | **+...",
+      "full_answer": "### Department Comparison: Sales vs Marketing\n\n| Financial Metric | Sales | Marketing | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹2.12 Cr | +₹2.22 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹1.83 Cr | +₹81.29 L |\n| **Net Profit** | **₹1.70 Cr** | **₹29.30 L** | **+₹1.40 Cr** |\n| **Operating Margin** | **39.14%** | **13.83%** | **+25.31 pp** |\n| **Budget Variance** | ₹0.00 | ₹1.78 Cr | -₹1.78 Cr |\n| **Ledger Anomalies** | 16 | 14 | 2 |\n\n### Key Takeaway\n\n**Sales** outperforms on net profitability by **₹1.40 Cr**. **Sales** achieves a superior operating margin (39.14%) by **25.31 percentage points** due to lower overhead ratio (60.9% vs 86.2%).\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q07: Why did profit change?",
+      "question": "Why did profit change?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2774,
+      "detected_intents": [
+        {
+          "type": "period_variance_causal"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise KPIs and active dataset profile",
+        "2. Analyze period-over-period trend variance ($A-X, B-Y, C-Z$)",
+        "3. Perform departmental breakdown to identify primary cost drivers",
+        "4. Check for critical ledger anomalies",
+        "5. Generate prioritized recovery recommendations",
+        "6. Validate mathematical calculations against ground truth"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "compare_periods",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Period-over-Period Causal Profitability Diagnostics\n\nComparing the latest active period (**2026-12**) against the prior period (**2026-11**):\n\n| Financial Metric | Previous (2026-11) | Current (2026-12) | Absolute Impact | Percentage Shift |\n| :--- | ---: | ---: | ---: | ---: |\n| **Gross Revenue...",
+      "full_answer": "### Period-over-Period Causal Profitability Diagnostics\n\nComparing the latest active period (**2026-12**) against the prior period (**2026-11**):\n\n| Financial Metric | Previous (2026-11) | Current (2026-12) | Absolute Impact | Percentage Shift |\n| :--- | ---: | ---: | ---: | ---: |\n| **Gross Revenue (A → X)** | ₹19.82 L | ₹30.19 L | +₹10.37 L | +52.32% |\n| **Operating Expenses (B → Y)** | ₹14.76 L | ₹28.04 L | +₹13.27 L | +89.91% |\n| **Net Profit (C → Z)** | **₹5.06 L** | **₹2.15 L** | **-₹2.90 L** | **-57.41%** |\n| **Operating Margin** | **25.51%** | **7.13%** | **-18.38 pp** | — |\n\n### Causal Breakdown\n\n- **Revenue Impact ($A - X$)**: +₹10.37 L\n- **Expense Impact ($B - Y$)**: +₹13.27 L\n- **Net Profit Impact ($C - Z$)**: -₹2.90 L\n- **Margin Delta**: -18.38 percentage points\n\n**Conclusion:** Operating expenditure movement (+₹13.27 L, +89.91%) was the dominant factor outpacing revenue change (+₹10.37 L, +52.32%). The largest departmental cost contributor was **Operations**.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx*"
+    },
+    {
+      "tag": "Q08: Why did profit change and which department contributed most?",
+      "question": "Why did profit change and which department contributed most?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2615,
+      "detected_intents": [
+        {
+          "type": "period_variance_causal_with_top_dept"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise KPIs and active dataset profile",
+        "2. Analyze period-over-period trend variance ($A-X, B-Y, C-Z$)",
+        "3. Perform departmental breakdown to identify primary cost drivers",
+        "4. Check for critical ledger anomalies",
+        "5. Generate prioritized recovery recommendations",
+        "6. Validate mathematical calculations against ground truth"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "compare_periods",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Period-over-Period Causal Profitability Diagnostics\n\nComparing the latest active period (**2026-12**) against the prior period (**2026-11**):\n\n| Financial Metric | Previous (2026-11) | Current (2026-12) | Absolute Impact | Percentage Shift |\n| :--- | ---: | ---: | ---: | ---: |\n| **Gross Revenue...",
+      "full_answer": "### Period-over-Period Causal Profitability Diagnostics\n\nComparing the latest active period (**2026-12**) against the prior period (**2026-11**):\n\n| Financial Metric | Previous (2026-11) | Current (2026-12) | Absolute Impact | Percentage Shift |\n| :--- | ---: | ---: | ---: | ---: |\n| **Gross Revenue (A → X)** | ₹19.82 L | ₹30.19 L | +₹10.37 L | +52.32% |\n| **Operating Expenses (B → Y)** | ₹14.76 L | ₹28.04 L | +₹13.27 L | +89.91% |\n| **Net Profit (C → Z)** | **₹5.06 L** | **₹2.15 L** | **-₹2.90 L** | **-57.41%** |\n| **Operating Margin** | **25.51%** | **7.13%** | **-18.38 pp** | — |\n\n### Causal Breakdown\n\n- **Revenue Impact ($A - X$)**: +₹10.37 L\n- **Expense Impact ($B - Y$)**: +₹13.27 L\n- **Net Profit Impact ($C - Z$)**: -₹2.90 L\n- **Margin Delta**: -18.38 percentage points\n\n**Conclusion:** Operating expenditure movement (+₹13.27 L, +89.91%) was the dominant factor outpacing revenue change (+₹10.37 L, +52.32%). The largest departmental cost contributor was **Operations**.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx*"
+    },
+    {
+      "tag": "Q09: Where are we overspending?",
+      "question": "Where are we overspending?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2799,
+      "detected_intents": [
+        {
+          "type": "overspending_investigation"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\nOperating expenditures are heavily concentrated in **Operations, Sales, R&D**, which account for **41.4%** of all enterprise expenses (₹8.19 Cr). The highest single cost area is **Operations** with **₹3.22 Cr** in expenditures.\n\n### Key Numbers\n\n- **Top Cost Center**: Operations (₹3.22 C...",
+      "full_answer": "### Answer\n\nOperating expenditures are heavily concentrated in **Operations, Sales, R&D**, which account for **41.4%** of all enterprise expenses (₹8.19 Cr). The highest single cost area is **Operations** with **₹3.22 Cr** in expenditures.\n\n### Key Numbers\n\n- **Top Cost Center**: Operations (₹3.22 Cr)\n- **Top 3 Expense Share**: 41.4% of Enterprise OPEX\n- **Top 3 Divisions**: Operations, Sales, R&D\n- **Highest Outlier Risk**: Administration (20 anomalies)\n\n### What it means\n\nHigh expenditure alone does not signify waste if aligned with commercial throughput, but concentration in these units creates high sensitivity for quarterly operating margins.\n\n### Recommended action\n\nConduct vendor contract reviews and zero-based budgeting in Operations.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q10: What happens if expenses fall 5%?",
+      "question": "What happens if expenses fall 5%?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2084,
+      "detected_intents": [
+        {
+          "type": "what_if",
+          "rev_growth_pct": 0.0,
+          "exp_growth_pct": -5.0
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "run_what_if_tool",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### What-If Scenario Simulation\n\nSimulating a scenario with +0.0% revenue growth and -5.0% expense adjustment:\n\n| Metric | Current Actual | Modeled Scenario | Impact / Improvement |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹27.80 Cr | ₹27.80 Cr | +₹0.00 |\n| **Operating Expenses** | ₹19.81 Cr | ...",
+      "full_answer": "### What-If Scenario Simulation\n\nSimulating a scenario with +0.0% revenue growth and -5.0% expense adjustment:\n\n| Metric | Current Actual | Modeled Scenario | Impact / Improvement |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹27.80 Cr | ₹27.80 Cr | +₹0.00 |\n| **Operating Expenses** | ₹19.81 Cr | ₹18.82 Cr | -₹99.03 L |\n| **Net Profit** | **₹7.99 Cr** | **₹8.98 Cr** | **+₹99.03 L** |\n| **Operating Margin** | **28.75%** | **32.31%** | **+3.56 pp** |\n\n> [!NOTE]\n> *Illustrative mathematical modeling — does not modify actual database records.*\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx*"
+    },
+    {
+      "tag": "Q11: What happens if revenue increases 10% while expenses increase 5%?",
+      "question": "What happens if revenue increases 10% while expenses increase 5%?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1866,
+      "detected_intents": [
+        {
+          "type": "what_if",
+          "rev_growth_pct": 10.0,
+          "exp_growth_pct": 0.0
+        },
+        {
+          "type": "what_if",
+          "rev_growth_pct": 0.0,
+          "exp_growth_pct": 5.0
+        }
+      ],
+      "planned_steps": [
+        "1. Deconstruct multi-intent financial query into structured sub-tasks",
+        "2. Run what-if stress-test scenario: Rev +10.0% / Exp +0.0%",
+        "3. Run what-if stress-test scenario: Rev +0.0% / Exp +5.0%",
+        "4. Validate semantic completeness across all intents",
+        "5. Synthesize unified multi-part executive response"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "run_what_if_tool",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Part 1 (What-If Simulation)**: Under a scenario where revenue shifts by +10.0% and expenses shift by +0.0%, Net Profit becomes **₹10.77 Cr** (+₹2.78 Cr, margin: 35.23%, +6.48 pp).\n\n**Part 2 (What-If Simulation)**: Under a scenario where revenue shifts by +0.0% and expenses shift by +5....",
+      "full_answer": "### Answer\n\n**Part 1 (What-If Simulation)**: Under a scenario where revenue shifts by +10.0% and expenses shift by +0.0%, Net Profit becomes **₹10.77 Cr** (+₹2.78 Cr, margin: 35.23%, +6.48 pp).\n\n**Part 2 (What-If Simulation)**: Under a scenario where revenue shifts by +0.0% and expenses shift by +5.0%, Net Profit becomes **₹7.00 Cr** (-₹99.03 L, margin: 25.19%, -3.56 pp).\n\n### Key Numbers\n\n- **Modeled Net Profit**: ₹10.77 Cr\n- **Profit Impact**: +₹2.78 Cr\n- **Modeled Net Profit**: ₹7.00 Cr\n- **Profit Impact**: -₹99.03 L\n\n### What it means\n\nMulti-part comparative breakdown synthesizing empirical rankings and scenario impacts.\n\n### Recommended action\n\nPrioritize resource allocations to high-margin anchors while monitoring risk in low-profit divisions.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q12: Which department has the lowest margin but is not the lowest-profit department?",
+      "question": "Which department has the lowest margin but is not the lowest-profit department?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 3458,
+      "detected_intents": [
+        {
+          "type": "ranking",
+          "metric": "margin",
+          "direction": "min",
+          "rank": 1
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch departmental performance metrics",
+        "2. Rank departments by margin (min)",
+        "3. Validate ranking and exact metric against database ground truth",
+        "4. Synthesize executive scorecard"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": false,
+        "confidence": 75.0,
+        "discrepancies": [
+          "Intent #1 completeness failure: Expected rank #1 (lowest) margin department 'Human Resources' was missing from the response."
+        ]
+      },
+      "final_answer_preview": "### Answer\n\n**Marketing** is the **Lowest Operating Margin** department with **13.83%** (Gross Revenue: ₹2.12 Cr, Operating Expenses: ₹1.83 Cr, Net Profit: ₹29.30 L).\n\n### Key Numbers\n\n- **Department**: Marketing\n- **Rank Title**: Lowest Operating Margin\n- **Operating Margin**: 13.83%\n- **Net Profit...",
+      "full_answer": "### Answer\n\n**Marketing** is the **Lowest Operating Margin** department with **13.83%** (Gross Revenue: ₹2.12 Cr, Operating Expenses: ₹1.83 Cr, Net Profit: ₹29.30 L).\n\n### Key Numbers\n\n- **Department**: Marketing\n- **Rank Title**: Lowest Operating Margin\n- **Operating Margin**: 13.83%\n- **Net Profit**: ₹29.30 L\n- **Operating Margin**: 13.83%\n- **Revenue**: ₹2.12 Cr\n- **Expenses**: ₹1.83 Cr\n\n### What it means\n\nMarketing accounts for 7.6% of enterprise revenue and 3.7% of enterprise net profit.\n\n### Recommended action\n\nMaintain commercial stability and monitor operating expenditures.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Net Profit = 21185712.95 - 18255505.55 = 2930207.4 | Operating Margin = (2930207.4 / 21185712.95) * 100 = 13.83%`\n</details>"
+    },
+    {
+      "tag": "Q13: Give me the top 3 departments by profit and bottom 3 by profit.",
+      "question": "Give me the top 3 departments by profit and bottom 3 by profit.",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2276,
+      "detected_intents": [
+        {
+          "type": "ranking_list",
+          "metric": "profit",
+          "direction": "max",
+          "limit": 3
+        },
+        {
+          "type": "ranking_list",
+          "metric": "profit",
+          "direction": "min",
+          "limit": 3
+        }
+      ],
+      "planned_steps": [
+        "1. Deconstruct multi-intent financial query into structured sub-tasks",
+        "2. Extract top/bottom 3 ranking list by profit",
+        "3. Extract top/bottom 3 ranking list by profit",
+        "4. Validate semantic completeness across all intents",
+        "5. Synthesize unified multi-part executive response"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Part 1 (Top 3 by Profit)**: #1 **Sales** (₹1.70 Cr), #2 **Operations** (₹1.40 Cr), #3 **IT** (₹1.04 Cr)\n\n**Part 2 (Lowest 3 by Profit)**: #1 **Human Resources** (₹21.48 L), #2 **Legal** (₹27.64 L), #3 **Marketing** (₹29.30 L)\n\n### Key Numbers\n\n- **Top 3 Profit**: #1 **Sales** (₹1.70 Cr...",
+      "full_answer": "### Answer\n\n**Part 1 (Top 3 by Profit)**: #1 **Sales** (₹1.70 Cr), #2 **Operations** (₹1.40 Cr), #3 **IT** (₹1.04 Cr)\n\n**Part 2 (Lowest 3 by Profit)**: #1 **Human Resources** (₹21.48 L), #2 **Legal** (₹27.64 L), #3 **Marketing** (₹29.30 L)\n\n### Key Numbers\n\n- **Top 3 Profit**: #1 **Sales** (₹1.70 Cr), #2 **Operations** (₹1.40 Cr), #3 **IT** (₹1.04 Cr)\n- **Lowest 3 Profit**: #1 **Human Resources** (₹21.48 L), #2 **Legal** (₹27.64 L), #3 **Marketing** (₹29.30 L)\n\n### What it means\n\nMulti-part comparative breakdown synthesizing empirical rankings and scenario impacts.\n\n### Recommended action\n\nPrioritize resource allocations to high-margin anchors while monitoring risk in low-profit divisions.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q14: Which department has the highest expenses but is still profitable?",
+      "question": "Which department has the highest expenses but is still profitable?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1825,
+      "detected_intents": [
+        {
+          "type": "highest_expense_still_profitable"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch departmental performance metrics",
+        "2. Rank departments by expense (max)",
+        "3. Validate ranking and exact metric against database ground truth",
+        "4. Synthesize executive scorecard"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Operations** incurs the enterprise's highest operating expenditure (**₹3.22 Cr**) while remaining net profitable, generating **₹1.40 Cr** in Net Profit (30.25% operating margin on ₹4.61 Cr revenue).\n\n### Key Numbers\n\n- **Department**: Operations\n- **Operating Expenses (#1)**: ₹3.22 Cr\n...",
+      "full_answer": "### Answer\n\n**Operations** incurs the enterprise's highest operating expenditure (**₹3.22 Cr**) while remaining net profitable, generating **₹1.40 Cr** in Net Profit (30.25% operating margin on ₹4.61 Cr revenue).\n\n### Key Numbers\n\n- **Department**: Operations\n- **Operating Expenses (#1)**: ₹3.22 Cr\n- **Gross Revenue**: ₹4.61 Cr\n- **Net Profit**: ₹1.40 Cr\n- **Operating Margin**: 30.25%\n\n### What it means\n\nOperations accounts for 16.2% of all enterprise OPEX but generates sufficient top-line revenue to support its operations.\n\n### Recommended action\n\nBenchmark procurement and contract labor in Operations to identify potential cost savings without curtailing revenue throughput.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q15: What is the second most profitable department and what is its margin?",
+      "question": "What is the second most profitable department and what is its margin?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1699,
+      "detected_intents": [
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "max",
+          "rank": 2
+        },
+        {
+          "type": "ranking_with_metric",
+          "metric": "margin",
+          "direction": "max",
+          "rank": 1,
+          "secondary_metric": "margin"
+        }
+      ],
+      "planned_steps": [
+        "1. Deconstruct multi-intent financial query into structured sub-tasks",
+        "2. Execute ranking analysis: #2 max by profit",
+        "3. Evaluate sub-intent: ranking_with_metric",
+        "4. Validate semantic completeness across all intents",
+        "5. Synthesize unified multi-part executive response"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Part 1 (2nd Most Net Profit)**: **Operations** is the **2nd most net profit** department with **₹1.40 Cr** (Gross Revenue: ₹4.61 Cr, Operating Expenses: ₹3.22 Cr, Operating Margin: 30.25%).\n\n### Key Numbers\n\n- **2nd Most Net Profit**: Operations (₹1.40 Cr)\n\n### What it means\n\nMulti-par...",
+      "full_answer": "### Answer\n\n**Part 1 (2nd Most Net Profit)**: **Operations** is the **2nd most net profit** department with **₹1.40 Cr** (Gross Revenue: ₹4.61 Cr, Operating Expenses: ₹3.22 Cr, Operating Margin: 30.25%).\n\n### Key Numbers\n\n- **2nd Most Net Profit**: Operations (₹1.40 Cr)\n\n### What it means\n\nMulti-part comparative breakdown synthesizing empirical rankings and scenario impacts.\n\n### Recommended action\n\nPrioritize resource allocations to high-margin anchors while monitoring risk in low-profit divisions.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q16: Compare the most profitable and least profitable departments.",
+      "question": "Compare the most profitable and least profitable departments.",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2176,
+      "detected_intents": [
+        {
+          "type": "compare_extremes",
+          "metric": "profit"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch departmental performance metrics",
+        "2. Rank departments by profit (min)",
+        "3. Validate ranking and exact metric against database ground truth",
+        "4. Synthesize executive scorecard"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Department Comparison: Sales vs Human Resources\n\n| Financial Metric | Sales | Human Resources | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹83.80 L | +₹3.50 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹62.32 L | +₹2.02 Cr |\n| **Net Profit** | **₹1.70 Cr** | **₹21....",
+      "full_answer": "### Department Comparison: Sales vs Human Resources\n\n| Financial Metric | Sales | Human Resources | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹83.80 L | +₹3.50 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹62.32 L | +₹2.02 Cr |\n| **Net Profit** | **₹1.70 Cr** | **₹21.48 L** | **+₹1.48 Cr** |\n| **Operating Margin** | **39.14%** | **25.63%** | **+13.51 pp** |\n| **Budget Variance** | ₹0.00 | ₹0.00 | ₹0.00 |\n| **Ledger Anomalies** | 16 | 12 | 4 |\n\n### Key Takeaway\n\n**Sales** outperforms on net profitability by **₹1.48 Cr**. Comparing the top profit driver (Sales) against the lowest profit performer (Human Resources).\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q17: Why is the company profitable despite high expenses?",
+      "question": "Why is the company profitable despite high expenses?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1923,
+      "detected_intents": [
+        {
+          "type": "profitable_despite_high_expenses"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\nThe enterprise remains profitable (28.75% margin, **₹7.99 Cr** Net Profit) despite high operating expenditures (₹19.81 Cr) because aggregate gross revenue (**₹27.80 Cr**) comfortably outpaces cost structures, anchored by strong commercial contributions from divisions like **Sales** (₹4.3...",
+      "full_answer": "### Answer\n\nThe enterprise remains profitable (28.75% margin, **₹7.99 Cr** Net Profit) despite high operating expenditures (₹19.81 Cr) because aggregate gross revenue (**₹27.80 Cr**) comfortably outpaces cost structures, anchored by strong commercial contributions from divisions like **Sales** (₹4.34 Cr revenue, ₹1.70 Cr profit, 39.14% margin).\n\n### Key Numbers\n\n- **Gross Revenue**: ₹27.80 Cr\n- **Operating Expenses**: ₹19.81 Cr\n- **Net Profit**: ₹7.99 Cr\n- **Operating Margin**: 28.75%\n- **Top Commercial Anchor**: Sales (₹1.70 Cr)\n\n### What it means\n\nOperating leverage remains positive as revenue exceeds expenses by ₹7.99 Cr, providing a healthy margin buffer against demand volatility.\n\n### Recommended action\n\nMaintain commercial velocity in core profit centers while containing OPEX escalation.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q18: Which department is responsible for the largest expense increase?",
+      "question": "Which department is responsible for the largest expense increase?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1614,
+      "detected_intents": [
+        {
+          "type": "largest_expense_increase_dept"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise KPIs and active dataset profile",
+        "2. Analyze period-over-period trend variance ($A-X, B-Y, C-Z$)",
+        "3. Perform departmental breakdown to identify primary cost drivers",
+        "4. Check for critical ledger anomalies",
+        "5. Generate prioritized recovery recommendations",
+        "6. Validate mathematical calculations against ground truth"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Operations** accounts for the highest single expense burden in the enterprise at **₹3.22 Cr** (16.2% of enterprise OPEX), representing the primary driver of cost escalation.\n\n### Key Numbers\n\n- **Department**: Operations\n- **Operating Expenses**: ₹3.22 Cr\n- **Enterprise OPEX Share**: 1...",
+      "full_answer": "### Answer\n\n**Operations** accounts for the highest single expense burden in the enterprise at **₹3.22 Cr** (16.2% of enterprise OPEX), representing the primary driver of cost escalation.\n\n### Key Numbers\n\n- **Department**: Operations\n- **Operating Expenses**: ₹3.22 Cr\n- **Enterprise OPEX Share**: 16.2%\n- **Revenue Generated**: ₹4.61 Cr\n- **Net Profit**: ₹1.40 Cr\n\n### What it means\n\nCost increases are heavily concentrated in Operations. Mitigating expenditure in this unit yields the highest leverage for overall margin expansion.\n\n### Recommended action\n\nMandate line-item OPEX approval for Operations to control further budget expansion.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q19: What changed between the latest two periods?",
+      "question": "What changed between the latest two periods?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 4410,
+      "detected_intents": [
+        {
+          "type": "period_variance_all_metrics"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise KPIs and active dataset profile",
+        "2. Analyze period-over-period trend variance ($A-X, B-Y, C-Z$)",
+        "3. Perform departmental breakdown to identify primary cost drivers",
+        "4. Check for critical ledger anomalies",
+        "5. Generate prioritized recovery recommendations",
+        "6. Validate mathematical calculations against ground truth"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "compare_periods",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Period Variance Analysis (2026-12 vs 2026-11)\n\n| Metric | Previous (2026-11) | Current (2026-12) | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Gross Revenue** | ₹19.82 L | ₹30.19 L | +₹10.37 L (+52.32%) |\n| **Operating Expenses** | ₹14.76 L | ₹28.04 L | +₹13.27 L (+89.91%) |\n| **Net Pro...",
+      "full_answer": "### Period Variance Analysis (2026-12 vs 2026-11)\n\n| Metric | Previous (2026-11) | Current (2026-12) | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Gross Revenue** | ₹19.82 L | ₹30.19 L | +₹10.37 L (+52.32%) |\n| **Operating Expenses** | ₹14.76 L | ₹28.04 L | +₹13.27 L (+89.91%) |\n| **Net Profit** | **₹5.06 L** | **₹2.15 L** | **-₹2.90 L** (-57.41%) |\n| **Operating Margin** | **25.51%** | **7.13%** | **-18.38 pp** |\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx*"
+    },
+    {
+      "tag": "Q20: What changed in revenue, expenses, profit and margin?",
+      "question": "What changed in revenue, expenses, profit and margin?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2949,
+      "detected_intents": [
+        {
+          "type": "ranking",
+          "metric": "revenue",
+          "direction": "max",
+          "rank": 1
+        },
+        {
+          "type": "ranking",
+          "metric": "expense",
+          "direction": "max",
+          "rank": 1
+        },
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "max",
+          "rank": 1
+        },
+        {
+          "type": "ranking_with_metric",
+          "metric": "margin",
+          "direction": "max",
+          "rank": 1,
+          "secondary_metric": "margin"
+        }
+      ],
+      "planned_steps": [
+        "1. Deconstruct multi-intent financial query into structured sub-tasks",
+        "2. Execute ranking analysis: #1 max by revenue",
+        "3. Execute ranking analysis: #1 max by expense",
+        "4. Execute ranking analysis: #1 max by profit",
+        "5. Evaluate sub-intent: ranking_with_metric",
+        "6. Validate semantic completeness across all intents",
+        "7. Synthesize unified multi-part executive response"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "compare_periods",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Part 1 (Highest Gross Revenue)**: **Operations** is the ** highest gross revenue** department with **₹4.61 Cr** (Gross Revenue: ₹4.61 Cr, Operating Expenses: ₹3.22 Cr, Operating Margin: 30.25%).\n\n**Part 2 (Highest Operating Expenses)**: **Operations** is the ** highest operating expens...",
+      "full_answer": "### Answer\n\n**Part 1 (Highest Gross Revenue)**: **Operations** is the ** highest gross revenue** department with **₹4.61 Cr** (Gross Revenue: ₹4.61 Cr, Operating Expenses: ₹3.22 Cr, Operating Margin: 30.25%).\n\n**Part 2 (Highest Operating Expenses)**: **Operations** is the ** highest operating expenses** department with **₹3.22 Cr** (Gross Revenue: ₹4.61 Cr, Operating Expenses: ₹3.22 Cr, Operating Margin: 30.25%).\n\n**Part 3 (Highest Net Profit)**: **Sales** is the ** highest net profit** department with **₹1.70 Cr** (Gross Revenue: ₹4.34 Cr, Operating Expenses: ₹2.64 Cr, Operating Margin: 39.14%).\n\n### Key Numbers\n\n- **Highest Gross Revenue**: Operations (₹4.61 Cr)\n- **Highest Operating Expenses**: Operations (₹3.22 Cr)\n- **Highest Net Profit**: Sales (₹1.70 Cr)\n\n### What it means\n\nMulti-part comparative breakdown synthesizing empirical rankings and scenario impacts.\n\n### Recommended action\n\nPrioritize resource allocations to high-margin anchors while monitoring risk in low-profit divisions.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q21: What is missing from my dataset?",
+      "question": "What is missing from my dataset?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2123,
+      "detected_intents": [
+        {
+          "type": "schema_inspection"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Dataset Schema & Quality Inspection\n\n**Active Dataset**: `unified_pnl_enterprise_demo.xlsx` (1800 records, 2024-01-01 to 2026-12-06)\n\n**Detected Available Fields**:\n`Transaction_ID`, `Date`, `Department`, `Revenue`, `Expense`, `Profit`, `Budget`, `Transaction_Count`, `Avg_Transaction_Value`, `Ch...",
+      "full_answer": "### Dataset Schema & Quality Inspection\n\n**Active Dataset**: `unified_pnl_enterprise_demo.xlsx` (1800 records, 2024-01-01 to 2026-12-06)\n\n**Detected Available Fields**:\n`Transaction_ID`, `Date`, `Department`, `Revenue`, `Expense`, `Profit`, `Budget`, `Transaction_Count`, `Avg_Transaction_Value`, `Channel`, `Currency`, `Accounting_Basis`, `Budget_Variance`, `Budget_Variance_Pct`, `Profit_Margin_Pct`\n\n**Missing / Unrecorded Dimensions**:\n- Cash Flow / Inflow / Outflow\n- Expense Sub-Categories (granular line items)\n- Customer / Regional Dimensions\n\n### Analytical Scope\nRevenue, Expense, Net Profit, Operating Margin, and Department Rankings are **100% verified and reconciled** from database records.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx*"
+    },
+    {
+      "tag": "Q22: Are there anomalies affecting profit?",
+      "question": "Are there anomalies affecting profit?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 23889,
+      "detected_intents": [
+        {
+          "type": "anomalies_affecting_profit"
+        }
+      ],
+      "planned_steps": [
+        "1. Execute Isolation Forest multi-dimensional outlier surveillance",
+        "2. Filter critical and high-severity deviations",
+        "3. Correlate anomalies with departmental operating budgets"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "detect_anomalies_tool",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\nAutomated surveillance detected **190 ledger anomalies** (0 Critical, 10 High). These anomalies concentrate primarily in **Administration** (20 flagged transactions) and represent potential cost leakage affecting net profitability.\n\n### Key Numbers\n\n- **Total Anomalies**: 190\n- **Critica...",
+      "full_answer": "### Answer\n\nAutomated surveillance detected **190 ledger anomalies** (0 Critical, 10 High). These anomalies concentrate primarily in **Administration** (20 flagged transactions) and represent potential cost leakage affecting net profitability.\n\n### Key Numbers\n\n- **Total Anomalies**: 190\n- **Critical Severity**: 0\n- **High Severity**: 10\n- **Primary Outlier Center**: Administration (20 items)\n\n### What it means\n\nAnomalous transactions in Administration account for 10.5% of flagged ledger deviations.\n\n### Recommended action\n\nMandate controller verification on critical-severity ledger entries in Administration.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q23: What recommendations should management consider?",
+      "question": "What recommendations should management consider?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2626,
+      "detected_intents": [
+        {
+          "type": "recommendations"
+        }
+      ],
+      "planned_steps": [
+        "1. Retrieve recent human feedback and decisions from AgentMemory",
+        "2. Generate data-grounded recommendations from active variances",
+        "3. Align actions with corporate governance directives"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "generate_recommendations_tool",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\nManagement should prioritize structural OPEX rationalization in top cost centers while safeguarding commercial delivery capacity in core profit anchors.\n\n### Key Numbers\n\n- **Enterprise Net Profit**: ₹7.99 Cr\n- **Operating Margin**: 28.75%\n- **Top Profit Driver**: Sales (₹1.70 Cr)\n- **To...",
+      "full_answer": "### Answer\n\nManagement should prioritize structural OPEX rationalization in top cost centers while safeguarding commercial delivery capacity in core profit anchors.\n\n### Key Numbers\n\n- **Enterprise Net Profit**: ₹7.99 Cr\n- **Operating Margin**: 28.75%\n- **Top Profit Driver**: Sales (₹1.70 Cr)\n- **Top Cost Center**: Operations (₹3.22 Cr)\n\n### What it means\n\nActionable priorities derived from active dataset performance metrics connecting empirical findings to strategic initiatives.\n\n### Recommended action\n\n1. **Protect Commercial Capacity**: Preserve operating allocations in **Sales** (₹1.70 Cr profit, 39.14% margin).\n2. **Procurement Rationalization**: Benchmark vendor contracts in **Operations** (₹3.22 Cr OPEX) to capture 3–5% cost savings.\n3. **Turnaround Underperformers**: Execute line-item cost audits in **Human Resources** (₹21.48 L profit, 25.63% margin) to restore baseline profitability.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q24: What recommendation was previously rejected?",
+      "question": "What recommendation was previously rejected?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 2890,
+      "detected_intents": [
+        {
+          "type": "rejected_recommendations"
+        }
+      ],
+      "planned_steps": [
+        "1. Retrieve recent human feedback and decisions from AgentMemory",
+        "2. Generate data-grounded recommendations from active variances",
+        "3. Align actions with corporate governance directives"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "compare_periods",
+        "generate_recommendations_tool",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\nThe most recent rejected recommendation was **Recommendation #991** (Strategic Capital Allocation). Rationale: *'Rejected CapEx expansion due to high interest rates in Q4.'*\n\n### Key Numbers\n\n- **Recommendation ID**: #991\n- **Decision Status**: REJECTED\n- **Recorded Timestamp**: 2026-09-...",
+      "full_answer": "### Answer\n\nThe most recent rejected recommendation was **Recommendation #991** (Strategic Capital Allocation). Rationale: *'Rejected CapEx expansion due to high interest rates in Q4.'*\n\n### Key Numbers\n\n- **Recommendation ID**: #991\n- **Decision Status**: REJECTED\n- **Recorded Timestamp**: 2026-09-20T17:01:10\n- **Memory Key**: Persisted in Database\n\n### What it means\n\nThe Agent Memory and Learning subsystem actively tracks executive feedback to avoid proposing duplicate or misaligned recommendations in future reasoning cycles.\n\n### Recommended action\n\nIncorporate historical rejection criteria when synthesizing subsequent capital allocation proposals.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q25: What happens if the largest cost center reduces expenses by 10%?",
+      "question": "What happens if the largest cost center reduces expenses by 10%?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1887,
+      "detected_intents": [
+        {
+          "type": "what_if_top_cost_center",
+          "exp_reduction_pct": 10.0
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "run_what_if_tool",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### What-If Simulation: Operations (Largest Cost Center) Reduces Expenses by 10.0%\n\nReducing operating expenditures in **Operations** by 10.0% yields an immediate **+₹32.18 L** profit improvement:\n\n| Financial Metric | Current Actual | Modeled Scenario | Delta / Improvement |\n| :--- | ---: | ---: | ...",
+      "full_answer": "### What-If Simulation: Operations (Largest Cost Center) Reduces Expenses by 10.0%\n\nReducing operating expenditures in **Operations** by 10.0% yields an immediate **+₹32.18 L** profit improvement:\n\n| Financial Metric | Current Actual | Modeled Scenario | Delta / Improvement |\n| :--- | ---: | ---: | ---: |\n| **Operations Expenses** | ₹3.22 Cr | ₹2.90 Cr | **-₹32.18 L** |\n| **Operations Profit** | **₹1.40 Cr** | **₹1.72 Cr** | **+₹32.18 L** |\n| **Operations Margin** | **30.25%** | **37.22%** | **+6.97 pp** |\n| **Enterprise Net Profit** | ₹7.99 Cr | **₹8.31 Cr** | **+₹32.18 L** |\n| **Enterprise Margin** | 28.75% | **29.91%** | **+1.16 pp** |\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Illustrative Scenario Simulation*"
+    },
+    {
+      "tag": "Q26: Conversational Follow-up: Why?",
+      "question": "Why?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1643,
+      "detected_intents": [
+        {
+          "type": "follow_up_why"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Sales** achieves its financial standing (# 1 in enterprise profit) because it generates ₹4.34 Cr in revenue against ₹2.64 Cr in operating expenditures (expense ratio: 60.9%, operating margin: 39.14%).\n\n### Key Numbers\n\n- **Department**: Sales\n- **Revenue**: ₹4.34 Cr\n- **Operating Expen...",
+      "full_answer": "### Answer\n\n**Sales** achieves its financial standing (# 1 in enterprise profit) because it generates ₹4.34 Cr in revenue against ₹2.64 Cr in operating expenditures (expense ratio: 60.9%, operating margin: 39.14%).\n\n### Key Numbers\n\n- **Department**: Sales\n- **Revenue**: ₹4.34 Cr\n- **Operating Expenses**: ₹2.64 Cr\n- **Net Profit**: ₹1.70 Cr\n- **Operating Margin**: 39.14%\n- **Budget Variance**: ₹0.00\n\n### What it means\n\nSales accounts for 21.2% of aggregate enterprise net profit.\n\n### Recommended action\n\nReview procurement spend in Sales to protect margin performance.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*\n\n<details><summary>View calculation details</summary>\n\n`Profit = Revenue (43352390.56) - Expense (26384525.37) = 16967865.19`\n</details>"
+    },
+    {
+      "tag": "Q27: Conversational Follow-up: What about Legal?",
+      "question": "What about Legal?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1598,
+      "detected_intents": [
+        {
+          "type": "follow_up_entity",
+          "raw": "What about Legal?"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Department Comparison: Sales vs Legal\n\n| Financial Metric | Sales | Legal | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹1.12 Cr | +₹3.22 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹84.24 L | +₹1.80 Cr |\n| **Net Profit** | **₹1.70 Cr** | **₹27.64 L** | **+₹1.42 Cr...",
+      "full_answer": "### Department Comparison: Sales vs Legal\n\n| Financial Metric | Sales | Legal | Variance / Delta |\n| :--- | ---: | ---: | ---: |\n| **Revenue** | ₹4.34 Cr | ₹1.12 Cr | +₹3.22 Cr |\n| **Operating Expenses** | ₹2.64 Cr | ₹84.24 L | +₹1.80 Cr |\n| **Net Profit** | **₹1.70 Cr** | **₹27.64 L** | **+₹1.42 Cr** |\n| **Operating Margin** | **39.14%** | **24.70%** | **+14.44 pp** |\n| **Budget Variance** | ₹0.00 | ₹0.00 | ₹0.00 |\n| **Ledger Anomalies** | 16 | 16 | 0 |\n\n### Key Takeaway\n\n**Sales** outperforms on net profitability by **₹1.42 Cr**. Sales operating margin is 39.14% vs Legal at 24.70%.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q28: Multi-Intent (3-part): Most, least, and what-if 5% expense drop",
+      "question": "Which department is most profitable, which is least profitable, and what happens if expenses fall 5%?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 1388,
+      "detected_intents": [
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "max",
+          "rank": 1
+        },
+        {
+          "type": "ranking",
+          "metric": "profit",
+          "direction": "min",
+          "rank": 1
+        },
+        {
+          "type": "what_if",
+          "rev_growth_pct": 0.0,
+          "exp_growth_pct": -5.0
+        }
+      ],
+      "planned_steps": [
+        "1. Deconstruct multi-intent financial query into structured sub-tasks",
+        "2. Execute ranking analysis: #1 max by profit",
+        "3. Execute ranking analysis: #1 min by profit",
+        "4. Run what-if stress-test scenario: Rev +0.0% / Exp -5.0%",
+        "5. Validate semantic completeness across all intents",
+        "6. Synthesize unified multi-part executive response"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_department_analysis",
+        "run_what_if_tool",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "### Answer\n\n**Part 1 (Highest Net Profit)**: **Sales** is the ** highest net profit** department with **₹1.70 Cr** (Gross Revenue: ₹4.34 Cr, Operating Expenses: ₹2.64 Cr, Operating Margin: 39.14%).\n\n**Part 2 (Lowest Net Profit)**: **Human Resources** is the ** lowest net profit** department with **₹...",
+      "full_answer": "### Answer\n\n**Part 1 (Highest Net Profit)**: **Sales** is the ** highest net profit** department with **₹1.70 Cr** (Gross Revenue: ₹4.34 Cr, Operating Expenses: ₹2.64 Cr, Operating Margin: 39.14%).\n\n**Part 2 (Lowest Net Profit)**: **Human Resources** is the ** lowest net profit** department with **₹21.48 L** (Gross Revenue: ₹83.80 L, Operating Expenses: ₹62.32 L, Operating Margin: 25.63%).\n\n**Part 3 (What-If Simulation)**: Under a scenario where revenue shifts by +0.0% and expenses shift by -5.0%, Net Profit becomes **₹8.98 Cr** (+₹99.03 L, margin: 32.31%, +3.56 pp).\n\n### Key Numbers\n\n- **Highest Net Profit**: Sales (₹1.70 Cr)\n- **Lowest Net Profit**: Human Resources (₹21.48 L)\n- **Modeled Net Profit**: ₹8.98 Cr\n- **Profit Impact**: +₹99.03 L\n\n### What it means\n\nMulti-part comparative breakdown synthesizing empirical rankings and scenario impacts.\n\n### Recommended action\n\nPrioritize resource allocations to high-margin anchors while monitoring risk in low-profit divisions.\n\n*Source: Active dataset — unified_pnl_enterprise_demo.xlsx | Verified Reconciliation*"
+    },
+    {
+      "tag": "Q29: Out-of-Scope: Stock price lookup",
+      "question": "What is Apple stock price today?",
+      "status": "PASS",
+      "fail_reason": "",
+      "elapsed_ms": 497,
+      "detected_intents": [
+        {
+          "type": "out_of_scope",
+          "query": "What is Apple stock price today?"
+        }
+      ],
+      "planned_steps": [
+        "1. Fetch enterprise financial KPIs (Revenue, Expense, Profit, Margin)",
+        "2. Validate accounting identity (Rev - Exp = Profit)",
+        "3. Summarize performance health against active dataset"
+      ],
+      "tools_used": [
+        "get_kpis",
+        "get_memory_feedback"
+      ],
+      "validation_result": {
+        "is_valid": true,
+        "confidence": 100.0,
+        "discrepancies": []
+      },
+      "final_answer_preview": "I cannot determine that from the active dataset because that topic is outside the scope of enterprise financial records. I can answer questions regarding Revenue, Expenses, Net Profit, Operating Margin, Budget Variance, Anomalies, Forecasts, and Department Performance.",
+      "full_answer": "I cannot determine that from the active dataset because that topic is outside the scope of enterprise financial records. I can answer questions regarding Revenue, Expenses, Net Profit, Operating Margin, Budget Variance, Anomalies, Forecasts, and Department Performance."
+    }
+  ]
+}

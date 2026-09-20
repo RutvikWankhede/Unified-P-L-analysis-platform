@@ -19,11 +19,11 @@ COPY unified-pl-system/backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy backend source code and seed data
+# Copy backend source code and seed datasets
 COPY unified-pl-system/backend /app
-COPY data/default/unified_pnl_enterprise_demo.csv /app/data/default/unified_pnl_enterprise_demo.csv
-COPY unified_pnl_enterprise_demo.csv /app/demo_dataset.csv
+COPY data /app/data
 COPY unified_pnl_enterprise_demo.csv /app/unified_pnl_enterprise_demo.csv
+COPY unified_pnl_enterprise_demo.xlsx /app/unified_pnl_enterprise_demo.xlsx
 
 # Ensure persistent directories exist
 RUN mkdir -p /app/data /app/uploads

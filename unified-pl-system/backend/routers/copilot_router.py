@@ -27,6 +27,7 @@ class CopilotChatRequest(BaseModel):
 
 class CopilotChatResponse(BaseModel):
     answer: str
+    trace: Optional[Dict[str, Any]] = None
 
 class CopilotContextResponse(BaseModel):
     active_dataset_name: str
@@ -98,12 +99,19 @@ def copilot_chat_endpoint(
     start_time = time.time()
     status = "SUCCESS"
     response_text = ""
+    trace_dict = None
     try:
-        response_text = ask_copilot(db, query_text, session_id=session_id)
+        from agents.financial_orchestrator_agent import financial_orchestrator
+        trace = financial_orchestrator.execute_query(db, query_text, session_id=session_id, user_id=current_user.id)
+        response_text = trace.final_answer
+        trace_dict = trace.dict()
     except Exception as e:
         status = "FAILED"
         logger.error(f"Copilot query failed: {e}", exc_info=True)
-        response_text = "I encountered an issue processing your financial query. Please refine your question or try again."
+        try:
+            response_text = ask_copilot(db, query_text, session_id=session_id)
+        except Exception:
+            response_text = "I encountered an issue processing your financial query. Please refine your question or try again."
         db.rollback()
     
     execution_time_ms = int((time.time() - start_time) * 1000)
@@ -123,7 +131,7 @@ def copilot_chat_endpoint(
         agent_name="Copilot",
         action="chat",
         request_payload={"prompt_len": len(query_text), "session_id": session_id},
-        response_payload={"answer_len": len(response_text)},
+        response_payload={"answer_len": len(response_text), "has_trace": trace_dict is not None},
         execution_time_ms=execution_time_ms,
         status=status,
         created_at=datetime.now(timezone.utc)
@@ -131,5 +139,33 @@ def copilot_chat_endpoint(
     db.add(ai_log)
     db.commit()
 
-    return {"answer": response_text}
+    return {"answer": response_text, "trace": trace_dict}
+
+@router.get("/trace/{session_id}")
+def get_session_traces(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve recent agent execution traces for transparency and explainability."""
+    logs = (
+        db.query(AILog)
+        .filter(AILog.agent_name == "FinancialOrchestratorAgent")
+        .order_by(AILog.created_at.desc())
+        .limit(10)
+        .all()
+    )
+    return [
+        {
+            "id": l.id,
+            "agent": l.agent_name,
+            "action": l.action,
+            "request": l.request_payload,
+            "response": l.response_payload,
+            "execution_time_ms": l.execution_time_ms,
+            "status": l.status,
+            "created_at": l.created_at.isoformat() if l.created_at else None
+        }
+        for l in logs
+    ]
 

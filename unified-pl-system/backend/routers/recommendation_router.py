@@ -90,6 +90,8 @@ def approve_recommendation(
     db: Session = Depends(get_db), 
     current_user: User = Depends(require_role(["ADMINISTRATOR", "FINANCE_MANAGER"]))
 ):
+    from services.learning_agent import learning_agent
+
     # Logic to approve
     # Record audit log
     db.add(AuditLog(
@@ -100,7 +102,17 @@ def approve_recommendation(
         description=f"Approved recommendation {recommendation_id}: {payload.reason}"
     ))
     db.commit()
-    return {"status": "approved", "recommendation_id": recommendation_id}
+
+    # Pass decision to Agentic AI Learning & Memory System
+    learning_agent.process_recommendation_feedback(
+        db=db,
+        recommendation_id=recommendation_id,
+        decision="APPROVED",
+        notes=payload.reason,
+        user_id=current_user.id
+    )
+
+    return {"status": "approved", "recommendation_id": recommendation_id, "memory_updated": True}
 
 @router.post("/{recommendation_id}/reject")
 def reject_recommendation(
@@ -109,6 +121,8 @@ def reject_recommendation(
     db: Session = Depends(get_db), 
     current_user: User = Depends(require_role(["ADMINISTRATOR", "FINANCE_MANAGER"]))
 ):
+    from services.learning_agent import learning_agent
+
     # Record audit log
     db.add(AuditLog(
         user_id=current_user.id,
@@ -118,7 +132,17 @@ def reject_recommendation(
         description=f"Rejected recommendation {recommendation_id}: {payload.reason}"
     ))
     db.commit()
-    return {"status": "rejected", "recommendation_id": recommendation_id}
+
+    # Pass decision to Agentic AI Learning & Memory System
+    learning_agent.process_recommendation_feedback(
+        db=db,
+        recommendation_id=recommendation_id,
+        decision="REJECTED",
+        notes=payload.reason,
+        user_id=current_user.id
+    )
+
+    return {"status": "rejected", "recommendation_id": recommendation_id, "memory_updated": True}
 
 @router.post("/{recommendation_id}/modify")
 def modify_recommendation(
@@ -127,6 +151,8 @@ def modify_recommendation(
     db: Session = Depends(get_db), 
     current_user: User = Depends(require_role(["ADMINISTRATOR", "FINANCE_MANAGER"]))
 ):
+    from services.learning_agent import learning_agent
+
     # Record audit log
     db.add(AuditLog(
         user_id=current_user.id,
@@ -137,4 +163,14 @@ def modify_recommendation(
         metadata_json=payload.modifications
     ))
     db.commit()
-    return {"status": "modified", "recommendation_id": recommendation_id}
+
+    # Pass decision to Agentic AI Learning & Memory System
+    learning_agent.process_recommendation_feedback(
+        db=db,
+        recommendation_id=recommendation_id,
+        decision="MODIFIED",
+        notes=payload.reason,
+        user_id=current_user.id
+    )
+
+    return {"status": "modified", "recommendation_id": recommendation_id, "memory_updated": True}

@@ -37,7 +37,7 @@ if (typeof window !== 'undefined') {
     }
 })();
 
-// ─── Canonical Navigation Map (EXACT 9 items in exact order) ─────────────────
+// ─── Canonical Navigation Map (EXACT 10 items in exact order) ─────────────────
 const NAV_ITEMS = [
     { href: 'dashboard.html',   icon: 'grid_view',     label: 'Dashboard' },
     { href: 'departments.html', icon: 'domain',        label: 'Departments' },
@@ -46,6 +46,7 @@ const NAV_ITEMS = [
     { href: 'anomalies.html',   icon: 'warning',       label: 'Anomaly Detection' },
     { href: 'copilot.html',     icon: 'smart_toy',     label: 'AI Copilot' },
     { href: 'what-if.html',     icon: 'tune',          label: 'What-If Analysis' },
+    { href: 'workflow.html',    icon: 'account_tree',  label: 'BPMN Workflow' },
     { href: 'reports.html',     icon: 'description',   label: 'Reports' },
     { href: 'settings.html',    icon: 'settings',      label: 'Settings' },
 ];
@@ -81,13 +82,25 @@ const PAGE_ALIASES = {
     'copilot.html':        'copilot.html',
     'ai-copilot.html':     'copilot.html',
 
-    // 7. What-If Analysis (replaces Workflow)
+    // 7. What-If Analysis
     'what-if.html':        'what-if.html',
     'whatif.html':         'what-if.html',
-    'workflow.html':       'what-if.html',
 
-    // 8. Reports
+    // 8. BPMN Workflow Orchestration
+    'workflow.html':       'workflow.html',
+    'workflows.html':      'workflow.html',
+
+    // 9. Reports
     'reports.html':        'reports.html',
+    'executive.html':      'reports.html',
+    'export.html':         'reports.html',
+    'pivot.html':          'reports.html',
+    'recommendations.html':'reports.html',
+    'financial-health.html':'reports.html',
+    'analytics.html':      'reports.html',
+
+    // 10. Settings
+    'settings.html':       'settings.html',
     'executive.html':      'reports.html',
     'export.html':         'reports.html',
     'pivot.html':          'reports.html',

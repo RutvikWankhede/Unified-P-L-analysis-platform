@@ -45,6 +45,36 @@ export const formatCurrency = (val) => {
     }
 };
 
+export const formatUnitAware = (val, unitType = 'currency') => {
+    if (val === null || val === undefined || (typeof val === 'number' && isNaN(val))) {
+        if (unitType === 'percentage' || unitType === 'pct') return '0.00%';
+        if (unitType === 'percentage-point' || unitType === 'pp') return '0.00 pp';
+        if (unitType === 'count' || unitType === 'number') return '0';
+        if (unitType === 'duration' || unitType === 'ms') return '0ms';
+        return '₹0';
+    }
+    const num = Number(val);
+    if (unitType === 'percentage' || unitType === 'pct') {
+        return `${num.toFixed(2)}%`;
+    }
+    if (unitType === 'percentage-point' || unitType === 'pp') {
+        return `${num >= 0 ? '+' : ''}${num.toFixed(2)} pp`;
+    }
+    if (unitType === 'count' || unitType === 'number') {
+        return Math.round(num).toLocaleString('en-IN');
+    }
+    if (unitType === 'duration' || unitType === 'ms') {
+        if (num >= 1000) return `${(num / 1000).toFixed(2)}s`;
+        return `${Math.round(num)}ms`;
+    }
+    return formatCurrency(num);
+};
+
+if (typeof window !== 'undefined') {
+    window.formatCurrency = formatCurrency;
+    window.formatUnitAware = formatUnitAware;
+}
+
 // Generate an adaptive, non-repeating color palette using HSL distribution
 export function initEchart(container, opts = {}) {
     let chart = echarts.getInstanceByDom(container);

@@ -107,23 +107,25 @@ class WorkflowService:
         camunda_id = None
         is_camunda_connected = False
         try:
-            import requests
-            camunda_vars = {
-                "department": {"value": department, "type": "String"},
-                "fiscalYear": {"value": fiscal_year, "type": "String"},
-                "userId": {"value": user_id, "type": "Integer"},
-            }
-            resp = requests.post(
-                f"{self.engine_url}/process-definition/key/financial-analysis-pipeline/start",
-                json={"variables": camunda_vars, "businessKey": business_key},
-                timeout=1.0,
-            )
-            if resp.status_code in [200, 201]:
-                camunda_id = resp.json().get("id")
-                is_camunda_connected = True
-                logger.info(f"Registered Camunda process instance: {camunda_id}")
+            from camunda.client import camunda_client
+            if camunda_client.is_reachable():
+                camunda_vars = {
+                    "department": department,
+                    "fiscalYear": fiscal_year,
+                    "userId": user_id,
+                    "triggerApproval": trigger_approval,
+                }
+                c_resp = camunda_client.start_process(
+                    process_definition_key="Process_PLFinancialOrchestration",
+                    variables=camunda_vars,
+                    business_key=business_key
+                )
+                if c_resp and c_resp.get("id"):
+                    camunda_id = c_resp.get("id")
+                    is_camunda_connected = True
+                    logger.info(f"Registered Camunda process instance: {camunda_id}")
         except Exception as ce:
-            logger.debug(f"External Camunda engine not responding at {self.engine_url} ({ce}). Running integrated BPMN engine.")
+            logger.debug(f"External Camunda engine not responding ({ce}). Running integrated BPMN engine.")
 
         # Initialize steps map
         steps_state = {}
@@ -152,9 +154,9 @@ class WorkflowService:
             started_by=user_id,
             started_at=datetime.utcnow(),
             variables={
-                "process_definition_key": "financial-analysis-pipeline",
+                "process_definition_key": "Process_PLFinancialOrchestration",
                 "business_key": business_key,
-                "engine_status": "CONNECTED" if is_camunda_connected else "CONNECTED (Integrated Engine)",
+                "engine_status": "CONNECTED (Camunda 7 REST)" if is_camunda_connected else "DISCONNECTED (Integrated Fallback Engine)",
                 "engine_type": "Camunda BPMN 7.x (REST Engine)" if is_camunda_connected else "Integrated Enterprise BPMN State Machine",
                 "dataset_id": dataset_id or 1,
                 "dataset_name": "Enterprise_PL_Historical.csv",
@@ -219,6 +221,16 @@ class WorkflowService:
         inst.variables = vars_dict
         db.commit()
 
+        # Complete external Camunda User Task if present
+        try:
+            from camunda.client import camunda_client
+            if camunda_client.is_reachable():
+                tasks = camunda_client.get_user_tasks(process_instance_id=inst.process_instance_id)
+                for t in tasks:
+                    camunda_client.complete_user_task(t["id"], {"approved": True, "notes": notes})
+        except Exception as ce:
+            logger.debug(f"[WorkflowService] Camunda task resolution notice: {ce}")
+
         # Resume background execution from report generation
         threading.Thread(target=self._resume_after_approval, args=(inst.id,), daemon=True).start()
 
@@ -256,6 +268,16 @@ class WorkflowService:
         inst.completed_at = datetime.utcnow()
         inst.variables = vars_dict
         db.commit()
+
+        # Complete external Camunda User Task if present
+        try:
+            from camunda.client import camunda_client
+            if camunda_client.is_reachable():
+                tasks = camunda_client.get_user_tasks(process_instance_id=inst.process_instance_id)
+                for t in tasks:
+                    camunda_client.complete_user_task(t["id"], {"approved": False, "notes": notes})
+        except Exception as ce:
+            logger.debug(f"[WorkflowService] Camunda task resolution notice: {ce}")
 
         return self._serialize_instance(inst)
 

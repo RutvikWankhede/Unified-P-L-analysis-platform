@@ -758,16 +758,10 @@ def finalize_ingestion(
 
 _demo_data_seeded = False
 
-def ensure_demo_data(db: Session):
+def ensure_demo_data(db: Session, force: bool = False):
     """Seed the database with the canonical demo dataset if missing, and ensure runtime active dataset is canonical seed on startup."""
-    global _demo_data_seeded
-    if _demo_data_seeded:
-        return
-
     import os
     from pathlib import Path
-    if "PYTEST_CURRENT_TEST" in os.environ:
-        return
 
     from core.dataset_context import runtime_dataset_context, CANONICAL_SEED_ID, CANONICAL_SEED_FILENAME
     from models.uploaded_file import UploadedFile
@@ -780,6 +774,9 @@ def ensure_demo_data(db: Session):
         canonical_record_count = db.query(PLRecord).filter(PLRecord.upload_id == canonical_upload_id).count()
     except Exception:
         canonical_record_count = 0
+
+    if canonical_record_count >= 1000 and not force:
+        return
 
     if canonical_record_count < 1000:
         candidate_paths = [
